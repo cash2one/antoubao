@@ -1,0 +1,88 @@
+#!/usr/bin/python
+#encoding=utf-8
+
+from header import *
+
+def usage():
+    print "COMMAND:"
+    print "\tpython "+sys.argv[0]
+    exit(-1)
+
+#获取最新日期
+date = 0
+for platid in scored.keys():
+    for timestamp in scored[platid].keys():
+        if timestamp > date:
+            date = timestamp
+
+DATACUR.execute("TRUNCATE view_mobile")
+DATACONN.commit()
+
+count = 0
+for platid in scored.keys():
+    if date in datas[-1][platid].keys():
+        #写入最新周数据
+        d = {}
+        for i in range(0, len(dataTable)):
+            for key in dataTable[i]:
+                if i == 1:
+                    d[key] = datas[i][platid][key]
+                else:
+                    d[key] = datas[i][platid][date][key]
+        d['status'] = 1
+        fromHashToMySQL(DATACUR, DATACONN, "view_mobile", normalize(d))
+        count += 1
+
+        #写入最新周前一周的数据
+        last_timestamp = sorted(datas[-1][platid].keys(), reverse=True)[1]
+        d = {}
+        for i in range(0, len(dataTable)):
+            for key in dataTable[i]:
+                if i == 1:
+                    d[key] = datas[i][platid][key]
+                else:
+                    d[key] = datas[i][platid][last_timestamp][key]
+        d['date'] = -1
+        fromHashToMySQL(DATACUR, DATACONN, "view_mobile", normalize(d))
+
+#计算行业均值
+for key in dataTable[-1]:
+    if key == 'level' or key == 'capital_adequacy_ratio' or key == 'score':
+        continue
+    stringSQL = "SELECT avg("+key+") FROM view_mobile WHERE `date` != -1"
+    DATACUR.execute(stringSQL)
+    value = DATACUR.fetchone()[0]
+    stringSQL = "UPDATE view_mobile SET `standard_"+key+"` = '"+str(value)+"'"
+    DATACUR.execute(stringSQL)
+DATACONN.commit()
+
+#计算排名
+lvlTable = {}
+lvlTable['R'] = ["score", "weekly_total_investor", "weekly_lending", "weekly_total_borrower", "ave_annualized_return", "weekly_loan_period", "turnover_registered", "top10_ratio_loan", "not_returned_yet", "money_growth"]
+lvlTable['RR'] = ["DESC", "DESC", "DESC", "DESC", "DESC", "ASC", "DESC", "ASC", "DESC", "DESC"]
+rank = {}
+for i in range(0, len(lvlTable['R'])):
+    key = lvlTable['R'][i]
+    if key not in rank.keys():
+        rank[key] = {}
+    for where in ['=', '!=']:
+        rank_count = 1
+        stringSQL = "SELECT platform_id FROM view_mobile WHERE `date` "+where+" -1 ORDER BY `"+key+"` "+lvlTable['RR'][i]
+        DATACUR.execute(stringSQL)
+        platids = DATACUR.fetchall()
+        for platid in platids:
+            if where == '!=':
+                stringSQL = "UPDATE view_mobile SET `rank_"+key+"` = '"+str(rank_count)+"', `var_"+key+"` = '"+str(rank[key][platid[0]]-rank_count)+"' WHERE `platform_id` = '"+platid[0]+"' AND `date` "+where+" -1"
+                DATACUR.execute(stringSQL)
+            else:
+                stringSQL = "UPDATE view_mobile SET `rank_"+key+"` = '"+str(rank_count)+"' WHERE `platform_id` = '"+platid[0]+"' AND `date` "+where+" -1"
+                DATACUR.execute(stringSQL)
+                rank[key][platid[0]] = rank_count
+            rank_count += 1
+DATACONN.commit()
+
+#清空上周数据
+DATACUR.execute("DELETE FROM view_mobile WHERE `date` = -1")
+DATACONN.commit()
+
+print "View data("+str(count)+") written to MySQL-db(view_mobile)!"

@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" type="text/css" href="/themes/ruizhict/new/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/themes/ruizhict/new/css/branch.css">
+    <link rel="stylesheet" type="text/css" href="/themes/ruizhict/new/css/module.css">
+    <link rel="stylesheet" type="text/css" href="/themes/ruizhict/new/css/column.css">
+    <meta name="description" content="中国创新型金融服务平台,提供小额贷款,短期贷款.相比银行贷款,自定利率,借期灵活. 惠人贷着力于搭建借款人和投资人借贷关系，创新型金融服务平台，让民间借贷行为更规范,安全,有效.通过市场竞标方式,贷款人可以得到更多的利率;借出者通过这种新的理财方式,可以获取比银行,债券等更好的回报" />
+	<meta name="keywords" content="个人网络信用无抵押贷款无抵押 无担保 小额贷款 投资理财 企业融资1 " />
+    <title>短期周转 -  我要投资 -  惠人贷 - 中国创新型金融服务平台,着重网上贷款,网络贷款,个人小额贷款,无抵押贷款.致力建立搭建一个为有理财需求和借款需求人群服务的网上互动平台</title>
+    <script type="text/javascript" src="/themes/ruizhict/js/jquery.js"></script>
+    <script type="text/javascript" src="/themes/ruizhict/new/js/action.js"></script>
+    <script charset="utf-8" src="http://wpa.b.qq.com/cgi/wpa.php"></script>
+</head>
+ 
+   <style type="text/css">
+	.ad1{ position:absolute; left:0; top:175px; z-index:99; width:90px; height:350px;}
+	.ad2{ position:absolute; right:0; top:175px; z-index:99; width:90px; height:350px;}
+	.ad1 span,.ad2 span{ width:14px; height:14px; display:inline-block; position:absolute; z-index:9; cursor:pointer; right:2px; top:3px;}
+	.ad1 img,.ad2 img{ position:relative; z-index:1;}
+	</style>
+	<script type="text/javascript">
+	$(window).scroll(function(){
+	       var scH=$(document).scrollTop();
+		var topH=175;
+	       if(scH>topH){
+	           $(".ad1,.ad2").css("top",scH+"px");
+	       }else{
+	           $(".ad1,.ad2").css("top",topH+"px");
+	       }
+	   });
+	
+	
+	$(".ad1 span,.ad2 span").live("click",function(){	
+		$(".ad1,.ad2").hide();		
+	});	
+ </script>
+ 
+							
+			
+<div class="headerdiv">
+    <div class="head1">
+        <div class="topinfo hrd_grid cl_a">
+            <div class="person f_s12 fl">
+                       	 	<a href="/index.php?user&q=action/reg" name="注册">注册</a>
+				<a href="/index.php?user&q=action/login" name="登录">登录</a>
+                        </div>
+            <div class="services fr">
+             	<div class="kefu fl f_s12">
+             		<a href="javascript:void(0)" id="BizQQWPA" name="在线客服"><img src="/themes/ruizhict/new/images/zxkf.jpg" alt=""/></a> 
+             		<!-- <a href="http://wpa.qq.com/msgrd?v=3&amp;uin=2624997638&amp;site=qq&amp;menu=yes" target="_blank" name="在线客服"><img src="/themes/ruizhict/new/images/zxkf.jpg" alt=""></a>-->
+             		<a href="/site/index.html?q=licai/xinrenbidu" class="helpimg" name="帮助">帮助</a>
+             	</div>
+                <div class="tel fl">400-022-0898</div>
+            </div>
+        </div>
+    </div>
+    <div class="head2">
+        <div class="head hrd_grid">
+           <!-- <div class="logo fl"><a href="/" title="惠人贷 惠人惠己 普惠金融" name="LOGO"></a></div> -->
+                        <div class="logo fl" style="padding-top:0px">
+				<a href="/" title="惠人贷 惠人惠己 普惠金融" name="LOGO"><p><img src="/data/upfiles/img/20150127/1422302998686519.gif" title="惠人贷" alt="惠人贷" width="121" height="64" border="0" vspace="0" style="width: 121px; height: 64px;"/></p></a>
+		    </div>
+		                             
+            <div class="hrd_AD">
+		    	<!-- <a href="http://www.huirendai.com/gonggao/a474.html" target="_blank"><img src="/plugins/index.php?q=imgurl&url=QGltZ3VybEA=" alt="世界那么大，多带点钱去看世界！"/></a> -->
+		    	<p><a href="http://www.huirendai.com/gonggao/a474.html" target="_blank" title="投资送收益"><img src="/data/upfiles/img/20150417/1429277544378694.png" title="1429277544378694.png" alt="送收益 logo.png"/></a></p>		    </div> 
+		     
+		               <div class="fr navdiv">
+	          	<a href="/index.php"  name="首页">首页</a>
+	            <a href="/invest/index.html" class="now" name="开始理财">开始理财</a>
+	            <!--<a href="/">债权转让</a>  -->
+	           	<!-- <a href="/index.php?novice" >新手专区</a> -->
+	            <a href="/index.php?mall&q=goods/index"    name="惠分期">惠分期</a>
+	            <a href="/index.php?olap"    name="惠借钱"><span></span>惠借钱</a>
+	            <a href="/index.php?user"  name="我的惠人贷">我的惠人贷</a>
+	            <a href="/index.php?starinvestor&amp;q=ranklist"  name="理财明星">理财明星</a>
+            </div>
+        </div>
+    </div>
+ </div>
+  
+      
+     <!--计算器弹出框-->
+<div class="mask" id="mask_counter"></div> 
+<!-- 登录弹框开始 -->
+<div class="mask" id="login_bg_box">
+    <div class="counter e_rad" style="margin:200px 0 0 -250px;">
+    <div class="c_head" style="padding:0px 30px 0 45px;">
+      <h1>登录</h1>
+      <div class="c_head_r" id="c_head_r"><b>关闭</b>
+        <div class="close">
+          <div class="shut"><img src="/themes/ruizhict/new/images/close.png" alt=""/></div>
+        </div>
+      </div>
+    </div>
+    <div class="input_div">
+       <div class="ipt logdiv" style="margin:0 auto;">
+       <form name="userlogin" method="post" id="userlogin_form" action="/index.php?user&q=action/login" onsubmit="return check_user_form();">
+        <ul>
+          <li class="ttrt"><font class="f_cor" id="user_msg_notice"></font></li>
+          <li class="ipta">
+            <input type="text" id="keywords" name="keywords" placeholder="输入您用户名 / 邮箱 / 手机号码" maxlength="64" class="inputa" autocomplete="off">
+          </li>
+          <li class="iptb">
+            <input type="password" name="password" id="password" placeholder="输入登录密码" maxlength="16" class="inputa"  autocomplete="off">
+          </li>
+          <li class="iptc" style="display:none" id="yanzheng">
+            <div>
+              <input type="text" class="inputb" data-role="check-code" name="valicode" id="captcha"  autocomplete="off" placeholder="请输入右侧数字之和" onBlur="checkVal(this.value)">
+              <i class="rton" style="display:none"></i></div>
+           	  <img id="captcha-img" src="/plugins/index.php?q=imgcode" alt="点击刷新" onClick="this.src='/plugins/index.php?q=imgcode&t=' + Math.random();" align="absmiddle" style="cursor:pointer" /> <a href="javascript:;" class="captcha-change" onClick="document.getElementById('captcha-img').src='/plugins/index.php?q=imgcode&t=' + Math.random();"><img src="/themes/ruizhict/new/images/0739.png" alt=""/></a>
+          </li>
+          <li class="iptd">
+            <span><input type="checkbox" id="form_checkbox" data-role="autologin" name="cookietime" value="4320">
+            3天内自动登录，
+            <font class="f_cor">
+                                                      公用环境请勿选择!
+                        </font></span>
+            <a href="/index.php?user&q=action/getpwd/email">忘记密码</a>
+          </li>
+          <li>
+			<input type="hidden" id="login_user_id" name="login_user_id" value="" />
+          	<input type="hidden" id="logintype" name="logintype" value="user">
+            <button class="g_btn" type="button" id="btnSubmit" tabindex="1" onclick="loginSubmit()" >登 录</button>
+          </li>
+          <li class="ipte">使用合作伙伴登录
+	          <a  href="/index.php?user&q=oauth/connect&site=weibo"><img src="/themes/ruizhict/new/images/weibo.jpg" alt="微博" target="_blank"/></a>
+	          <a  href="/index.php?user&q=oauth/connect&site=qq"><img src="/themes/ruizhict/new/images/qq.jpg" alt="QQ" target="_blank"/></a>
+          	  <a href="/index.php?user&q=action/reg" target="_blank">立即注册</a>
+          </li>
+        </ul>
+        </form>
+      </div>
+   </div>
+</div>
+</div>
+<script>
+var  addtime =  '';
+var  sales_prom_type =  0;
+var  first_tender_amt =  '';
+var  first_tender_time =  '';
+
+		var logintype='user';
+		var user_id = $('#login_user_id').val();
+		$(document).ready(function () {
+		    $("#c_head_r").click(function () {
+		        $("#login_bg_box").hide();
+		    });
+		})
+		function checkLogin(jumpurl){
+			 if(jumpurl == 'speed'){
+				 $('#backurl').val('/index.php?olap&q=sapply');
+			 }else if(jumpurl == 'Payroll'){
+				 $('#backurl').val('/index.php?olap&q=papply');
+			 }
+			if(user_id == ''){
+				$("#login_bg_box").show();
+			}else{
+				 var backurl = $('#backurl').val();
+				 	 backurl = backurl+"?detail=true";
+				// var flag = is_new_user(addtime,sales_prom_type);
+				 var flag = is_first_tender(first_tender_amt,first_tender_time,sales_prom_type);
+				
+				 if(!flag){
+					 alert("您已经不是新用户，不能投新手标");
+				 }else{
+		 			 window.location.href = decodeURIComponent(backurl);
+				 }
+			}
+		}	
+	     /**
+	     *个人登录校验
+	     */
+	     function check_user_form(){
+	    	 var keywords = $("#keywords").val(); 
+	    	 var password = $("#password").val(); 
+	    	 if($.trim(keywords) == ''){
+	    		 $("#user_msg_notice").html('请输入用户名/邮箱/手机号'); 
+	    		 return false;
+	    	 } else {
+	    		 $("#user_msg_notice").html(''); 
+	    	 }
+			if($.trim(password) == ''){
+			 $("#user_msg_notice").html('请输入密码'); 
+	    		 return false;
+	    	 }else{
+	    		 $("#user_msg_notice").html('');
+	    	 }
+		}
+       
+       function loginSubmit(){
+     	  
+      	  var keywords = $('#keywords').val();
+      	  var password = $('#password').val();
+      	  var valicode = $('#captcha').val();
+      	  if(keywords==''){
+      	    	$('#user_msg_notice').html('请输入用户名/邮箱/手机号');
+      	    	return;
+      	 }else if(password==''){
+      	    	$('#user_msg_notice').html('请输入登陆密码');
+      	    	return;
+      	 } 
+      	 if($("#yanzheng").is(":visible")){
+      		 v = "&valicode="+valicode;
+      	 }else{
+      		 v = "";
+      	 }
+      	 $.ajax({
+      		   type: "POST",
+      		   url: "/index.php?m&q=user/action_login",
+      		   data: "&keywords="+keywords+"&password="+password+v ,
+      		   dataType:"json",
+      		   async: false,
+      		   success: function(json){
+      			 var code = json.code;
+      			 if (code =='100000'){  
+      			 	var backurl = $('#backurl').val();
+      			 	if(backurl == ''){
+      			 		backurl = '/index.php?user';
+      			 	}
+      		 	    window.location.href = decodeURIComponent(backurl);
+      				$('#login_bg_box').hide();
+      			 } else{
+      				 if(code =='100002'){
+      					 $('#password').val('');
+      				 }else{
+      					 $('#keywords').val('');
+      					 $('#password').val('');
+      				 }
+      				 
+      				 var password = json.msg.replace(/[^0-9]/ig, ""); 
+     					 var num=parseInt(password); 
+     					 if(num < 3){
+     						 $('#yanzheng').show();
+     					 }
+      				 $('#user_msg_notice').html(json.msg);
+      				 return;
+      			 }
+      			 
+      		   },
+      		   error:function(json){
+      			   $('#user_msg_notice').html(json.msg);
+      			   return false;
+      		   }
+      	});	
+       }
+</script>
+ 
+<!-- 登录弹框结束 --><div class="hrd_grid">
+  <ul class="step_ul">
+    <li class="li_ok"><a class="a_ok1" href="/">项目详情</a></li>
+    <li><a class="a_ok3" href="javascript:void(0);">确认支付</a></li>
+    <li class="lastli"><a href="javascript:void(0);">投资成功</a></li>
+  </ul>
+</div>
+<div class="hrd_grid">
+  <div class="total"> <div class="question"><a href="/index.php?user&q=guide">新手指引...</a></div></div>
+</div>
+<div class="hrd_grid">
+  <!--1-->
+  <div class="maindiv e_rad investlist">
+    <div class="sumtitle"><i class="sumicon_di"></i>
+      <h5><a href="/invest/a5027.html?detail=true">【短期周转】 XY-1001-5027 </a></h5>
+      <p class="badge">
+         <a href="javascript:void(0)" class="grade_xi"  title='先息后本'>先息后本</a>
+       	 <a href="javascript:void(0)" class="auth_sdkc" title='实地考察'></a>                  <a href="javascript:void(0)" class="grade_di" title='足值抵押'>抵</a>      </p>
+      <cite>现金投资1w及以上+1.00%</cite>
+    </div>
+    <div class="paymain">
+      <div class="investleft fl">
+        <div class="sumlist">
+          <ul class="sumul">
+            <li class="credit">
+              <p class="rank_AA"></p>
+              <em>信用评级</em>
+			</li>
+            <li>
+              <p>250000元</p>
+              <em>借款金额</em>
+            </li>
+            <li class="limax"> <span><b>13</b><i>%</i></span> <em>年化收益率</em></li>
+            <li>
+              <p>	
+                   6 个月
+                              </p>
+              <em>期限</em></li>
+            <li class="lilong libgnone">
+              <p>0元</p>
+              <em>剩余可投金额</em></li>
+          </ul>
+        </div>
+        <div class="limit f_s12">
+        	<b>投标限额: 不限</b>
+        	<b>已完成：10笔投标</b>
+        			</div>
+      </div>
+      <div class="investcenter fl">
+         <div class="progress">
+          	          <div class="slipvalue" style="padding-left:100%;">100%</div>
+	          <div class="bgline">
+	            <div class="slip" style="width:100%;"></div>
+	          </div>
+	      	    </div>
+      </div>
+      <div class="start investright fr">
+                                                                	<div class="reypay"></div>
+                                                      </div>
+    </div>
+      </div>
+</div>
+<div class="hrd_grid">
+  <div class="record_tag">
+    	 <a class="re_now" href="javascript:void(0)">借入者信用</a><a href="javascript:void(0)">审核记录</a><a href="javascript:void(0)">投标记录</a>	
+  	 <a href="javascript:void(0)" >借入者借款记录</a>  	     		
+  </div>
+  <div class="record">
+  
+   <div class="record1"> 			   	 <p>只有<a href="/index.php?user&q=action/reg" >注册</a>用户才可以查看借入者信用信息！现在<a href="javascript:void(0));" onclick="checkLogin();" >登录</a></p>
+	   	    </div>
+    <div class="record2 f_s12" style="display:none">
+      <p>惠人贷将以客观、公正的原则，最大程度地核实借入者信息的真实性。但惠人贷不保证审核信息100%真实。如果借入者长期逾期，借入者提供的信息将被公布。</p>
+      <dl class="record_dl">
+        <dt><b>审核项目</b><i>状态</i><em>通过时间</em></dt>
+        	         	            <dd>
+	              <b>营业执照副本（需要彩色）</b> 
+	              <i><strong>通过</strong></i>
+	              <em>2015-05-06</em>
+	            </dd>
+	        	            <dd>
+	              <b>央行信用报告</b> 
+	              <i><strong>通过</strong></i>
+	              <em>2015-05-06</em>
+	            </dd>
+	        	            <dd>
+	              <b>房产证</b> 
+	              <i><strong>通过</strong></i>
+	              <em>2015-05-06</em>
+	            </dd>
+	        	            <dd>
+	              <b>本人身份证(正反面)</b> 
+	              <i><strong>通过</strong></i>
+	              <em>2015-05-06</em>
+	            </dd>
+	        	            <dd>
+	              <b>户口本</b> 
+	              <i><strong>通过</strong></i>
+	              <em>2015-05-06</em>
+	            </dd>
+	                      </dl>
+    </div>
+    <div class="record3 f_s12" style="display:none">      <dl class="record_dl" id="tender_list">
+        <dt><font>投标人</font><font>当前年利率</font><font>投标金额</font><font>有效金额</font><i>投标时间</i><font>状态</font><font>备注</font></dt>
+                    <dd >
+              <font>g*****6</font>
+              <font>13.00%</font>
+              <font>30984.00元</font>
+              <font>30984.00元</font>
+              <i>2015-05-19 12:12:08</i>
+              <font><strong>通过</strong></font>
+              <font></font>
+            </dd>
+	                 <dd >
+              <font>z*****e</font>
+              <font>13.00%</font>
+              <font>30523.00元</font>
+              <font>30523.00元</font>
+              <i>2015-05-19 12:09:47</i>
+              <font><strong>通过</strong></font>
+              <font></font>
+            </dd>
+	                 <dd >
+              <font>Z*********2</font>
+              <font>13.00%</font>
+              <font>13160.00元</font>
+              <font>13160.00元</font>
+              <i>2015-05-19 12:07:29</i>
+              <font><strong>通过</strong></font>
+              <font></font>
+            </dd>
+	                 <dd >
+              <font>林*</font>
+              <font>13.00%</font>
+              <font>30138.00元</font>
+              <font>30138.00元</font>
+              <i>2015-05-19 11:18:33</i>
+              <font><strong>通过</strong></font>
+              <font></font>
+            </dd>
+	                 <dd >
+              <font>福**子</font>
+              <font>13.00%</font>
+              <font>10000.00元</font>
+              <font>10000.00元</font>
+              <i>2015-05-19 10:36:20</i>
+              <font><strong>通过</strong></font>
+              <font></font>
+            </dd>
+	                 <dd >
+              <font>h********r</font>
+              <font>13.00%</font>
+              <font>44073.00元</font>
+              <font>44073.00元</font>
+              <i>2015-05-19 10:11:47</i>
+              <font><strong>通过</strong></font>
+              <font></font>
+            </dd>
+	                 <dd >
+              <font>h**6</font>
+              <font>13.00%</font>
+              <font>16554.00元</font>
+              <font>16554.00元</font>
+              <i>2015-05-19 09:37:28</i>
+              <font><strong>通过</strong></font>
+              <font></font>
+            </dd>
+	                 <dd >
+              <font>1*********4</font>
+              <font>13.00%</font>
+              <font>50000.00元</font>
+              <font>50000.00元</font>
+              <i>2015-05-19 08:53:17</i>
+              <font><strong>通过</strong></font>
+              <font></font>
+            </dd>
+	                 <dd >
+              <font>c****8</font>
+              <font>13.00%</font>
+              <font>11481.00元</font>
+              <font>11481.00元</font>
+              <i>2015-05-19 08:29:16</i>
+              <font><strong>通过</strong></font>
+              <font></font>
+            </dd>
+	                 <dd >
+              <font>c****6</font>
+              <font>13.00%</font>
+              <font>13087.00元</font>
+              <font>13087.00元</font>
+              <i>2015-05-19 08:23:00</i>
+              <font><strong>通过</strong></font>
+              <font></font>
+            </dd>
+	     	 
+    </div>
+       	<div class="record5" style="display:none;font-size:14px;color:#999">
+	    	   	 	<p>只有<a href="/index.php?user&q=action/reg" >注册</a>用户才可以查看借入者信用信息！现在<a href="javascript:void(0));" onclick="checkLogin();">登录</a></p>
+	   	    </div>
+          </div>
+</div>
+<input type="hidden" id="backurl" name="backurl" value="/invest/a5027.html" />
+<script>
+var _hrduid = 'hrd'+'';
+var _hrdusename = '';
+var tender_id ='http://www.huirendai.com/invest/a5027.html';
+var borrow_account = 250000;
+var borrow_id = 'XY-1001-5027';
+
+$(function(){
+	if($('#tender_list').find("dd").length <=0){
+		$('#tender_list').append('<dd class="nodata">暂时还没有记录！</dd>');
+	}
+})
+//mediv start
+ var _mvq = window._mvq || []; 
+	  window._mvq = _mvq;
+	 _mvq.push(['$setAccount', 'm-28241-0']);
+	 _mvq.push(['$setGeneral', 'goodsdetail', '', _hrdusename, _hrduid]);
+	 _mvq.push(['$logConversion']);
+	 
+	 _mvq.push(['setPageUrl', tender_id]);	//如果不需要特意指定单品着陆页url请将此语句删掉
+	 _mvq.push(['$addGoods',  /*分类id*/ '', /*品牌id*/ '', /*商品名称*/ '', borrow_id, /*商品售价*/ '', /*商品图片url*/ '', /*分类名*/ '', /*品牌名*/ '', /*商品库存状态1或是0*/ '', /*网络价*/ '',/*收藏人数*/ '', /*商品下架时间*/ '']);
+	 _mvq.push(['$addPricing', /*价格描述*/ borrow_account]);
+	 _mvq.push(['$logData']);
+//mediv end
+</script>
+
+
+<div class="hrd_grid">
+  <div class="heading">
+    <h5>精品理财推荐</h5>
+    <span></span></div>
+</div>
+<div class="hrd_grid">
+  	    <div class="maindiv e_rad investlist">
+	    <div class="sumtitle"><i class="sumicon_xin"></i>
+	      <h5><a href="/invest/a5147.html">【生意周转】 XY-1001-5147</a></h5>
+	      <p class="badge">
+	            <a href="javascript:void(0)" class="grade_xi" style="width:15px" title='按日计息，利随本清'>随</a>
+		       	 <a href="javascript:void(0)" class="auth_sdkc" title='实地考察'></a>		         		         	      </p>
+	      <cite>现金投资1w及以上+0.50%</cite>
+	    </div>
+	    <div class="summain">
+	      <div class="investleft fl">
+	        <div class="sumlist">
+	          <ul class="sumul">
+	            <li class="credit">
+	              <p class="rank_AA"></p>
+	              <em>信用评级</em>
+				</li>
+	            <li>
+	              <p>250000元</p>
+	              <em>借款金额</em>
+	            </li>
+	            <li class="limax"> <span><b>9</b><i>%</i></span> <em>年化收益率</em></li>
+	            <li>
+	              <p>	                   30天
+	                	              </p>
+	              <em>期限</em></li>
+	            <li class="lilong libgnone">
+	              <p>250000元</p>
+	              <em>剩余可投金额</em></li>
+	          </ul>
+	        </div>
+	      </div>
+	      <div class="investcenter fl">
+	         <div class="progress">
+	          		          <div class="slipvalue" style="padding-left:0%;">0%</div>
+		          <div class="bgline">
+		            <div class="slip" style="width:0%;"></div>
+		          </div>
+		      		      		      	<h2>剩余时间 <i class="endtime">1294987</i></h2>
+		      		    </div>
+	      </div>
+	      <div class="start investright fr">
+	        	                	                			                	<div class="btndiv">
+								<p><button class="g_btn" onclick="javascript:window.location.href='/invest/a5147.html'">开始理财</button></p>
+							</div>
+							<a href="javascript:void(0)" class="anot"  data-count-key="5147" data-count-limit="30天"  data-count-style="2" data-count_income ="0.75" data-count-apr="9.00" data-count-most="不限"></a>
+		               	                	            	      </div>
+	    </div>
+	   </div>
+            
+    	    <div class="maindiv e_rad investlist">
+	    <div class="sumtitle"><i class="sumicon_xin"></i>
+	      <h5><a href="/invest/a5142.html">【生活周转】 XY-1000-5142</a></h5>
+	      <p class="badge">
+	         <a href="javascript:void(0)" class="grade_xi"  title='利随本清'>利随本清</a>
+	       	 <a href="javascript:void(0)" class="auth_sdkc" title='实地考察'></a>	         	         	      </p>
+	      <cite></cite>
+	    </div>
+	    <div class="summain">
+	      <div class="investleft fl">
+	        <div class="sumlist">
+	          <ul class="sumul">
+	            <li class="credit">
+	              <p class="rank_AA"></p>
+	              <em>信用评级</em>
+				</li>
+	            <li>
+	              <p>50000元</p>
+	              <em>借款金额</em>
+	            </li>
+	            <li class="limax"> <span><b>15</b><i>%</i></span> <em>年化收益率</em></li>
+	            <li>
+	              <p>	                   15天
+	                	              </p>
+	              <em>期限</em></li>
+	            <li class="lilong libgnone">
+	              <p>29560元</p>
+	              <em>剩余可投金额</em></li>
+	          </ul>
+	        </div>
+	      </div>
+	      <div class="investcenter fl">
+	         <div class="progress">
+	          		          <div class="slipvalue" style="padding-left:40.8%;">40.8%</div>
+		          <div class="bgline">
+		            <div class="slip" style="width:40.8%;"></div>
+		          </div>
+		      		      		      	<h2>剩余时间 <i class="endtime">1160573</i></h2>
+		      		    </div>
+	      </div>
+	      <div class="start investright fr">
+	        	                	                			                	<div class="btndiv">
+								<p><button class="g_btn" onclick="javascript:window.location.href='/invest/a5142.html'">开始理财</button></p>
+							</div>
+							<a href="javascript:void(0)" class="anot"  data-count-key="5142" data-count-limit="15天"  data-count-style="2" data-count_income ="0.62" data-count-apr="15.00" data-count-most="10000元"></a>
+		               	                	            	      </div>
+	    </div>
+	    	   </div>
+            
+    	        	  
+  	 <div class="maindiv e_rad investlist">
+	  	<div class="sumtitle"><i class="sumicon_xin"></i>
+		      <h5><a href="/invest/a5120.html">【教育培训借款】 XY-1002-5120</a></h5>
+		      <p class="badge">
+		          <a href="javascript:void(0)" class="grade_xi"  title='等额本息'>等额本息</a>
+		       	 <a href="javascript:void(0)" class="auth_sdkc" title='实地考察'></a>		         <a href="javascript:void(0)" class="auth_xfdk" title='消费贷款'></a>		         		      </p>
+		      <cite></cite>
+		    </div>
+		    <div class="summain">
+		      <div class="investleft fl">
+		        <div class="sumlist">
+		          <ul class="sumul">
+		            <li class="credit">
+		              <p class="rank_AA"></p>
+		              <em>信用评级</em>
+					</li>
+		            <li>
+		              <p>6000元</p>
+		              <em>借款金额</em>
+		            </li>
+		            <li class="limax"> <span><b>13.25</b><i>%</i></span> <em>年化收益率</em></li>
+		            <li>
+		              <p>	
+		                   6 个月
+		                		              </p>
+		              <em>期限</em></li>
+		            <li class="lilong libgnone">
+		              <p>0元</p>
+		              <em>剩余可投金额</em></li>
+		          </ul>
+		        </div>
+		      </div>
+		      <div class="investcenter fl">
+		         <div class="progress">
+		          			          <div class="slipvalue" style="padding-left:100%;">100%</div>
+			          <div class="bgline">
+			            <div class="slip" style="width:100%;"></div>
+			          </div>
+			      			      			    </div>
+		      </div>
+		      <div class="start investright fr">
+		        		                		                    		                    	<div class="reypay"></div>
+		                    		                		         		      </div>
+		    </div>
+		    		  </div>
+  	         
+    
+</div> 
+<!--footer -->
+<div class="footerdiv">
+  <div class="foot1">
+    <div class="hrd_grid">
+        <ul class=" list-paddingleft-2">
+            <li>
+                <h4>
+                    关于我们
+                </h4>
+                <p>
+                    <a href="/site/index.html?q=about">惠人贷简介</a>
+	 <a href="/site/index.html?q=about/theory">平台原理</a>
+
+	<a href="/site/index.html?q=about/lianxi">联系我们</a>
+
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                </p>
+            </li>
+            <li>
+                <h4>
+                    用户协议
+                </h4>
+                <p>
+                    <a href="/site/index.html?q=anquanbaozhang/falvhegui">政策法规</a>
+	 <a href="/site/index.html?q=anquanbaozhang/yisibaohu">隐私保护</a><a href="/site/index.html?q=changjianwenti/mzsm">免责条款</a>
+
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                </p>
+            </li>
+            <li>
+                <h4>
+                    常见问题
+                </h4>
+                <p>
+                    <a href="/site/index.html?q=licai/xinrenbidu">投资人必读</a>
+	 <a href="/site/index.html?q=licai/chongzhitixian">充值提现必读</a>
+	 <a href="/index.php?user&q=guide">新手指南</a>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                </p>
+            </li>
+            <li>
+                <h4>
+                    客服热线
+                </h4>
+                <p>
+                    400-022-0898
+                </p>
+                <p>
+                    <strong>工作日9:00—21:00</strong>
+										<br/><strong>周末9:00—18:00</strong>
+	 
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                </p>
+            </li>
+            <li>
+                <h4>
+                    客服邮箱：
+                </h4>
+                <p>
+                    <a href="mailto:kefu@huirendai.com">kefu@huirendai.com</a>
+                </p>
+                <h4>
+                    意见反馈：
+                </h4>
+                <p>
+                    <a href="mailto:ceo@huirendai.com">ceo@huirendai.com</a>
+
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                </p>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="foot2">
+    <div class="hrd_grid">
+        <div class="icp fl" style="width:450px; ">
+            CopyRight © 2015 惠人贷. All Rights Reserved &nbsp;ICP证: 京ICP备14055351号-2
+        </div>
+        <div class="net110 fr">
+            <p class="net110_img">
+                <br/>
+
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+            </p>
+        </div>
+    </div>
+</div>
+ 
+</div>
+<script type="text/javascript" src="/themes/ruizhict/js/jquery.md5.js"></script>
+
+<script type="text/javascript" >
+BizQQWPA.addCustom({aty: '0', a: '0', nameAccount: 4000220898, selector: 'BizQQWPA'});
+</script>
+
+<script type="text/javascript" >
+//99click
+var  _ozuid = 'hrd'+'';
+</script>
+<script type="text/javascript" src="/themes/ruizhict/js/o_code.js"></script>
+<!-- //mediav -->
+<script type="text/javascript" src="/themes/ruizhict/js/mediav.js"></script>
+<!-- //ga -->
+<script type="text/javascript" src="/themes/ruizhict/js/ga.js"></script>
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Fc91960b4fe0519fc928aa26c30a2a719' type='text/javascript'%3E%3C/script%3E"));
+</script>
+</body>
+</html>
+ 

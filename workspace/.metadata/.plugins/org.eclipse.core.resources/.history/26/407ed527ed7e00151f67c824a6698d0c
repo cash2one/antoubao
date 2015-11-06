@@ -1,0 +1,87 @@
+# /usr/bin/python
+# encoding=utf8
+# 从project_info中读取数据来更新E1
+
+from atbtools.header import * 
+from atbtools.mysqlTools import *
+from atbtools.paymentTools import *
+from atbtools.computeTools import *
+from math import floor
+import time
+
+if __name__ == '__main__':
+    # 获取连接    
+    srcdb_F = "platform_qualitative_F"
+    srcdb_Y = "total_status"
+    project_info_clean = "project_info_clean_whole"
+    E1 = "platform_quantitative_data_E1"
+    project_info_error = "platform_error_daily_report"
+
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    initializeCursors(cur_db)
+    
+    threshold1 = 0.9
+    threshold2 = 0.8
+    platform_name_E1_list = getDifferentFieldlist(E1, cur_db, "platform_name")
+    
+
+    stringSQL = "SELECT `platform_name`, `site_id`, `date`, SUM(CASE WHEN `error` = '' THEN 1 ELSE 0 END) / COUNT(*) AS ratio FROM " + project_info_clean + " WHERE `date` <> -1 GROUP BY `platform_name`, `date`"
+    cur_db.execute(stringSQL)
+    site_id_dict = {}
+    ratio_dict = {}
+    for platform_name, site_id, date, ratio in cur_db.fetchall():
+        site_id_dict[platform_name] = site_id
+        if platform_name not in ratio_dict:
+            ratio_dict[platform_name] = {}
+        ratio_dict[platform_name][date] = ratio
+    print "project_info中一共有" + str(len(site_id_dict)) + "个平台."
+        
+    smooth_ratio_dict = {}
+    last_weeks = 3
+    add_platform_name_list = []
+    for platform_name in ratio_dict:
+        smooth_ratio_dict[platform_name] = {}
+        date_list = sorted(ratio_dict[platform_name])
+        date_list_number = len(date_list)
+        for i in range(date_list_number):
+            date = date_list[i]
+            ratio_sum = 0
+            for j in range(max(0, i - last_weeks + 1), i + 1):
+                ratio_sum += ratio_dict[platform_name][date_list[j]]
+            smooth_ratio_dict[platform_name][date] = ratio_sum / last_weeks
+        for i in range(date_list_number):
+            date = date_list[i]
+            if ratio_dict[platform_name][date] < threshold1 and smooth_ratio_dict[platform_name][date] < threshold2:
+                break 
+        else:
+            add_platform_name_list.append(platform_name)
+    
+    date_list_error = getDifferentFieldlist(project_info_error, cur_db, "date")
+    date_error_max = date_list_error[-1]
+    platform_name_not_error_list = []
+    stringSQL = "SELECT `platform_name`, `percentage_total` FROM " + project_info_error + " WHERE `date` = '" + str(date_error_max) + "'"
+    cur_db.execute(stringSQL)
+    for platform_name, percentage_total in cur_db.fetchall():
+        if percentage_total <= (1 - threshold1):
+            platform_name_not_error_list.append(platform_name)
+    print "对于总体错误率来说，共有" + str(len(platform_name_not_error_list)) + "个平台的错误率小于" + str((1 - threshold1)) + "."
+    
+    add_platform_name_list = list(set(add_platform_name_list) & set(platform_name_not_error_list) - set(platform_name_E1_list))
+    print "在每周正确率大于" + str(threshold1) +"或三周平均正确率大于" + str(threshold2) + "的情况下，可以向E1补充" + str(len(add_platform_name_list)) + "个平台."
+    
+    date_list = getDifferentFieldlist(E1, cur_db, "date")[::-1]
+    last_weeks = 3
+    date_list = date_list[:last_weeks]
+    print date_list
+    stringSQL = "SELECT `platform_name`, `" + "`, `".join(["T_" + str(x) for x in date_list]) + "` FROM " + project_info_error + " WHERE `date` = '" + str(date_error_max) + "'"
+    cur_db.execute(stringSQL)
+    print stringSQL
+    #写入文本
+    fp = open("badplatform_id_add_auto.txt","w")
+    for platform_name in add_platform_name_list:
+        fp.write(site_id_dict[platform_name] + "\n")
+    fp.close()
+    
+    closeCursors(cur_db)
+    closeConns(conn_db)  

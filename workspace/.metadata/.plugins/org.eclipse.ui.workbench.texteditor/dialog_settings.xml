@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item value="false" key="isRegEx"/>
+		<item value="top10_ratio_investment" key="selection"/>
+		<item value="false" key="casesensitive"/>
+		<item value="false" key="incremental"/>
+		<item value="true" key="wrap"/>
+		<item value="false" key="wholeword"/>
+		<list key="findhistory">
+			<item value="top10_ratio_investment"/>
+			<item value="93"/>
+			<item value="江西"/>
+			<item value="view_score_condition"/>
+			<item value="检查total_status表中的platform_name"/>
+			<item value="top10"/>
+			<item value="top0"/>
+			<item value="ratio"/>
+		</list>
+		<list key="replacehistory">
+			<item value="platform_name_length_max"/>
+			<item value="output_dict[platform_name]"/>
+			<item value="time.sleep(3)"/>
+			<item value="conn_db.commit()"/>
+			<item value="cur_db.execute(stringSQL)"/>
+			<item value="this_date"/>
+			<item value="thie_date"/>
+			<item value="field2_length_dict"/>
+		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item value="302" key="DIALOG_WIDTH"/>
+		<item value="1|微软雅黑|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|微软雅黑" key="DIALOG_FONT_NAME"/>
+		<item value="481" key="DIALOG_HEIGHT"/>
+		<item value="1051" key="DIALOG_X_ORIGIN"/>
+		<item value="349" key="DIALOG_Y_ORIGIN"/>
+	</section>
+</section>

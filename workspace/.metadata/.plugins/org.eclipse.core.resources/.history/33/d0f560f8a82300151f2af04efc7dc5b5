@@ -1,0 +1,10 @@
+#!/usr/bin/python
+#coding=utf-8
+
+from header import *
+
+if __name__ == "__main__":
+    url = "http://shuju.wangdaizhijia.com/archives-60.html"
+    print url
+    datas = urllib.urlopen(url).read()
+    print datas

@@ -1,0 +1,116 @@
+# /usr/bin/python
+# encoding=utf8
+# 将project_info中的脏数据去掉，方便后续处理
+
+from atbtools.header import * 
+from atbtools.mysqlTools import *
+from atbtools.computeTools import *
+
+if __name__ == '__main__':
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    initializeCursors(cur_db)
+    
+    # 获取连接    
+    srcdb_F = "platform_qualitative_F"
+    srcdb_Y = "total_status"
+
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    initializeCursors(cur_db)
+    
+    # 获取所有的坏站id：从Y表里取得坏站name，通过F表得到id，再去project_info表中比照
+    platform_name_Y_list = []
+    stringSQL = "SELECT DISTINCT `platform_name` FROM " + srcdb_Y + " WHERE `status` < '1' ORDER BY `platform_name` ASC" 
+    _number = cur_db.execute(stringSQL)
+    if _number != 0:
+        for field_temp in cur_db.fetchall():
+            platform_name_Y_list.append(field_temp[0].strip())
+    platform_id_F_list = []
+    platform_name_F_dict = {}
+    stringSQL = "SELECT platform_id, platform_name FROM " + srcdb_F
+    cur_db.execute(stringSQL)
+    for platform_id, platform_name in cur_db.fetchall():
+        platform_id = str(platform_id)
+        platform_name = platform_name.strip()
+        if platform_name in platform_name_Y_list:
+            platform_id_F_list.append(platform_id)
+            platform_name_F_dict[platform_id] = platform_name
+    
+    platform_id_info_list = getDifferentFieldlist("project_info", cur_db, "site_id")
+#     platform_id_info_list = getSiteIdFromProjectInfos(cur_db)
+#     platform_id_list.sort()
+#     print len(platform_id_info_list)
+    platform_id_list = list(set(platform_id_info_list) & set(platform_id_F_list))
+    platform_id_list.sort()
+    platform_id_number = len(platform_id_list)
+    
+    bad_platform_set = set()
+    OK = 1
+    for project_info_initial in "abcdefghijklmnopqrstuvwxyz0":
+#     for project_info_initial in "0":
+        project_info = "project_info" + "_" + project_info_initial
+        stringSQL = "DELETE FROM " + project_info + " WHERE `site_id` = '' AND `project_id` = '' AND investor == ''"
+        cur_db.execute(stringSQL)
+        print "正在检查'" + project_info + "'表格..."
+        if project_info_initial != "0":
+            stringSQL = "SELECT DISTINCT `site_id` FROM " +  project_info + " WHERE LEFT(`site_id`, 1) != '" + project_info_initial + "'"
+        else:
+            stringSQL = "SELECT DISTINCT `site_id` FROM " +  project_info + " WHERE LEFT(`site_id`, 1) not in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')"
+        number = cur_db.execute(stringSQL)
+        if number == 0:
+            print "该表格无异常site_id."
+        else:
+            OK = 0
+            rows = cur_db.fetchall()
+            for site_id in rows:
+                print site_id[0] +"(" + list(str(site_id[0]))[0] + ")不应该出现在此表中，请务必重新检查."
+        
+        stringSQL = "SELECT `site_id`, `project_id`, COUNT(*) FROM "  +  project_info + " GROUP BY `site_id`, `project_id` HAVING COUNT(*) > 1 ORDER BY `site_id`, `project_id`"
+        number = cur_db.execute(stringSQL)
+        if number == 0:
+            print "该表格无异常project_id."
+        else:
+            OK = 0
+            rows = cur_db.fetchall()
+            for site_id, project_id, count in rows:
+                bad_platform_set.add(site_id)
+#                 if site_id in ["0574cxdai", "cun", "fengjr", "hepai", "jinlianchu", "jinshangdai", "landmoney", "qianhetou", "xintouzaixian", "yunfenglc", "yinker", "ycw360"]:
+#                     stringSQL = "DELETE FROM "  +  project_info + " WHERE `site_id` = '" + site_id + "' AND `project_id` = '" + project_id + "' AND `invested_amount` in ('1', '0')"
+#                     cur_db.execute(stringSQL)
+#                     conn_db.commit()
+#                 if site_id in ["hepai"]:
+#                     stringSQL = "DELETE FROM "  +  project_info + " WHERE `site_id` = '" + site_id + "' AND `project_id` = '" + project_id + "' AND `date` is not null"
+#                     cur_db.execute(stringSQL)
+#                     conn_db.commit()
+#                 if site_id in ["hqdai"]:
+#                     stringSQL = "DELETE FROM "  +  project_info + " WHERE `site_id` = '" + site_id + "' AND `project_id` = '" + project_id + "' AND `borrower` = '无'"
+#                     cur_db.execute(stringSQL)
+#                     conn_db.commit()
+#                 if site_id in ["cclc"]:
+#                     stringSQL = "DELETE FROM "  +  project_info + " WHERE `site_id` = '" + site_id + "' AND `project_id` = '" + project_id + "' AND `release_time` = '-1'"
+#                     cur_db.execute(stringSQL)
+#                     conn_db.commit()
+#                 #保留id小的
+#                 if site_id in ["0551xgzb", "daokoudai", "duohaodai", "eastlending", "fhjr", "fengjr", "huifusihai", "hjstreet", "hnmgjr", "jinlianchu", "jinshangdai", "kesucorp", "minmindai", "madailicai", "qianhetou", "rongp2c", "yinker", "zfxindai"]:
+#                     stringSQL = "DELETE FROM " + project_info + " WHERE `site_id` = '" + site_id + "' AND `project_id` = '" + project_id + "' AND `id` not in (SELECT A.`id` FROM (SELECT MIN(`id`) AS `id` FROM " + project_info + " WHERE `site_id` = '" + site_id + "' AND `project_id` = '" + project_id + "') AS A)"
+#                     cur_db.execute(stringSQL)
+#                     conn_db.commit()
+#                 #保留id大的
+#                 if site_id in ["sifangqian", "15dai"]:
+#                     stringSQL = "DELETE FROM " + project_info + " WHERE `site_id` = '" + site_id + "' AND `project_id` = '" + project_id + "' AND `id` not in (SELECT A.`id` FROM (SELECT MAX(`id`) AS `id` FROM " + project_info + " WHERE `site_id` = '" + site_id + "' AND `project_id` = '" + project_id + "') AS A)"
+#                     cur_db.execute(stringSQL)
+#                     conn_db.commit()
+                print site_id +": " + project_id + "出现了" + str(count) + "次，请务必重新检查."
+        print
+    bad_platform_list = list(set(platform_id_list) & bad_platform_set)
+    if len(bad_platform_set) != 0:
+        print "请优先修改下面的几个站（因为它们是坏站）:"
+        for platform_name in bad_platform_list:
+            print platform_name
+    if OK == 0:
+        exit(1)
+    else:
+        print "恭喜恭喜."
+    closeCursors(cur_db)
+    closeConns(conn_db)

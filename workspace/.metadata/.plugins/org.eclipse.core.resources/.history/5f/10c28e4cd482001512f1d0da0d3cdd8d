@@ -1,0 +1,317 @@
+#!/usr/bin/python
+#coding=utf-8
+
+from atbtools.header import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+import random
+import os
+import json
+import time
+
+def getFieldListFirstByWeek(_platform_id, _platform_name, _field, _field_url, _field_obj, _timestamp):
+    #先判断是否是周
+    week_or_day = "week"
+    _user_agent = random.choice(USER_AGENT_LIST)
+    _user_agent = "Windows IE 7"
+    dataCmd = 'curl "http://shuju.wangdaizhijia.com/depth-data.html" -H "User-Agent: ' + _user_agent + '" -H "Referer: http://shuju.wangdaizhijia.com/plat-info-' + _platform_id + '.html" --data "wdzjPlatId='  + _platform_id + '&type1=' + _field_url + '&type2=0&status=1" --compressed'
+    print dataCmd
+    res_data = os.popen(dataCmd)
+    try:
+        decodejson = json.loads(res_data.read())
+        data_list = decodejson[_field_obj]
+        date_list = decodejson['x']
+        date_list.index(_timestamp)
+        return week_or_day, data_list, date_list 
+    except:
+        print "No weekly " + _field + " " + _platform_id + ": " + _platform_name + "(" + str(_timestamp) + ")"
+        time.sleep(3)
+        week_or_day = "day"
+        _user_agent = random.choice(USER_AGENT_LIST)
+        _user_agent = "Windows IE 7"
+        dataCmd = 'curl "http://shuju.wangdaizhijia.com/depth-data.html" -H "User-Agent: ' + _user_agent + '" -H "Referer: http://shuju.wangdaizhijia.com/plat-info-' + _platform_id + '.html" --data "wdzjPlatId='  + _platform_id + '&type1=' + _field_url + '&type2=0&status=0" --compressed'
+        res_data = os.popen(dataCmd)
+        try:
+            decodejson = json.loads(res_data.read())
+            data_list = decodejson[_field_obj]
+            date_list = decodejson['x']
+            date_list.index(_timestamp)
+            return week_or_day, data_list, date_list 
+        except:
+            print "No daily " + _field + " " + _platform_id + ": " + _platform_name + "(" + str(_timestamp) + ")"
+            time.sleep(3)
+            return None
+
+def getFieldListByDayOnly(_platform_id, _platform_name, _field, _field_url, _field_obj, _timestamp):
+    week_or_day = "day"
+    _user_agent = random.choice(USER_AGENT_LIST)
+    dataCmd = 'curl "http://shuju.wangdaizhijia.com/depth-data.html" -H "User-Agent: ' + _user_agent + '" -H "Referer: http://shuju.wangdaizhijia.com/plat-info-' + _platform_id + '.html" --data "wdzjPlatId='  + _platform_id + '&type1=' + _field_url + '&type2=0&status=0" --compressed'
+    res_data = os.popen(dataCmd)
+    try:
+        decodejson = json.loads(res_data.read())
+        data_list = decodejson[_field_obj]
+        date_list = decodejson['x']
+        return week_or_day, data_list, date_list 
+    except:
+        print "No daily " + _field + " " + _platform_id + ": " + _platform_name + "(" + str(_timestamp) + ")"
+        time.sleep(3)
+        return None
+
+#从一个列表中获得一个值
+def getOnlyData(_date_list_whole, _data_list, _date):
+    try:
+        return float(_data_list[_date_list_whole.index(_date)])
+    except:
+        return None
+
+#从一个列表中获得最近的一个值    
+def getNearData(_date_list_whole, _data_list, _date_list):
+    if False == existListValue(_date_list_whole, _date_list):
+        return None
+    index_list = getIndexFromList(_date_list_whole, _date_list)[::-1]
+    for index in index_list:
+        if index != -1:
+            value = _data_list[index]
+            if str(value).lstrip('-').replace('.', '').isdigit():
+                return float(value)
+    return None
+
+#从一个列表中获得一个值的平均值  
+def getAveData(_date_list_whole, _dataList, _date_list):
+    if False == existListValue(_date_list_whole, _date_list):
+        return None
+    date_number = len(_date_list)
+    index_list = getIndexFromList(_date_list_whole, _date_list)
+    data = 0
+    count = 0
+    for index in index_list:
+        if index != -1:
+            value = _dataList[index]
+            if str(value).lstrip('-').replace('.', '').isdigit():
+                value = float(value)
+                if value != 0: 
+                    data += float(value)
+                    count += 1
+        if count == date_number:
+            break
+    else:
+        if count == 0:
+            return None
+    data = data / count
+    return data, count         
+           
+if __name__ == "__main__":
+    startTime = time.time()
+    #获得连接        
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db  = getCursors(conn_db)
+    initializeCursors(cur_db)
+    
+    day_ave_list = ["weekly_outstanding_loan", "investor_HHI", "borrower_HHI"]
+    day_sum_list = ["future4week_maturity"]
+    week_day_sum_list = ["weekly_lending", "cash_flow_in_amount", "weekly_total_investor", "weekly_total_borrower"]
+    week_day_ave_list = ["ave_annualized_return", "weekly_ave_investment", "weekly_ave_lending_per_borrower", "weekly_loan_period", "weekly_total_borrower"]
+    special_list = ["weekly_top5_lending"]
+    #黑名单(暂时停用)
+    #platform_id_list_black = getListByTxt('../conf/wdzjBlack.conf')
+    #白名单
+#     platform_id_list_white = getListByTxt('../conf/wdzjWhite.conf')
+    
+    url_dict = {}
+    obj_dict = {}
+    fpWdzj = open('../conf/wdzj.conf', 'r')
+    for lines in fpWdzj:
+        if lines[0] == '#':
+            continue
+        line = lines.split()
+        field = line[0]
+        if field == "weekly_lending":
+            vip_field_url = line[1]
+            vip_field_obj = line[2] #优先抓得指标，决定其他指标是否抓取
+        else:
+            #{'cash_flow_in_amount': '4', 'investor_HHI': '15', 'weekly_total_borrower': '8', 'weekly_ave_investment': '19', 'weekly_loan_period': '22', 'weekly_top5_lending': '-1', 'borrower_HHI': '16', 'weekly_outstanding_loan': '3', 'future4week_maturity': '5', 'weekly_total_investor': '7', 'ave_annualized_return': '2', 'weekly_lending': '1', 'weekly_ave_lending_per_borrower': '20'}
+            url_dict[field] = line[1]
+            #{'cash_flow_in_amount': 'obj1', 'investor_HHI': 'obj1', 'weekly_total_borrower': 'obj1', 'weekly_ave_investment': 'obj1', 'weekly_loan_period': 'obj1', 'weekly_top5_lending': 'x', 'borrower_HHI': 'obj1', 'weekly_outstanding_loan': 'obj1', 'future4week_maturity': 'y2', 'weekly_total_investor': 'obj1', 'ave_annualized_return': 'obj1', 'weekly_lending': 'obj1', 'weekly_ave_lending_per_borrower': 'obj1'}
+            obj_dict[field] = line[2]
+    list_dict = {}
+    platform_name_dict = {}
+    fpWdzjList = open('../conf/wdzjList.conf', 'r')
+    for lines in fpWdzjList.readlines():
+        line = lines.split()
+        date = line[0]
+        platform_id = line[1]
+        field = line[2]
+        platform_name = line[3]
+        if platform_name == '凤凰金融':
+            platform_name = '凤凰金融（江西）'
+        if platform_name == '凤凰金融(京)':
+            platform_name = '凤凰金融'
+        if platform_name == '汇盈贷':
+            platform_name = '汇盈金服'
+        if platform_name == '融易融':
+            platform_name = '自由金服(融易融)'
+        if platform_name == '永利宝':
+            platform_name = '永利宝金融'
+        if platform_name == '众信金融(京)':
+            platform_name = '众信金融'
+        platform_name_dict[platform_id] = platform_name
+        if field != "weekly_lending":
+            if date not in list_dict:
+                list_dict[date] = {}
+            if platform_id not in list_dict[date]:
+                list_dict[date][platform_id] = []
+            list_dict[date][platform_id].append(field)
+        
+    fp = open("Wdzj_del_platform.txt", "w")
+    for timestamp in list_dict:
+        date = time.strftime("%Y-%m-%d", time.localtime(float(timestamp)))
+        date_day_list = []
+        for i in range(DAYSPERWEEK):
+            date_day_list.append(time.strftime("%Y-%m-%d", time.localtime(float(timestamp) - SECONDSPERDAY * i)))
+        date_day_future4week_list = []
+        for i in range(1, DAYSPERWEEK * 4 + 1):
+            date_day_future4week_list.append(time.strftime("%Y-%m-%d", time.localtime(float(timestamp) + SECONDSPERDAY * i)))
+        for platform_id in list_dict[timestamp]:
+            isvalid = 1
+            platform_name = platform_name_dict[platform_id]
+            print platform_name
+            #优先抓weekly_lending，抓不到的直接略过
+            result = getFieldListFirstByWeek(platform_id, platform_name, "weekly_lending", vip_field_url, vip_field_obj, date)
+            if result == None:
+                fp.write(platform_id + " " + platform_name + "\n")
+                continue
+            week_or_day, data_list, date_list = result
+            if week_or_day == "week":
+                weekly_lending = getOnlyData(date_list, data_list, date)
+                if weekly_lending == None:
+                    print "No weekly weekly_lending " + platform_id + "(" + str(timestamp) + ")"
+                    fp.write(platform_id + " " + platform_name + "\n")
+                    continue
+            else:
+                result = getAveData(date_list, data_list, date_day_list)
+                if result == None:
+                    print "No weekly_lending " + platform_id + "(" + str(timestamp) + ")"
+                    fp.write(platform_id + " " + platform_name + "\n")
+                    continue
+                weekly_lending, count = result
+                weekly_lending *= DAYSPERWEEK
+            if weekly_lending == 0:
+                isvalid = 0
+            stringSQL="SELECT * FROM platform_quantitative_wdzj_weekly_A WHERE platform_id = '" + str(platform_id) + "' AND date = '"+str(timestamp)+"'"
+            ret = cur_db.execute(stringSQL)
+            if ret == 0:
+                field_list = ["date", "platform_id", "platform_name", "weekly_lending"]
+                value_list = [str(timestamp), str(platform_id), platform_name, str(weekly_lending)]
+                stringSQL="INSERT INTO `platform_quantitative_wdzj_weekly_A` (`" + "`, `".join(field_list) + "`) VALUES('" + "', '".join(value_list) + "')"
+                ##print stringSQL
+                cur_db.execute(stringSQL)
+                conn_db.commit()
+            else:
+                stringSQL="UPDATE platform_quantitative_dcq_weekly_B SET `weekly_lending` = '" + str(weekly_lending) + "' WHERE `platform_id` = '" + platform_id + "' AND `date` = '" + str(timestamp) + "'"
+                #print stringSQL
+                cur_db.execute(stringSQL)
+                conn_db.commit()
+            if isvalid == 0:
+                continue
+            
+            for field in list_dict[timestamp][platform_id]:
+                time.sleep(3)
+                if url_dict[field] != "-1":
+                    if field in day_ave_list: #按日平均
+                        result = getFieldListByDayOnly(platform_id, platform_name, field, url_dict[field], obj_dict[field], date)
+                        if result == None:
+                            print "No daily " + field + " " + platform_id + ": " + platform_name + "(" + str(timestamp) + ")"
+                            continue    
+                        week_or_day, data_list, date_list = result
+                        result = getAveData(date_list, data_list, date_day_list)
+                        if result == None:
+                            print "No daily " + field + " " + platform_id + ": " + platform_name + "(" + str(timestamp) + ")"
+                            continue
+                        data, count = result
+                    elif field == "future4week_maturity": #按日平均求和（28天）
+                        result = getFieldListByDayOnly(platform_id, platform_name, field, url_dict[field], obj_dict[field], date)
+                        if result == None:
+                            print "No daily " + field + " " + platform_id + ": " + platform_name + "(" + str(timestamp) + ")"
+                            continue    
+                        week_or_day, data_list, date_list = result
+                        result = getAveData(date_list, data_list, date_day_future4week_list)
+                        if result == None:
+                            print "No daily " + field + " " + platform_id + ": " + platform_name + "(" + str(timestamp) + ")"
+                            continue
+                        data, count = result
+                        data *= DAYSPERWEEK * 4
+                    elif field in week_day_sum_list + week_day_ave_list: #取周或按日求和
+                        result = getFieldListFirstByWeek(platform_id, platform_name, field, url_dict[field], obj_dict[field], date)
+                        if result == None:
+                            print "No " + field + " " + platform_id + ": " + platform_name + "(" + str(timestamp) + ")"
+                            continue  
+                        week_or_day, data_list, date_list = result
+                        if week_or_day == "week":
+                            data = getOnlyData(date_list, data_list, date)
+                            if data == None:
+                                print "No weekly " + field + " " + platform_id + ": " + platform_name + "(" + str(timestamp) + ")"
+                                fp.write(platform_id + " " + platform_name + "\n")
+                                continue
+                        else:
+                            result = getAveData(date_list, data_list, date_day_list)
+                            if result == None:
+                                print "No daily " + field + " " + platform_id + ": " + platform_name + "(" + str(timestamp) + ")"
+                                fp.write(platform_id + " " + platform_name + "\n")
+                                continue
+                            data, count = result
+                            if field in week_day_sum_list:
+                                data *= DAYSPERWEEK
+                        
+                    stringSQL="UPDATE `platform_quantitative_wdzj_weekly_A` SET `" + field + "` = '"+str(data)+"' WHERE `platform_id` = '" + platform_id+"' AND `date` = '" + str(timestamp) + "'"
+                    #print stringSQL
+                    cur_db.execute(stringSQL)
+                    conn_db.commit()
+                else:
+                    url = "http://shuju.wangdaizhijia.com/plat-info-" + platform_id + ".html"
+                    datas = getHtml(url)
+                    top_investor = []
+                    for i in range(1, 11):
+                        top_investment, tmp = extractor(datas, ['待收投资人排行', '土豪'+str(i), '<td class="jf">', '万元'])
+                        if top_investment == None:
+                            break
+                        top_investor.append(float(top_investment.replace(",", "")))
+                    _num = len(top_investor)
+                    _num_5 = min(5, _num)
+                    _num_10 = min(10, _num)
+                    top_5 = sum(top_investor[:_num_5])
+                    top_10 = sum(top_investor[:_num_10])
+                    if top_5 > 0:
+                        stringSQL = "UPDATE `platform_quantitative_wdzj_weekly_A` SET `weekly_top5_investment` = '"+str(top_5)+"' WHERE `platform_id` = '"+platform_id+"' AND `date` = '"+str(timestamp)+"'"
+                        #print stringSQL
+                        cur_db.execute(stringSQL)
+                    if top_10 > 0:
+                        stringSQL = "UPDATE `platform_quantitative_wdzj_weekly_A` SET `weekly_top10_investment` = '"+str(top_10)+"' WHERE `platform_id` = '"+platform_id+"' AND `date` = '"+str(timestamp)+"'"
+                        #print stringSQL
+                        cur_db.execute(stringSQL)
+                    
+                    top_borrower = []
+                    for i in range(1, 11):
+                        top_borrow, tmp = extractor(datas, ['待还借款人排行', '借款大户'+str(i), '<td class="jf">', '万元'])
+                        if top_borrow == None:
+                            break
+                        top_borrower.append(float(top_borrow.replace(",", "")))
+                    _num = len(top_borrower)
+                    _num_5 = min(5, _num)
+                    _num_10 = min(10, _num)
+                    top_5 = sum(top_borrower[:_num_5])
+                    top_10 = sum(top_borrower[:_num_10])
+                    if top_5 > 0:
+                        stringSQL = "UPDATE `platform_quantitative_wdzj_weekly_A` SET `weekly_top5_lending` = '"+str(top_5)+"' WHERE `platform_id` = '"+platform_id+"' AND `date` = '"+str(timestamp)+"'"
+                        #print stringSQL
+                        cur_db.execute(stringSQL)
+                    if top_10 > 0:
+                        stringSQL = "UPDATE `platform_quantitative_wdzj_weekly_A` SET `weekly_top10_lending` = '"+str(top_10)+"' WHERE `platform_id` = '"+platform_id+"' AND `date` = '"+str(timestamp)+"'"
+                        #print stringSQL
+                        cur_db.execute(stringSQL)
+                    conn_db.commit()
+    closeCursors(cur_db)
+    closeConns(conn_db) 
+    print ""
+    print "finished"
+    endTime = time.time()
+    print "The whole program costs " + str(endTime - startTime) + " seconds."

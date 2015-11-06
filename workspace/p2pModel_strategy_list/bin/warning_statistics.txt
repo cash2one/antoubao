@@ -1,0 +1,18 @@
+W1 value = 5.0
+    ratio = 0.2178    ave_bad_w = 1.4176    ave_good_w = 1.3221    ave_bad_f = 25.3918    ave_good_f = 15.3324    ratio_bad = 0.8381    ratio_good = 0.9267
+
+W2 value = 0.99
+    ratio = 0.2193    ave_bad_w = 0.2036    ave_good_w = 0.2924    ave_bad_f = 24.5619    ave_good_f = 15.3273    ratio_bad = 0.8667    ratio_good = 0.9501
+
+W3 value = 53.0
+    ratio = 0.2277    ave_bad_w = 0.4708    ave_good_w = 0.4050    ave_bad_f = 23.8402    ave_good_f = 13.3369    ratio_bad = 0.9238    ratio_good = 0.9648
+
+W4
+    ratio = 0.2354    ave_bad_w = 2.1421    ave_good_w = 3.3107    ave_bad_f = 2.5630    ave_good_f = 1.3156    ratio_bad = 1.0000    ratio_good = 1.0000
+
+W5 value_min = 0.1, value_min = 10.0
+    ratio = 0.2158    ave_bad_w = 1.6222    ave_good_w = 2.2445    ave_bad_f = 24.7656    ave_good_f = 17.0850    ratio_bad = 0.8571    ratio_good = 0.9589
+
+W6 value = 31.0
+    ratio = 0.2924    ave_bad_w = 0.1125    ave_good_w = 0.0796    ave_bad_f = 3.7085    ave_good_f = 2.0746    ratio_bad = 0.7714    ratio_good = 0.5748
+

@@ -1,0 +1,106 @@
+#!/usr/bin/python
+#coding=utf-8
+
+import time
+from atbtools.header import * 
+from atbtools.mysqlTools import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+
+if __name__ == "__main__":
+    _start_time = int(time.time())
+    #获取连接
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    initializeCursors(cur_db)
+    SRCDB_C = "platform_quantitative_jlsj_weekly_C"
+    
+    #1. 查找所有的平台中文名称
+    #佳璐数据的平台list列表
+    platform_list_file = open('../conf/jlsj_all.conf', 'r')
+    platform_name_list = getListByTxt(platform_list_file)
+    if len(platform_name_list) == 0:
+        print "网贷之家的平台列表有误."
+        exit(-1)
+    
+#     #2. 查找首页包含的关键指标
+#     html = _html
+#     fields_home_list = ['注册资本']
+#     fields_home_number = len(fields_home_list)
+#     platform_fields_list = []
+#     (platform_fields_str,tmp) = extractor(html, HOMEPAGEINDEXSPECIAL)
+#     if None == platform_fields_str:
+#         print "没有在首页找到指标定义."
+#     else:
+#         platform_fields_str = delBlank(platform_fields_str)
+#         platform_fields_list = platform_fields_str.split(HOMEPAGEINDEX_SPLIT)   
+#     fields_index_list = getIndexFromList(platform_fields_list, fields_home_list)
+#     for platform_name in platform_index_dict:
+#         for field in fields_home_list:
+#             platform_index_dict[platform_name][field] = 0
+#         
+#     platform_white_list = getPlatformIdList("jialu_white.txt")
+#     platform_black_list = getPlatformIdList("jialu_black.txt")
+#     fp = open('platform_name.txt', 'w')
+#     for platform_name in platform_name_list:
+#         fp_list = [platform_name]
+#         if platform_name not in platform_white_list and platform_name in platform_black_list:
+#             continue
+#         HOMEPAGEINDEXSPECIAL_VALUE_temp = HOMEPAGEINDEXSPECIAL_VALUE
+#         HOMEPAGEINDEXSPECIAL_VALUE_temp[1] = platform_name
+#         (platform_values_str,tmp) = extractor(html, HOMEPAGEINDEXSPECIAL_VALUE_temp)
+#         platform_values_str = delBlank(platform_values_str)
+#         platform_values_list = platform_values_str.split(HOMEPAGEINDEXSPECIAL_VALUE_SPLIT)   
+#         for i in range(fields_home_number):
+#             platform_index_dict[platform_name][fields_home_list[i]] = platform_values_list[fields_index_list[i]-1]
+#             fp_list.append(platform_values_list[fields_index_list[i]-1])
+#         fp.write(" ".join(fp_list) + "\n")
+#     fp.close()
+    
+    #3. 查找各个详情页的值
+    field_list = []
+    config_file = open('../conf/jlsj.conf', 'r')
+    for lines in config_file:
+        if lines[0] not in ["#", "!"]:
+            line = lines.split('$$')
+            field_list.append(line[1])
+    field_number = len(field_list)
+    
+    list_file = open('../conf/jlsjList.conf', 'w')
+    line_number = 0
+    #TIMESTAMP_LIST_temp = range(DATENOW, INITIALTIMESTRAMP - 1, -SECONDSPERWEEK)
+    for timestamp in TIMESTAMP_LIST:
+        fpStr = ""
+        for platform_name in platform_name_list:
+            stringSQL = "SELECT `platform_name`, `"+"`, `".join(field_list)+"` FROM " +  SRCDB_C + " WHERE `date` = '"+str(timestamp)+"' AND `platform_name` = '" + platform_name + "'"
+            #print stringSQL
+            ret = cur_db.execute(stringSQL)
+            if ret == 0:
+                for field in field_list:
+                    fpStr += str(timestamp) + " " + platform_name + " " + str(field) + "\n"
+            else:
+                for rets in cur_db.fetchall():
+                    platform_name = rets[0]
+                    value_list = rets[1:]
+                    for i in range(field_number):
+                        #如果数值为nul则重新抓取
+                        if value_list[i] is None:
+                            fpStr += str(timestamp) + " " + platform_name + " " + str(field_list[i]) + "\n"
+
+#     for timestamp in TIMESTAMP_LIST:
+#         timestamp = timestamp - SECONDSPERWEEK
+#         fpStr = ""
+#         for platform_name in platform_name_set:
+#             for i in range(field_number):
+#                 fpStr += str(timestamp) + " " + platform_name + " " + str(field_list[i]) + "\n"
+                            
+        list_file.write(fpStr)
+        line_number += fpStr.count("\n")
+    list_file.close()
+    closeCursors(cur_db)
+    closeConns(conn_db)
+    line_number_file = open("JlsjListNumber.txt", "w")
+    line_number_file.write(str(line_number))
+    line_number_file.close() 
+    print "一共有" + str(line_number) + "个待抓指标."
+        

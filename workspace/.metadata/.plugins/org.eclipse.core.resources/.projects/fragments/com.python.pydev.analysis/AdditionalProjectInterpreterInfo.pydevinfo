@@ -1,0 +1,38 @@
+-- VERSION_4
+-- START DISKCACHE_2
+C:\Java\workspace\.metadata\.plugins\org.eclipse.core.resources\.projects\fragments\com.python.pydev.analysis\v2_indexcache
+countBidsNumberDaily|1444367391292608000|C:\Java\workspace\fragments\src\countBidsNumberDaily.py
+main|1445588087513636000|C:\Java\workspace\fragments\src\main.py
+-- END DISKCACHE
+-- START DICTIONARY
+5
+3=Ball
+1=countBidsNumberDaily
+4=Ball.__init__
+2=main
+5=Ball.move
+-- END DICTIONARY
+-- START TREE 1
+13
+_en|1|_end_time!11@
+_st|2|_start_time!11@_str!11@
+bal|1|Ball!17@
+bpp|1|BPP_sum_number!11@
+con|2|conn_ddpt_data!11@conn_db!11@
+cur|2|cur_db!11@cur_ddpt_data!11@
+dat|1|date_list_V!11@
+mai|1|main!18@
+nbp|1|NBPP_sum_number!11@
+pla|4|platform_name_list_BPP!11@platform_name!11@platform_BPP_dict!11@platform_name_list_NBPP!11@
+src|2|SRCDB_V!11@SRCDB_P!11@
+str|1|stringSQL!11@
+sum|2|summary_NBPP_dict!11@summary_BPP_dict!11@
+-- END TREE
+-- START TREE 2
+5
+__i|1|__init__!3&18@
+ima|1|image!4&19@
+mov|1|move!3&18@
+rec|2|rect!4&19@rect!5&19@
+spe|1|speed!4&19@
+-- END TREE

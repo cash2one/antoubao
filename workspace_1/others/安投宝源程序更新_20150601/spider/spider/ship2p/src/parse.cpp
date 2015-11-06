@@ -1,0 +1,102 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <map>
+#include "../../common/utils/json_utils.h"
+#include "../../common/utils/utils.h"
+#include "../../common/spi_utils/spi_utils.h"
+
+using namespace std;
+
+int parsefile(const char *idstr)
+{
+    char filename[256];
+    sprintf(filename, "html/%s", idstr);
+    char *buf = readfile(filename);
+    if (!buf) {
+        return 1;
+    }
+    string bstr = string(buf);
+    free(buf);
+    map <string, string> kv;
+    kv["site_id"] = "ship2p";
+    kv["borrower"] = extract(bstr, "借款编号", "：", "\">", "</span>");
+    kv["project_name"] = extract(bstr, "本息保障", "</span>", "<span>", "</span>");
+    kv["project_id"] = idstr;
+    kv["borrowing_amount"] = filternum(extract(bstr, "贷款金额", "<span", "\">", "</span>"));
+    kv["annulized_rating"] = filternum(extract(bstr, "年利率", "<span", "\">", "%"));
+    kv["payment_method"] = extract(bstr, "还款方式", "：", "", "</span>");
+    kv["award"] = filternum(extract(bstr, "class=\"jiang_num\">", "", "", "%"));
+	kv["invested_amount"] = doubletostring(s_atod(kv["borrowing_amount"].c_str()) - \
+			s_atod(filternum(extract(bstr,"剩余借款","<span","￥","</span>")).c_str()));
+
+    kv["project_details"] = extract(bstr, "借款记录", "借款记录","<span >", "<!--miaoshu end-->");
+	kv["loan_period"] = extract(bstr, "期限","<span", "\">", "</span>");
+	if (kv["loan_period"].find("月") != string::npos) {
+		kv["loan_period"] = doubletostring(s_atod(filternum(kv["loan_period"]).c_str())*30);
+	}
+	else{
+		kv["loan_period"] = doubletostring(s_atod(filternum(kv["loan_period"]).c_str()));
+	}
+
+
+
+
+    int investornum = 0;
+    {
+        string retstr;
+        string::size_type tmp =  bstr.find("投标方式");
+	    string::size_type endpos;
+        if(tmp != string::npos){
+            tmp = bstr.find("<div class=", tmp+1);
+        }
+        if(tmp != string::npos){
+            tmp =  bstr.find("</div>",tmp+1);
+        }
+        if(tmp != string::npos){
+
+            string striv = bstr.substr(tmp);
+            string ivname;
+            string ivaccount;
+            string ivtime;
+            while ((ivname = extract(striv, "<div class=\"name\">", "", "", "</div>")) != "") {
+                ivaccount = filternum(extract(striv, "<div class=\"jiner\">", "￥","", "</div>"));
+                ivtime = extract(striv, "<div class=\"time\">", "", "", "</div>");
+                ivtime = longtostring(stringtotime(ivtime.c_str(), "%Y-%m-%d %H:%M:%S"));
+				retstr += ivtime + "|" + ivname + "|" + ivaccount + "|";
+		        investornum++;
+
+
+				if (striv.find("<div class=\"xuhao\">") == string::npos) {
+                    break;
+                }
+                striv = striv.substr(striv.find("<div class=\"xuhao\">") + 1);
+
+//				retstr += ivtime + "|" + ivname + "|" + ivaccount + "|";
+//                investornum++;
+            }
+        }
+        kv["investor"] = retstr;
+    }
+    kv["investors_volume"] = longtostring(investornum);
+    printstringmap(kv);
+
+
+    if (kv["project_id"] == "" || s_atol(kv["borrowing_amount"].c_str()) <= 0) {
+        return 1;
+    }
+
+	sprintf(filename, "data/%s", idstr);
+    return savestringmap(kv, filename);
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc < 2) {
+        return 0;
+    }
+    return parsefile(argv[1]);
+}
+

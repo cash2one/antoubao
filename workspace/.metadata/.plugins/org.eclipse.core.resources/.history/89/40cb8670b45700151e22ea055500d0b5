@@ -1,0 +1,266 @@
+#!/usr/bin/python
+#encoding=utf-8
+
+from header import *
+
+def usage():
+    print "COMMAND:"
+    print "\tpython "+sys.argv[0]
+    exit(-1)
+
+#所有参与计算加权平均值比例的参数列表
+planBKeys = ["turnover_registered", "weekly_ave_investment", "ave_annualized_return", "weekly_ave_lending_per_borrower", "top10_ratio_loan", "not_returned_yet", "weekly_loan_period", "provision_of_risk", "market_share_growth", "weekly_lending", "weekly_total_borrower", "weekly_ave_investment_old", "weekly_ave_investment_per_bid", "weekly_ave_bid_close_time", "weekly_ratio_new_old", "weekly_ave_lending_per_bid", "top5_ratio_loan", "borrower_HHI", "outstanding_loan", "money_growth", "borrower_growth", "investor_growth"]
+
+#所有参与计算平均值类型更新的参数列表
+planCKeys = ["weekly_total_investor", "turnover_period", "weekly_total_borrower", "weekly_new_investor", "weekly_lending", "weekly_total_investor", "PR_transparency1"]
+
+#准备数据
+quanti, qualit, quasco, status = readQuanti(rQUANTI), readQualit(rQUALIT), readQuasco(rQUASCO), readStatus(rSTATUS)
+
+DEVCUR.execute("DELETE FROM view_score_condition WHERE `date` != '"+str(STARTDATE)+"'")
+DEVCONN.commit()
+
+descArr = {}
+for platid in status.keys():
+    date = -1
+    for timestamp in status[platid].keys():
+        info = json.loads(status[platid][timestamp])
+        if info['status'] > 0.89:
+            continue
+        if platid not in descArr or timestamp > date:
+            descArr[platid] = info
+            date = timestamp
+
+#获取最新日期
+date = -1
+for platid in quanti.keys():
+    for timestamp in quanti[platid].keys():
+        if timestamp > date:
+            date = timestamp
+date = str(date)
+
+#数据准备
+datas = {}
+ratio = {}
+for timestamp in [str(STARTDATE), date]:
+    if timestamp not in datas.keys():
+        datas[timestamp] = {}
+    for platid in quanti.keys():
+        if timestamp not in quanti[platid].keys():
+            continue
+        for key in quanti[platid][timestamp]:
+            if key in INVALID_TITLE or \
+                (key not in planBKeys and key not in planCKeys):
+                continue
+            if key not in datas[timestamp].keys():
+                datas[timestamp][key] = []
+            if quanti[platid][timestamp][key] is None:
+                quanti[platid][timestamp][key] = 0
+            datas[timestamp][key].append(quanti[platid][timestamp][key])
+    #去掉三个最大值
+    for key in datas[timestamp].keys():
+        datas[timestamp][key].remove(max(datas[timestamp][key]))
+        datas[timestamp][key].remove(max(datas[timestamp][key]))
+        datas[timestamp][key].remove(max(datas[timestamp][key]))
+
+quascoList = {}
+for platid in quasco.keys():
+    if date not in quasco[platid].keys():
+        continue
+    for key in quasco[platid][date].keys():
+        if quasco[platid][date][key] is None:
+            continue
+        if key not in quascoList.keys():
+            quascoList[key] = []
+        quascoList[key].append(quasco[platid][date][key])
+
+#计算行业变化比例
+for key in planBKeys:
+    ave = np.average(datas[str(STARTDATE)][key], weights=datas[str(STARTDATE)]['weekly_lending'])
+    if ave != 0:
+        ratio[key] = np.average(datas[date][key], weights=datas[date]['weekly_lending'])/ave
+
+for key in planCKeys:
+    ratio[key] = np.mean(datas[date][key])/np.mean(datas[str(STARTDATE)][key])
+
+#读取自动评论配置
+scoreArr = {}
+stringSQL = "SELECT prop, score1, score2, score3, score4, score5 FROM view_score_condition WHERE `date` = '"+str(STARTDATE)+"'"
+DEVCUR.execute(stringSQL)
+for col in DEVCUR.fetchall():
+    key = col[0]
+    if key not in ratio.keys():
+        ratio[key] = 1
+    scoreArr[key] = [col[1]*ratio[key], col[2]*ratio[key], col[3]*ratio[key], col[4]*ratio[key], col[5]*ratio[key]]
+summaryArr = {}
+contentArr = {}
+stringSQL = "SELECT prop, summary0, summary1, summary2, summary3, summary4, prop_name FROM view_summary_condition"
+DEVCUR.execute(stringSQL)
+for col in DEVCUR.fetchall():
+    summaryArr[col[0]] = [col[1], col[2], col[3], col[4], col[5]]
+    contentArr[col[0]] = col[6]
+
+DEVCUR.execute("DELETE FROM view_mobile")
+DEVCONN.commit()
+
+#将Redis-db(9)中最新周的数据写到ddpt-data上的view_mobile表
+for platid in rRESULT.keys():
+    if date in rRESULT.hkeys(platid):
+        fromHashToMySQL(DEVCUR, DEVCONN, "view_mobile", json.loads(rRESULT.hget(platid, date)))
+
+#自动评论
+count = 0
+stringSQL = "SELECT platform_id, platform_name, level, date, old_date FROM view_mobile"
+DEVCUR.execute(stringSQL)
+for platid, platname, level, date, old_date in DEVCUR.fetchall():
+    #对补充的平台，使用old_date时间的数据进行评价。
+    if old_date is not None:
+        date = old_date
+    date = str(date)
+    #定量信息评论
+    good = 0
+    bad = 0
+    if level == "A++":
+        good = 3
+        bad = 1
+    elif level == "A+" or level == "A" or level == "B++":
+        good = 2
+        bad = 2
+    else:
+        good = 1
+        bad = 3 
+    
+    rank = {}
+    for key in scoreArr.keys():
+        if key not in rank.keys():
+            rank[key] = 1
+        for value in sorted(quascoList[key], reverse=True):
+            if quasco[platid][date][key] > value:
+                break
+            rank[key] += 1
+
+    goodArr = []
+    for i in range(0, good):
+        _min = 99999
+        _minPos = -1
+        for key in scoreArr.keys():
+            if quasco[platid][date][key] == 0:
+                continue
+            if rank[key] < _min and key not in goodArr:
+                _min = rank[key]
+                _key = key
+        goodArr.append(_key)
+
+    badArr = []
+    for i in range(0, bad):
+        _max = 0
+        _maxPos = -1
+        for key in scoreArr.keys():
+            if quasco[platid][date][key] == 0:
+                continue
+            if rank[key] > _max and key not in badArr:
+                _max = rank[key]
+                _key = key
+        badArr.append(_key)
+
+    summary = ""
+    flag = 0
+    for key in goodArr:
+        value = quanti[platid][date][key]
+        for i in range(0, len(scoreArr[key])):
+            if value > scoreArr[key][i]:
+                if len(goodArr) == 1 and i > 1:
+                    continue
+                if summaryArr[key][i] is not None:
+                    flag = 1
+                    summary += contentArr[key]+summaryArr[key][i]+","
+                break
+
+    for key in badArr:
+        value = quanti[platid][date][key]
+        for i in range(0, len(scoreArr[key])):
+            if value > scoreArr[key][i]:
+                if summaryArr[key][i] is not None:
+                    if flag == 1 and i > 2:
+                        summary += "但"
+                        flag = 2
+                    summary += contentArr[key]+summaryArr[key][i]+","
+                break
+
+    summary = summary[:-1].replace(',', '，')
+    if summary != "":
+        summary += '。'
+    
+    #定性信息评论
+    v = {}
+    s = "该平台"
+    if qualit[platid]['vc_cap_usd'] > 4000:
+        s = s + "已获得高额风投,"
+    elif qualit[platid]['vc_cap_usd'] <= 4000 and qualit[platid]['vc_cap_usd'] >= 1000:
+        s = s + "已获得较大额风投,"
+    elif qualit[platid]['vc_cap_usd'] < 1000 and qualit[platid]['vc_cap_usd'] > 100:
+        s = s + "已获得风投,"
+
+    if qualit[platid]['borrower_transparency'] < 2:
+        s = s + "借款信息披露欠充分,"
+    elif qualit[platid]['borrower_transparency'] > 4:
+        s = s + "借款信息披露较好,"
+
+    if qualit[platid]['debt_transfer'] == 0:
+        s = s + "无债权转让功能,"
+    elif qualit[platid]['debt_transfer'] == 1:
+        s = s + "允许债权转让,"
+
+    if qualit[platid]['customer_service'] < 2:
+        s = s + "客服水平有待提升,"
+    elif qualit[platid]['customer_service'] > 4:
+        s = s + "客服较专业,"
+
+    if qualit[platid]['third_entrust'] == 0:
+        s = s + "无第三方托管,"
+
+    debt_c = 0
+    debt_n = "以"
+    if qualit[platid]['bill_debt'] == 1:
+        debt_c += 1
+        debt_n = debt_n + "票据标,"
+    if qualit[platid]['car_debt'] == 1:
+        debt_c += 1
+        debt_n = debt_n + "车抵押标,"
+    if qualit[platid]['small_credit_bid'] == 1:
+        debt_c += 1
+        debt_n = debt_n + "小额信用标,"
+    if qualit[platid]['big_credit_bid'] == 1:
+        debt_c += 1
+        debt_n = debt_n + "大额信用标,"
+    if qualit[platid]['house_debt'] == 1:
+        debt_c += 1
+        debt_n = debt_n + "房产或大额资产抵押标,"
+
+    if debt_c < 3 and debt_c > 0:
+        s = s + debt_n[:-1] + "为主,"
+    elif debt_c < 5:
+        s = s + "标的种类丰富,"
+    else:
+        s = s + "标的种类齐全,"
+
+    s = s[:-1].replace(',', '，')
+    if s != "":
+        s += "。"
+
+    if summary != "" or s != "":
+        summary = "平台特征："+summary+s
+
+    desc =  ""
+    if platid in descArr.keys():
+        t = time.localtime(float(descArr[platid]['date']))
+        date = time.strftime('%Y年%m月%d日', t)
+        d = descArr[platid]['description'].encode('utf-8')
+        desc = platname + "于" + date + "出现" + d + "。\n"
+
+    stringSQL = "UPDATE view_mobile SET `summary` = '"+desc+summary+"' WHERE `platform_id` = '"+platid+"'"
+    DEVCUR.execute(stringSQL)
+    count += 1
+DEVCONN.commit()
+    
+print "Comment data("+str(count)+") written to MySQL-db(view_mobile)!"

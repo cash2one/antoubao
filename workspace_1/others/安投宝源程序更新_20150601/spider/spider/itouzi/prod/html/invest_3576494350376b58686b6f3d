@@ -1,0 +1,681 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<link rel="dns-prefetch" href="//css1.itzcdn.com">
+<link rel="dns-prefetch" href="//js1.itzcdn.com">
+<link rel="dns-prefetch" href="//img3-itzcdn-com.alikunlun.com">
+<title>高端家具企业补充流动资金（新手一期） - 爱投资 - 最安全规范的互联网金融创新工场</title>
+<meta name="description" content="最安全、综合担保实力最强的互联网理财平台，为用户提供有本息全额担保的高收益投资理财产品，大众化的投资门槛、全免费的服务体验。爱投资让您爱上投资！">
+<meta name="keywords" content="爱投资,安投融,P2C,安全透明,网络投资,网络投资平台,网上投资,抵押借贷,免费投资,放心投资,安全投资,安全理财,P2P网络投资,P2P网上投资,本金保障,高收益,高回报,投资,借贷,理财,个人投资,民间投资,P2P投资,企业融资,企业借贷">
+<link rel="shortcut icon" href="http://css1.itzcdn.com/static/old/favicon.ico"/>
+<script>
+    	window.User = {
+        "user_id": "552614",
+        "user_name": "fhq12345",
+        "qn_score" :"0",
+        "real_name": "",
+        "real_status": "0",
+        "email_status": "0",
+        "phone_status": "0",
+        "con_id5_switch": "1",
+        "payPwd_status" : "",
+        "question_status": "",
+        "todayIncome" :"0.00"
+    };
+        var youxianFlag = '2',//是否定向投资
+        whiteInvestMoney= '0',//白名单
+        pageName= 'invest';//页面名字
+    </script>
+
+<!--[if lt IE 9]>
+    <script type="text/javascript" src="http://css1.itzcdn.com/static/third/excanvas.compiled.js"></script>
+<![endif]-->
+            <link rel="stylesheet" href="http://css1.itzcdn.com/static/css/min.css?v=2015040217"/>
+                        <link rel="stylesheet" href="http://css1.itzcdn.com/static/css/min.xDetail.css?v=2015040217"/>
+            </head>
+<body>
+    <div class="hd">
+        	<div class="hd-top">
+		<div class="hd-inner clearfix">
+			<div class="hd-website-menu">
+				<a href="http://www.itouzi.com/itzdefault/event/mobile" target="_blank" class="hd-wap"><span class="icon-hdSprite icon-hd-wap"></span><span class="fl pdr-15 br1e6">移动客户端</span></a>
+                <a href="http://www.itouzi.com/itzdefault/event/loanapp" class="hd-save"><span class="fl pdr-15 br1e6">企业融资</span></a>
+                <a href="http://www.itouzi.com/itzdefault/event/userguide" class="hd-save"><span class="fl pdr-15 br1e6">新手引导</span></a>
+                <a href="http://www.itouzi.com/itzdefault/event/activity" class="hd-save"><span class="fl">活动专区</span></a>
+			</div>
+            <ul class="hd-quick-menu">
+            	<li class="hd-quick-menu-sub pdl-15">
+                	<a href="https://www.itouzi.com/newuser/main/index?ret_url=https%3A%2F%2Fwww.itouzi.com/newuser/main/index" class="hd-quick-menu-sub-a br1e6"><span class="fl">我的账户</span><span class="icon-hdSprite icon-triangle-x a-r180"></span></a>
+                    <span class="hd-triangle-1 fadeIn-1s">◆</span>
+                    <span class="hd-triangle fadeIn-1s">◆</span>
+                	<ul class="hd-quick-help hd-quick-i-account fadeIn-1s">
+                        <li><a href="https://www.itouzi.com/newuser/main/recharge?ret_url=https%3A%2F%2Fwww.itouzi.com/newuser/main/recharge" >充值</a></li>
+                        <li><a href="https://www.itouzi.com/newuser/main/withdraw?ret_url=https%3A%2F%2Fwww.itouzi.com/newuser/main/withdraw" >提现</a></li>
+                    	<li><a href="https://www.itouzi.com/newuser/main/account?ret_url=https%3A%2F%2Fwww.itouzi.com/newuser/main/account" >资产统计</a></li>
+                        <li><a href="https://www.itouzi.com/newuser/main/trade?ret_url=https%3A%2F%2Fwww.itouzi.com/newuser/main/trade" >交易记录</a></li>
+                    </ul>
+                </li>
+                <li id="headerMsg" class="pdl-15" style="display:none; width:auto; white-space: nowrap;">
+                    <a href="https://www.itouzi.com/newuser/main/message" style="float:none; display: inline;" class="hd-quick-menu-sub-a pdr-15 br1e6"><span>消息(<em></em>)</span></a>
+                </li>
+                <li class="hd-quick-menu-sub pdl-15">
+                	<a href="http://www.itouzi.com/itzdefault/help/index?idx=0" class="hd-quick-menu-sub-a br1e6"><span class="fl">帮助中心</span><span class="icon-hdSprite icon-triangle-x a-r180"></span></a>
+                    <span class="hd-triangle-1 fadeIn-1s">◆</span>
+                    <span class="hd-triangle fadeIn-1s">◆</span>
+                	<ul class="hd-quick-help fadeIn-1s">
+                    	<li><a href="http://www.itouzi.com/itzdefault/help/index?idx=2">爱投资介绍</a></li>
+                        <li><a href="http://www.itouzi.com/itzdefault/help/index?idx=4">注册与登录</a></li>
+                        <li><a href="http://www.itouzi.com/itzdefault/help/index?idx=5">认证与安全</a></li>
+                        <li><a href="http://www.itouzi.com/itzdefault/help/index?idx=7">充值与提现</a></li>
+                    </ul>
+                </li>
+                <li class="hd-quick-menu-contact pdl-15">
+                	<a href="http://www.itouzi.com/itzdefault/about/contact" class="hd-quick-menu-contact-a"><span class="fl">联系我们</span><span class="icon-hdSprite icon-triangle-x a-r180"></span></a>
+                    <span class="hd-triangle-1 fadeIn-1s">◆</span>
+                    <span class="hd-triangle fadeIn-1s">◆</span>
+                	<div class="hd-quick-contact fadeIn-1s">
+                    	<div class="h-q-c-right icon-hd-erweima"></div>
+                        <div class="h-q-c-center fl">
+                        	<a href="http://e.weibo.com/itouzicom" target="_blank"><span class="icon-hdSprite icon-hd-sina"></span><span class="fl">新浪微博</span></a>
+                            <a href="http://t.qq.com/itouzicom" target="_blank"><span class="icon-hdSprite icon-hd-qqweibo"></span><span class="fl">腾讯微博</span></a>
+                            <a href="mailto:service@itouzi.com" target="_blank"><span class="icon-hdSprite icon-hd-email"></span><span class="fl">客服邮箱</span></a>
+                        </div>
+                        <div class="h-q-c-left fl">
+                        	<h3 class="ffA">400-0088-100</h3>
+                            <p>工作日9:00-21:00 / 节假日9:00-18:00</p>
+                            <a href="http://qiao.baidu.com/v3/?module=default&controller=webim&action=index&siteid=2486763&groupid=0&groupname=%E6%8A%95%E8%B5%84%E5%92%A8%E8%AF%A2" class="h-q-c-serve" target="_blank">在线客服</a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+		</div>
+	</div>
+	<div class="hd-content">
+    	<div class="hd-inner clearfix">
+           <a href="http://www.itouzi.com"><img src="http://css1.itzcdn.com/static/img/common/logo.jpg" class="hd-logo"  width="352" height="40" title="爱投资！让您爱上投资！" alt="爱投资！让您爱上投资！"/></a>
+            <div class="hd-login">
+                                                        <ul id="hsWrapper" class="hd-login-win">
+                        <li class="h-l-w-item clearfix">
+                            <a href="https://www.itouzi.com/newuser/main/index"><span class="fl mgr-5">您好，<strong>fhq12345</strong></span><span class="fl css-triangle a-r180"></span></a>
+                            <div class="hd-login-handle fadeIn-1s">
+                                <ul class="hd-login-list">
+                                    <li class="h-l-h-item"><a href="https://www.itouzi.com/newuser/main/index">进入我的账户</a></li>
+                                    <li class="h-l-h-item"><a href="https://www.itouzi.com/newuser/index/logout">退出</a></li>
+                                </ul>
+                            </div>
+                            <span class="hd-triangle-1 fadeIn-1s">◆</span>
+                            <span class="hd-triangle fadeIn-1s">◆</span>
+                        </li>
+                    </ul>
+                                                </div>
+        </div>
+    </div>
+	<div class="hd-nav">
+    	<div class="hd-inner clearfix">
+            <ul class="hd-main-nav fl clearfix">
+                <li class="h-m-n-item">
+                    <a href="http://www.itouzi.com" class="h-m-n-link">首页</a>
+                </li>
+                <li class="h-m-n-item cur">
+                    <a href="http://www.itouzi.com/dinvest/index/index" class="h-m-n-link">投资产品</a>
+                    <span class="hd-triangle fadeIn-1s">◆</span>
+                    <ul class="hd-sub-nav clearfix dspn fadeIn-1s">
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/dinvest/shengxin/index" class="h-s-n-link">省心计划</a></li>
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/dinvest/list/index?type=2" class="h-s-n-link">爱担保产品</a></li>
+                                                <li class="h-s-n-item"><a href="http://www.itouzi.com/dinvest/list/index?type=6" class="h-s-n-link">爱保理产品</a></li>
+                                                <li class="h-s-n-item"><a href="http://www.itouzi.com/dinvest/list/index?type=5" class="h-s-n-link">爱融租产品</a></li>
+                                                <li class="h-s-n-item"><a href="http://www.itouzi.com/dinvest/list/index?type=7" class="h-s-n-link">爱收藏产品</a></li>
+                                                <li class="h-s-n-item"><a href="http://www.itouzi.com/dinvest/debt/index" class="h-s-n-link">债权市场</a></li>
+                    </ul>
+                </li>
+                <li class="h-m-n-item">
+                    <a href="http://www.itouzi.com/itzdefault/business/index" class="h-m-n-link">业务模式</a>
+                    <span class="hd-triangle fadeIn-1s">◆</span>
+                    <ul class="hd-sub-nav clearfix dspn fadeIn-1s">
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/business/shengxin" class="h-s-n-link">省心计划</a></li>
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/business/guar" class="h-s-n-link">爱担保模式</a></li>
+                                                <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/business/factoring" class="h-s-n-link">爱保理模式</a></li>
+                                                <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/business/lease" class="h-s-n-link">爱融租模式</a></li>
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/business/art" class="h-s-n-link">爱收藏模式</a></li>
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/business/debt" class="h-s-n-link">债权转让模式</a></li>
+                    </ul>
+                </li>
+                <li class="h-m-n-item">
+                    <a href="http://www.itouzi.com/itzdefault/safe/index" class="h-m-n-link">安全保障</a>
+                    <span class="hd-triangle fadeIn-1s">◆</span>
+                    <ul class="hd-sub-nav clearfix dspn fadeIn-1s">
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/guarantee/guar/index" class="h-s-n-link">合作保障机构</a></li>
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/safe/cfca" class="h-s-n-link">CFCA战略合作</a></li>
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/safe/credit" class="h-s-n-link">信审风控流程</a></li>
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/safe/law" class="h-s-n-link">政策法规保障</a></li>
+                    </ul>
+                </li>
+                <li class="h-m-n-item">
+                    <a href="http://www.itouzi.com/itzdefault/about/corp" class="h-m-n-link">关于我们</a>
+                    <span class="hd-triangle fadeIn-1s">◆</span>
+                    <ul class="hd-sub-nav clearfix dspn fadeIn-1s">
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/about/corp" class="h-s-n-link">公司简介</a></li>
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/about/team" class="h-s-n-link">团队介绍</a></li>
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/about/media" class="h-s-n-link">媒体报道</a></li>
+                        <li class="h-s-n-item"><a href="http://www.itouzi.com/itzdefault/about/contact" class="h-s-n-link">联系我们</a></li>
+                    </ul>
+                </li>
+                <li class="h-m-n-item" id="loveForum">
+                    <a href="http://bbs.itouzi.com" class="h-m-n-link">爱论坛</a>
+                </li>
+            </ul>
+                        
+                                <a id="indexActivity2" href="http://bbs.itouzi.com/thread-181338-1-1.html" class="fr"></a>
+                            
+                    </div>
+    </div>
+</div>
+	<div class="bd" style="padding-bottom:70px;">
+    	<div class="crumb-nav bd-inner">
+                <a href="http://www.itouzi.com">首页</a>
+        &nbsp;>&nbsp;                <a href="http://www.itouzi.com/dinvest/list/index">投资产品</a>
+        &nbsp;>&nbsp;                <a href="/dinvest/list/index?type=2">爱担保列表</a>
+        &nbsp;>&nbsp;            <span>项目详情</span>
+            </div>
+<!--记得考虑爱融租、以及投资详情页等页面的显示-->        <div class="invest-particulars bd-inner clearfix">
+        	<div class="invest-particulars-name clearfix">
+            	<h1 class="large dark fl clearfix"><b class="newHand-icon fl tips fl" title="从未投资过的新手专享投资项目">新手专享</b>高端家具企业补充流动资金（新手一期）</h1><span class="fr tint mgt">债务方编号：ZRXY150327544592</span>
+            </div>
+            <div class="invest-particulars-introduction clearfix">
+            	<img src="http://itzstatic.b0.upaiyun.com//data/upfiles/guarantor/2015-03/27/tmp_guarantor_1427444120.jpg" class="i-p-i-img fl" width="240"/>
+                <span class="invest-lable-1"></span>
+                <div class="i-p-i-content fl">
+                	<div class="i-p-i-c-condition clearfix">
+                        <dl>
+                            <dt>年化收益</dt>
+                            <dd class="ffA"><em class="fs-xl strong">14.00</em><em class="large">%</em></dd>
+                        </dl>
+                        <dl>
+                            <dt>投资期限</dt>
+                            <dd><strong class="fs-xl ffA">12</strong><span class="fs-m">个月</span></dd>
+                        </dl>
+                        <dl>
+                            <dt>项目规模</dt>
+                            <dd><strong class="fs-xl ffA">100</strong><span class="fs-m">万</span></dd>
+                        </dl>
+                    </div>
+                    <p class="mgt"><span class="fs-m">发布日期：2015-03-27&nbsp;&nbsp;&nbsp;&nbsp;还款日期：2016-03-28</span></p>
+                                        <ul class="i-p-i-guarantee mgt">
+                    	<li class="clearfix"><span class="fl">担保机构：</span><a href="/guarantee/guar/detail-622.html" class="tips fl" title="融资性担保公司提供100%本息担保" target="_blank"><span class="fl"><img src="http://itzstatic.b0.upaiyun.com//data/upfiles/guarantor/2014-08/06/tmp_guarantor_1407313704.jpg" class="fl" width="13px" height="13"></span><span class="fl">中融兴业融资担保有限公司</span></a></li>
+                        <li>还款方式：按月付息，到期还本</li>
+                    </ul>
+                    <div class="clearfix">
+                        <span class="i-p-c-l-i-icon fl clearfix itzTip" title="投资当天立即生息"><span class="icon-iSprite icon-position icon-i-13"></span><span class="fl">当日计息</span></span>
+                        <span class="i-p-c-l-i-icon fl clearfix itzTip" title="融资性担保公司提供100%本息担保"><span class="icon-iSprite icon-position icon-i-16"></span><span class="fl">本息保障</span></span>
+                        <span class="i-p-c-l-i-icon fl clearfix itzTip" title="持有30天后可以转让"><span class="icon-iSprite icon-position icon-i-15"></span><span class="fl">灵活转让</span></span>
+                    </div>
+                </div>
+            </div>
+                        <div id="investBox" class="invest-particulars-subscription investDetail-placeholder" >
+            	<div class="i-p-s-nav clearfix rel">
+                <h2 class="clearfix"><span class="fl strong">投资金额</span><span class="fr fs-s pdr"><img class="tips" title="" style="display:block;margin-top:11px" src="http://css1.itzcdn.com/static/img/step_100.jpg"/></span></h2>
+                </div>
+                <div class="i-p-s-content fs-m rel" >
+                    <form id="investForm" action="/dinvest/invest/confirm" onsubmit="return false">
+                                            <span class="dspb mgt-20">投资人数：<em>56</em>人投资此项目</span>
+                                                <span class="dspb">还款状态：企业正常还款中</span>
+                                            
+                    <div class="i-p-s-affirm clearfix">
+                                                <a class="i-p-c-i-btn-3 fl">投资已满额</a>
+                                                                            <a href="/dinvest/tools/index" class="i-p-c-s-counter a-auto fl" target='_blank'></a>
+                        
+                    </div>
+                    </form>
+                </div>
+            </div>
+            <div id="calcCon" class="calculator" style="display:none">
+                <div class="calculator-title">
+                    <h2>收益计算器</h2>
+                    <span class="close">×</span>
+                </div>
+                <div class="c-invest-money clearfix">
+                    <span class="fl fs-x">投资金额：</span>
+                    <div class="i-p-s-form clearfix fl rel">
+                        <div id="calcError" class="i-p-s-f-error dspb"></div>
+                        <div class="i-p-s-f-input clearfix">
+                            <div class="i-p-s-f-amount">
+                                <input id="calcInvestInput" type="text" value="100" autocomplete="off"/>
+                            </div>
+                        </div>
+                        <span class="fl fs-x">元</span>
+                    </div>
+                </div>
+                <div id="calcSum" class="c-earnings"><span class="fs-x">投资到期可获得总收益：<em class="strong ffA">0</em>元</span></div>
+                <table class="c-interest-list-2" border="0" cellpadding="2" cellspacing="0">
+                    <tbody id="calcList">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="particulars bd-inner clearfix">
+        	<div id="allInfo" class="particulars-text">
+    <div class="particulars-nav clearfix">
+        <a href="#projectDesc" class="particulars-nav-item bln cur">项目描述</a>
+    <a href="#companyDesc" class="particulars-nav-item">企业信息</a>
+                <a href="#guarDesc" class="particulars-nav-item">担保详情</a>
+                    <a href="#investHistory" class="particulars-nav-item">投资记录</a>
+            <a href="#comment" class="particulars-nav-item brn">项目咨询</a>
+    </div>
+<div id="navFixed" class="particulars-nav-fixed" style="display:none">
+    <div class="bd-inner rel">
+        <div class="particulars-nav clearfix">
+			
+                            <a href="#projectDesc" class="particulars-nav-item bln">项目描述</a>
+                <a href="#companyDesc" class="particulars-nav-item">企业信息</a>
+                                <a href="#guarDesc" class="particulars-nav-item">担保详情</a>
+                                                    <a href="#investHistory" class="particulars-nav-item">投资记录</a>
+                                    <a href="#comment" class="particulars-nav-item brn">项目咨询</a>
+                    </div>  
+    </div>
+</div>
+    
+        <div id="projectDesc" class="particulars-content">
+                        <h3 class="p-c-title">项目描述</h3>
+        <div class="rel">
+                                                <div class="partDesc"><p>借款企业主要从事红木家具生产销售业务。随着企业知名度提高，企业新增订单量大，由于近期原木料市场价格不断攀升，为满足订单生产及保证足够利润空间，企业需采购大量原材料，故需在我平台融资2000万元。本期融资融资100万元。</p>
+</div>
+                    </div>
+                                <h3 class="p-c-title">资金用途</h3>
+        <div class="rel">
+                                                <div class="partDesc"><p>本项目融资用于借款企业采购原材料使用。</p>
+</div>
+                    </div>
+                                <h3 class="p-c-title">还款来源</h3>
+        <div class="rel">
+                                                <div class="partDesc"><p>借款企业主要还款来源为企业主营业务收入，2013年借款企业主营业务收入为2274万元，2014年主营业务收入为7274万元。2013年由于企业刚刚成立，销售收入较少，经过一年的经营管理，企业步入正轨。还款来源有保障。</p>
+</div>
+                    </div>
+            </div>
+    
+    <div id="companyDesc" class="particulars-content">
+    <h2 class="p-c-area">企业信息</h2>
+            <h3 class="p-c-title">企业背景</h3>
+    <div class="rel">
+                                <div class="partDesc"><p>借款企业主要从事原木销售、红木家具加工销售。其销售的原木主要有海黄、黄金檀木、越南酸枝等会中木材。代销的红木有老周红木、桑马、红马等高端红木产品。企业拥有一支优秀的手工艺团队，其承接的订单均有手工雕刻成型，其市场认可度高，近年来在行…</p></div>
+        <div class="allDesc"><p>借款企业主要从事原木销售、红木家具加工销售。其销售的原木主要有海黄、黄金檀木、越南酸枝等会中木材。代销的红木有老周红木、桑马、红马等高端红木产品。企业拥有一支优秀的手工艺团队，其承接的订单均有手工雕刻成型，其市场认可度高，近年来在行业内备受好评，企业知名度不断提升。随着生活水平的不断提高，加上近来红木家具市场的热度不断攀升，企业发展态势良好。</p>
+</div>
+        <span class="clearfix p-c-more"><span class="fl">展开详情</span><b class="icon-hdSprite icon-triangle-x a-r180"></b></span>
+            </div>
+                <h3 class="p-c-title">营业范围</h3>
+    <div class="rel">
+                                <div class="partDesc"><p>原木销售、红木家具家加工销售。</p>
+</div>
+            </div>
+                <h3 class="p-c-title">经营状况</h3>
+    <div class="rel">
+                                <div class="partDesc"><p>借款企业主要从事原木、红木家具家加工销售。企业控制人从事该行业10余年，在业界具有一定的知名度及影响力，企业销售的原木均为高端木材。企业拥有良好的上游资源，主要依托其实际控制人的人脉资源，下游客户群体主要为中小型原木批发商、家具零售商…</p></div>
+        <div class="allDesc"><p>借款企业主要从事原木、红木家具家加工销售。企业控制人从事该行业10余年，在业界具有一定的知名度及影响力，企业销售的原木均为高端木材。企业拥有良好的上游资源，主要依托其实际控制人的人脉资源，下游客户群体主要为中小型原木批发商、家具零售商及喜爱收藏红木家具的企业家等。企业经营产品多种多样，销售渠道广泛，企业2013年成立，销售收入2247万元，2014年收入高达7274万元，企业形成了一定的规模，并具有一定的名气，发展强劲良好。</p>
+</div>
+        <span class="clearfix p-c-more"><span class="fl">展开详情</span><b class="icon-hdSprite icon-triangle-x a-r180"></b></span>
+            </div>
+    </div>
+    
+        <div id="guarDesc" class="particulars-content">
+        <h2 class="p-c-area">担保详情</h2>
+                <h3 class="p-c-title">担保机构</h3>
+        <div class="rel">
+             <div class="partDesc"><p>中融兴业融资担保有限公司</p></div>
+        </div>
+                                <h3 class="p-c-title">担保机构简介</h3>
+        <div class="rel">
+                                                <div class="partDesc"><p>中融兴业融资担保有限公司是经中华人民共和国国家工商行政总局批准登记注册的一家专业的融资性担保公司。公司成立于2010年4月，总部设在北京，注册资金30000万元。2012年6月，经北京市金融局工作核准颁发获得《中华人民共和国融资性担保机构经营许可…</p><p></p></div>
+            <div class="allDesc"><p>中融兴业融资担保有限公司是经中华人民共和国国家工商行政总局批准登记注册的一家专业的融资性担保公司。公司成立于2010年4月，总部设在北京，注册资金30000万元。2012年6月，经北京市金融局工作核准颁发获得《中华人民共和国融资性担保机构经营许可证》。该担保公司曾用名为中融兴业投资担保有限公司，于2015年1月14日更改为中融兴业融资担保有限公司。</p>
+
+<p>中融兴业拥有高水平的专业管理团队，在职员工30人，其中本科以上学历占85%，形成了一支具有专业化水平和丰富实践经验的队伍，建立了行之有效的管理体制和业务运作模式，设置了健全的风险控制管理体系。目前与宁波银行、招商银行、民生银行等多家金融机构有着良好的合作，授信额度总计119500万元，截止2014年6月底，在保余额24600万元。</p>
+</div>
+            <span class="clearfix p-c-more"><span class="fl">展开详情</span><b class="icon-hdSprite icon-triangle-x a-r180"></b></span>
+                    </div>
+                                <h3 class="p-c-title">抵质押物信息</h3>
+        <div class="rel">
+                                                <div class="partDesc"><p>1、借款企业法人无限连带责任保证；</p>
+
+<p>2、借款企业无限连带责任保证；</p>
+
+<p>3、北京朝阳区一套住宅抵押，建筑面积为149.35平方米；</p>
+
+<p>4、北京朝阳区一套住宅抵押，建筑面积为222.74平米。</p>
+</div>
+                    </div>
+                                <h3 class="p-c-title">风险控制措施</h3>
+        <div class="rel">
+                                                <div class="partDesc"><p>借款企业提供北京朝阳区两套住宅抵押，其建筑面积分别为149.35平方米和222.74平方米。两套房产位置均较优越，位于朝阳区，周边生活设施完善，交通便利，周边生活设完善，商业气氛浓厚，其中149.35平方米的房产估值591.44万元，222.74平方米的房产估值…</p><p></p><p></p><p></p></div>
+            <div class="allDesc"><p>借款企业提供北京朝阳区两套住宅抵押，其建筑面积分别为149.35平方米和222.74平方米。两套房产位置均较优越，位于朝阳区，周边生活设施完善，交通便利，周边生活设完善，商业气氛浓厚，其中149.35平方米的房产估值591.44万元，222.74平方米的房产估值1414.4万元。</p>
+
+<p>以上房产估值总计2005.84万元。</p>
+
+<p>借款企业法人从事该行业10余年，经验十足，人脉丰富，在业界具有一定的知名度和影响力，增加其个人以及企业无限连带责任可有效的控制项目风险。</p>
+
+<p>爱投资风控专员将贷后严审该公司资金使用、经营管理及整体运作情况，及时向风险控制部门反馈相关信息。风控部门经过整理分析，根据具体情况制定贷后监管的实施方案，通过严格的贷后监管避免风险的发生。</p>
+</div>
+            <span class="clearfix p-c-more"><span class="fl">展开详情</span><b class="icon-hdSprite icon-triangle-x a-r180"></b></span>
+                    </div>
+                                <h3 class="p-c-title">涉诉信息</h3>
+        <div class="rel">
+                                                <div class="partDesc"><p>经人法网查询，企业无涉诉信息。</p>
+</div>
+                    </div>
+                                <h3 class="p-c-title">担保机构意见</h3>
+        <div class="rel">
+                                                <div class="partDesc"><p>经担保公司对企业下户调查，并对借款企业经营、财务、抵、质押物的分析，借款企业经营良好，盈利能力较好；企业实际控制人在行业中声誉较好；具有丰富的经验。该企业近年来收入稳步增长，还款有保证，故同意为本项目进行担保。</p>
+</div>
+                    </div>
+            </div>
+        
+        <div id="investHistory" class="invest-history">
+        <h2 class="invest-history-title"><strong>投资记录</strong><span class="fs-m tint">（最新10条，投资用户可查看所有投资记录）</span></h2>
+                <ul id="prizeList" class="invest-history-prize clearfix" style="display:none">
+            <li>
+                <span class="icon-iSprite icon-i-19"></span>
+                <span id="yima" class="fl"></span>
+                <span class="fr"><a href="/itzdefault/reward/index?id=3576494350376b58686b6f3d#yimadangxian">了解详情 ＞</a></span>
+            </li>
+            <li>
+                <span class="icon-iSprite icon-i-20"></span>
+                <span id="yichui" class="fl"></span>
+                <span class="fr"><a href="/itzdefault/reward/index?id=3576494350376b58686b6f3d#yichuidingyin">了解详情 ＞</a></span>
+            </li>
+            <li>
+                <span class="icon-iSprite icon-i-21"></span>
+                <span id="yiming" class="fl"></span>
+                <span class="fr"><a href="/itzdefault/reward/index?id=3576494350376b58686b6f3d#yimingjingren">了解详情 ＞</a></span>
+            </li>
+        </ul>
+                <ul id="historyList" class="invest-history-list clearfix">
+            <li class="i-h-l-title line-1">
+                <span class="fl i-h-l-1">投资用户</span>
+                <span class="fl i-h-l-2">投资金额</span>
+                <span class="fl i-h-l-3 ">投资时间</span>
+                <span class="fr i-h-l-4">状态</span>
+            </li>
+        </ul>
+    </div>
+<script type="text/x-dot-template" id="investAll">
+    {{~it :value:key}}
+    <li class="i-h-l-item line-2">
+        <span class="fl i-h-l-1">{{=value.username}}</span>
+        <span class="fl i-h-l-2"><span class="ffA">{{=value.account}}</span>元</span>
+        <span class="fl i-h-l-3 ffA">{{=format_time_to_standard(value.addtime*1000)}}</span>
+        <span class="fr i-h-l-4">成功</span>
+    </li>
+   {{~}}
+</script>
+    <div id="comment" class="user-comment">
+        <h2 class="p-c-area">项目咨询</h2>
+                 
+        <p class="commentLnk"><a href="http://bbs.itouzi.com/thread-171786-1-1.html" target="_blank">前往项目讨论区&gt;&gt;</a><span>咨询项目相关信息</span></p>
+                <p class="commentLnk"><a href="http://bbs.itouzi.com/forum-8-1.html" target="_blank">前往投资经验区&gt;&gt;</a><span>查看爱投资用户分享的理财心得和投资技巧</span></p>
+    </div></div>
+<div class="particulars-picture">
+            <div>
+            <div class="particulars-picture-list" style="padding-bottom:10px;">
+                <div class="p-p-l-title">
+                    <h2 class="fl">项目评估</h2>
+                </div>
+                <div id="chart-score">
+                    <img id="score_loadingImg" src="http://css1.itzcdn.com/static/img/newUser/loading1.gif" />
+                    <canvas id="projectScore" width="130" height="130"></canvas>
+                </div>
+                <div id="annotation_text">
+                    <span>注：各顶点分别为最优级别</span>
+                </div>
+            </div>
+        </div>
+            <div id="picFr">
+                <div class="particulars-picture-list">
+            <div class="p-p-l-title">
+                <h2 class="fl">企业相关图片</h2>
+                <div id="attestNav" class="slideNav fr clearfix"></div>
+            </div>
+            <div id="attestSlide" class="p-p-l-con clearfix">
+                                            <div>
+                                <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/0_attestation_1427439759.jpg" title="营业执照"  style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427439759.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427439759.jpg" alt="营业执照" /><h3>营业执照</h3><div class="p-p-l-con-bj"></div></a>
+                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/0_attestation_1427439760.jpg" title="组织机构代码" class="mrn" style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427439760.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427439760.jpg" alt="组织机构代码" /><h3>组织机构代码</h3><div class="p-p-l-con-bj"></div></a>
+                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/0_attestation_1427439762.jpg" title="税务登记证"  style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427439762.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427439762.jpg" alt="税务登记证" /><h3>税务登记证</h3><div class="p-p-l-con-bj"></div></a>
+                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/0_attestation_1427439764.jpg" title="开户许可证" class="mrn" style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427439764.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427439764.jpg" alt="开户许可证" /><h3>开户许可证</h3><div class="p-p-l-con-bj"></div></a>
+                                </div>
+                                                            <div>
+                                <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/0_attestation_1427440094.jpg" title="企业照片1"  style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427440094.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427440094.jpg" alt="企业照片1" /><h3>企业照片1</h3><div class="p-p-l-con-bj"></div></a>
+                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/0_attestation_1427440095.jpg" title="企业照片2" class="mrn" style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427440095.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427440095.jpg" alt="企业照片2" /><h3>企业照片2</h3><div class="p-p-l-con-bj"></div></a>
+                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/0_attestation_1427440097.jpg" title="企业照片3"  style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427440097.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427440097.jpg" alt="企业照片3" /><h3>企业照片3</h3><div class="p-p-l-con-bj"></div></a>
+                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/0_attestation_1427440096.jpg" title="企业照片4" class="mrn" style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427440096.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_0_attestation_1427440096.jpg" alt="企业照片4" /><h3>企业照片4</h3><div class="p-p-l-con-bj"></div></a>
+                                </div>
+                                        </div>
+        </div>
+                        <div class="particulars-picture-list mb0">
+            <div class="p-p-l-title">
+                                <h2 class="fl">担保相关图片</h2>
+                                <div id="guarNav" class="slideNav fr clearfix"></div>
+            </div>
+            <div id="guarSlide" class="p-p-l-con clearfix">
+                                                        <div>
+                                        <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/884_borrowupload_1427440183.jpg" title="担保函"  style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427440183.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427440183.jpg" alt="担保函" /><h3>担保函</h3><div class="p-p-l-con-bj"></div></a>
+                                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/884_borrowupload_1427440159.jpg" title="企业委托借款书首页" class="mrn" style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427440159.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427440159.jpg" alt="企业委托借款书首页" /><h3>企业委托借款书首页</h3><div class="p-p-l-con-bj"></div></a>
+                                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/884_borrowupload_1427440156.jpg" title="企业委托借款书尾页"  style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427440156.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427440156.jpg" alt="企业委托借款书尾页" /><h3>企业委托借款书尾页</h3><div class="p-p-l-con-bj"></div></a>
+                                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/884_borrowupload_1427440158.jpg" title="房产证1" class="mrn" style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427440158.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427440158.jpg" alt="房产证1" /><h3>房产证1</h3><div class="p-p-l-con-bj"></div></a>
+                                        </div>
+                                                                            <div>
+                                        <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/884_borrowupload_1427440160.jpg" title="房产证2"  style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427440160.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427440160.jpg" alt="房产证2" /><h3>房产证2</h3><div class="p-p-l-con-bj"></div></a>
+                                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/884_borrowupload_1427442631.jpg" title="抵押物1-1" class="mrn" style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427442631.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427442631.jpg" alt="抵押物1-1" /><h3>抵押物1-1</h3><div class="p-p-l-con-bj"></div></a>
+                                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/884_borrowupload_1427442622.jpg" title="抵押物1-2"  style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427442622.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427442622.jpg" alt="抵押物1-2" /><h3>抵押物1-2</h3><div class="p-p-l-con-bj"></div></a>
+                                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/884_borrowupload_1427442633.jpg" title="抵押物1-3" class="mrn" style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427442633.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427442633.jpg" alt="抵押物1-3" /><h3>抵押物1-3</h3><div class="p-p-l-con-bj"></div></a>
+                                        </div>
+                                                                            <div>
+                                        <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/884_borrowupload_1427442623.jpg" title="抵押物2-1"  style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427442623.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427442623.jpg" alt="抵押物2-1" /><h3>抵押物2-1</h3><div class="p-p-l-con-bj"></div></a>
+                                                                            <a href="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/884_borrowupload_1427442635.jpg" title="抵押物2-2" class="mrn" style="background-image:url('http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427442635.jpg')" ><img src="http://itzstatic.b0.upaiyun.com/data/upfiles/images/2015-03/27/thumb_884_borrowupload_1427442635.jpg" alt="抵押物2-2" /><h3>抵押物2-2</h3><div class="p-p-l-con-bj"></div></a>
+                                        </div>
+                                                </div>
+        </div>
+            </div>
+        <div id="blueimp-gallery" class="blueimp-gallery">
+        <div class="slides"></div>
+        <h3 class="title"></h3>
+        <a class="prev">‹</a>
+        <a class="next">›</a>
+        <a class="close">×</a>
+        <a class="play-pause"></a>
+        <ol class="indicator"></ol>
+    </div>
+</div>
+        </div>
+    </div>
+    <div id="realNamePop" class="global-popwin-1" style="display:none;">
+        <div class="global-popwin-title-1">
+            <h2>认证提示</h2>
+            <span class="global-popwin-close-1">×</span>
+        </div>
+        <div class="global-popwin-content-1">
+            <p class="global-popwin-content-1-p">请前往用户中心完成实名认证后，才可查看大图。</p>
+            <a  class="global-popwin-content-1-a" href="http://www.itouzi.com/newuser/main/safe">立即认证</a>
+        </div>
+    </div>
+    <div id="ft" class="ft clearfix">
+    <div class="ft-inner clearfix">
+        <div class="help_service clearfix">
+        <div class="ft-helper clearfix">
+            <dl>
+                <dt><a href="http://www.itouzi.com/itzdefault/business/index">业务模式</a></dt>
+                <dd>
+                    <a href="http://www.itouzi.com/itzdefault/business/shengxin">省心计划</a>
+                    <a href="http://www.itouzi.com/itzdefault/business/guar">爱担保模式</a>
+                                        <a href="http://www.itouzi.com/itzdefault/business/factoring">爱保理模式</a>
+                                        <a href="http://www.itouzi.com/itzdefault/business/lease">爱融租模式</a>
+                                        <a href="http://www.itouzi.com/itzdefault/business/art">爱收藏模式</a>
+                                        <a href="http://www.itouzi.com/itzdefault/business/debt">债权转让模式</a>
+                </dd>
+            </dl>
+            <dl>
+                <dt><a href="http://www.itouzi.com/itzdefault/safe/index">安全保障</a></dt>
+                <dd>
+                    <a href="http://www.itouzi.com/guarantee/guar/index">合作保障机构</a>
+                    <a href="http://www.itouzi.com/itzdefault/safe/credit">信审风控体系</a>
+                    <a href="http://www.itouzi.com/itzdefault/safe/cfca">CFCA战略合作</a>
+                    <a href="http://www.itouzi.com/itzdefault/safe/law">政策法规保障</a>
+                </dd>
+            </dl>
+            <dl>
+                <dt><a href="http://www.itouzi.com/itzdefault/help/index?idx=0">帮助中心</a></dt>
+                <dd>
+                    <a href="http://www.itouzi.com/itzdefault/help/index?idx=2">爱投资介绍</a>
+                    <a href="http://www.itouzi.com/itzdefault/help/index?idx=4">注册与登录</a>
+                    <a href="http://www.itouzi.com/itzdefault/help/index?idx=5">认证与安全</a>
+                    <a href="http://www.itouzi.com/itzdefault/help/index?idx=7">充值与提现</a>
+                </dd>
+            </dl>
+            <dl>
+                <dt><a href="http://www.itouzi.com/itzdefault/about/corp">关于我们</a></dt>
+                <dd>
+                    <a href="http://www.itouzi.com/itzdefault/sitemap/sitemap">网站地图</a>
+                    <a href="http://www.itouzi.com/itzdefault/sitemap/links">友情链接</a>
+                    <a href="http://www.itouzi.com/itzdefault/about/joinus">加入我们</a>
+                    <a href="http://www.itouzi.com/itzdefault/about/contact">联系我们</a>
+                    <a href="http://www.itouzi.com/licai/">理财知识</a>
+                </dd>
+            </dl>
+        </div>
+        <div class="ft-service">
+            <dl>
+                <dt><span class="icon-hdSprite icon-ft-tishi"></span><a href="http://qiao.baidu.com/v3/?module=default&controller=webim&action=index&siteid=2486763&groupid=0&groupname=%E6%8A%95%E8%B5%84%E5%92%A8%E8%AF%A2" class="fl" target="_blank">在线客服</a></dt>
+                <dd>
+                    <p>
+                        <strong>400-0088-100</strong><br/>
+                        工作日9:00-21:00 / 节假日9:00-18:00
+                    </p>
+                    <div class="ft-serv-handle clearfix">
+                        <div title="微信" class="icon-hdSprite icon-ft-weixin a-move a-moveHover">
+                            <div class="QRcodePop clearfix" id="QRcode">
+                                <div class="h-q-c-right icon-hd-erweima"></div>
+                                <span class="css-triangle"></span>
+                            </div>
+                        </div>
+                        <a href="http://e.weibo.com/itouzicom" target="_blank" title="新浪微博" class="icon-hdSprite icon-ft-sina a-move a-moveHover"></a>
+                        <a href="http://t.qq.com/itouzicom" target="_blank" title="腾讯微博"class="icon-hdSprite icon-ft-qqweibo a-move a-moveHover"></a>
+                        <!-- <div title="QQ群" class="icon-ft-qun a-move a-moveHover">
+                            <div class="QRcodePop QRcodePop1 clearfix" id="QRcode1">
+                                <div class="h-q-c-right icon-hd-qun">
+                                    <p>爱投资QQ交流群</p>
+                                    <p>Q群：<span>242368590</span></p>
+                                </div>
+                                <span class="css-triangle"></span>
+                            </div>
+                        </div> -->
+                        <a href="http://bbs.itouzi.com/" target="_blank" title="爱投资论坛"  class="icon-ft-qun a-move a-moveHover"></a>
+                        <a href="mailto:service@itouzi.com" target="_blank" title="email" class="icon-hdSprite icon-ft-email a-move a-moveHover mrn"></a>
+                    </div>
+                </dd>
+            </dl>
+        </div>
+        </div>
+        <div class="ft-wap clearfix">
+            <!-- <span class="icon-hdSprite icon-ft-phone"></span> -->
+            <ul class='mobile-client'>
+                <li class='mobile-client-iphone'><a target='_blank' href='http://itunes.apple.com/cn/app/ai-tou-zi-rang-nin-ai-shang/id892274943?ls=1&mt=8'>iPhone</a></li>
+                <li class='mobile-client-android'><a href='http://itzstatic.b0.upaiyun.com/downloads/iTouzi.apk'><span class='normal'>Android</span><span class='hover'>点击下载</span></a></li>
+                <li class='mobile-client-wap'><a target='_blank' href='http://www.itouzi.com/itzdefault/wap/index?force_m=1'>点击访问手机版</a></li>
+            </ul>
+            <dl>
+                <dt>扫描下载客户端</dt>
+                <dd>
+                    <span class="icon-hdSprite icon-ft-erweima"></span>
+                </dd>
+            </dl>
+        </div>
+    </div>
+    <div class="ft-record">
+        <div class="ft-approve clearfix">
+            <a href="https://sealinfo.verisign.com/splash?form_file=fdf/splash.fdf&dn=www.itouzi.com&lang=zh_cn" target="_blank" class="icon-approve approve-1 fadeIn-2s"></a>
+            <a href="http://webscan.360.cn/index/checkwebsite?url=www.itouzi.com" target="_blank" class="icon-approve approve-2 fadeIn-2s"></a>
+            <a href="http://www.anquan.org/authenticate/cert/?site=www.itouzi.com&sn=2013070210510789828&type=gj" target="_blank" class="icon-approve approve-3 fadeIn-2s"></a>
+            <a href="https://ss.knet.cn/verifyseal.dll?sn=e1304231101004028271lc000000&ct=df&a=1&pa=265541" target="_blank" class="icon-approve approve-5 fadeIn-2s"></a>
+            <a href="/itzdefault/about/icann" class="icon-approve approve-4 fadeIn-2s"></a>
+            <a href="http://www.cfca.com.cn" target="_blank" class="icon-approve approve-6 fadeIn-2s"></a>
+            <a href="http://www.anquan.org/authenticate/cert/?site=www.itouzi.com&at=business" target="_blank" class="icon-approve approve-7 fadeIn-2s mrn"></a>
+        </div>
+        <div class="ft-identity"><strong class="ffA">© </strong>2015 爱投资 All rights reserved&nbsp;&nbsp;&nbsp;<span class="color-e6">|</span>&nbsp;&nbsp;&nbsp;安投融(北京)网络科技有限公司&nbsp;&nbsp;&nbsp;<span class="color-e6">|</span>&nbsp;&nbsp;&nbsp;<a href="http://www.itouzi.com/icp" target="_blank">京ICP证150033号</a></div>
+    </div>
+</div>
+	<ul class="float-toolbars clearfix">
+        <li class="float-toolbars-item rel">
+        <a href="http://bbs.itouzi.com/forum-9-1.html" target="_blank" class="user-feedback-10 float-toolbars-title">意见<br/>反馈</a>
+        <div class="float-toolbars-item-sub"><a target="_blank" href="http://www.itouzi.com/newuser/event/questionnaire" class="user-feedback-0 float-toolbars-title-1">调查<br/>问卷</a><a target="_blank" href="http://qiao.baidu.com/v3/?module=default&controller=webim&action=index&siteid=2486763&groupid=0&groupname=%E6%8A%95%E8%B5%84%E5%92%A8%E8%AF%A2" class="user-feedback-2 float-toolbars-title-1">在线<br/>客服</a>
+        <!--<a href="###" class="user-feedback-1 float-toolbars-title-1"><br/></a></div>-->
+    </li>
+    <li class="float-toolbars-item rel">
+        <a href="http://www.itouzi.com/itzdefault/help/index?idx=100" class="user-feedback-9 float-toolbars-title" style="line-height:36px;">工具箱</a>
+        <div class="float-toolbars-item-sub"><a target="_blank" href="http://www.itouzi.com/itzdefault/common/check" class="user-feedback-6 float-toolbars-title-1">页面检<br/>测工具</a><a href="http://www.itouzi.com/itzdefault/help/bank" class="user-feedback-7 float-toolbars-title-1">存款<br/>利率表</a><a href="http://www.itouzi.com/dinvest/tools/index" class="user-feedback-8 float-toolbars-title-1">收益<br/>计算器</a></div>
+    </li>
+        <li class="float-toolbars-item user-feedback-5" id="fav" >
+        <a class="float-toolbars-title">收藏<br/>本站</a>
+    </li>
+    <li class="float-toolbars-item user-feedback-3" id="toolbars_goback">
+        <a class="float-toolbars-title">返回<br/>顶部</a>
+    </li>
+</ul>
+
+
+
+    <div id="loginPop" class="newLogin-pop clearfix">
+    <span class="close">×</span>
+    <iframe id="loginPopIframe" style="width:590px;height:320px;" src="" frameborder="0"></iframe>
+</div>
+        <script src="http://js1.itzcdn.com/static/js/itz.common.min.js?v=2015040217"></script>
+        <script src="http://js1.itzcdn.com/static/js/min/detail.js?v=2015040217"></script>
+        <script>
+        $(function(){
+            var detailData = {
+                borrowId:'3576494350376b58686b6f3d',
+                type:'1',
+                sendRewardRequestEnable: '1',
+                min: '100',
+                max: '0',
+                step: '100',
+                apr : '14.00',
+                style: '0',
+                repayment_time:'1459094400',
+                loading: 'http://js1.itzcdn.com/static/img/newUser/loading1.gif',
+                borrow_tender_total: '',
+                comment_total: '0',
+                debt_type: '1',
+                debtType: 'invest',
+                projectInfo:{chartId : 'projectScore',
+                            score0 : '0x55',
+                            score1 : '0x56',
+                            score2 : '0x50',
+                            score3 : '0x52',
+                            score4 : '0x57',
+                            score5 : '0x50'
+                            },
+                tip : {
+                       'tip_option' : {'words_per_line' : '25','tip_top' : 5},
+                       'tip_selector' : '.itzTip'
+                     },
+                time_limit : '',
+                formal_time : '1427448600'
+            };
+            itz.detail.init(detailData);
+		});
+    </script>
+        <!-- baidu static codes -->
+        <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="//hm.baidu.com/hm.js?c82430d7a2476c7972db1f90e6690848";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s)})();</script>
+    <!-- //baidu static codes -->
+    <!-- google codes -->
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=!0;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-46797696-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+    <!-- //google codes -->
+    <!--威睿-->
+        <script>!function(){try{var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"==document.location.protocol?"https://cn-tags.vizury.com":"http://cn-tags.vizury.com")+"/analyze/pixel.php?account_id=VIZVRM2801";var b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(a,b),a.onload=function(){try{pixel.parse()}catch(a){}},a.onreadystatechange=function(){if("complete"==a.readyState||"loaded"==a.readyState)try{pixel.parse()}catch(b){}}}catch(c){}}();</script>
+    <!--//威睿-->
+            </body>
+</html>

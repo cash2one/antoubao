@@ -1,0 +1,4 @@
+MODULES_MANAGER_V2
+spider.bin.getDcqPlatform|C:\Java\workspace\basedata-spider\spider\bin\getDcqPlatform.py
+spider.bin.spiderDcq|C:\Java\workspace\basedata-spider\spider\bin\spiderDcq.py
+spider.bin.spiderWdzj|C:\Java\workspace\basedata-spider\spider\bin\spiderWdzj.py

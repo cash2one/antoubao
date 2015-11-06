@@ -1,0 +1,9 @@
+INSTUPspider.bin.spiderWdzj
+C:\Java\workspace\basedata-spider\spider\bin\spiderWdzj.py
+INFOS:&&2|1|2|0&&2|3|2|0&&2|4|2|0&&2|5|2|0&&2|6|2|0
+getFieldListByDayOnly=3
+getAveData=6
+getOnlyData=4
+getNearData=5
+getFieldListFirstByWeek=1
+spider.bin.spiderWdzj=2

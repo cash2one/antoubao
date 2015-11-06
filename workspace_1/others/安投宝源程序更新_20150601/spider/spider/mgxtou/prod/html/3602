@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>我要投资详细页面-美冠信投</title><link href="/Public/Css/home/css.css" rel="stylesheet" type="text/css" /><link href="/Public/Css/home/style.css" rel="stylesheet" type="text/css" /><script type="text/javascript" src="/Public/Js/home/swfobject.js"></script><script type="text/javascript" src="/Public/Js/home/jquery.pack.js"></script><script type="text/javascript" src="/Public/Js/home/slides.js"></script><script type="text/javascript" src="/Public/Js/home/slide.js"></script><script type="text/javascript" src="/Public/Dialog/jquery-1.8.2.min.js"></script><script type="text/javascript" src="/Public/Dialog/XY_Base.js"></script><script type="text/javascript" src="/Public/Dialog/XY_Dialog.js"></script><link href="/Public/Css/home/investXQ.css" rel="stylesheet" type="text/css"><script type="text/javascript">	function slidinga(num){
+		
+		for(var id = 1;id<10;id++) {
+			
+		if(id==num) {
+			document.getElementById("memberan"+id).style.display="";
+			document.getElementById("memberah"+id).className="sec2";
+		}else{
+			document.getElementById("memberan"+id).style.display="none";
+			document.getElementById("memberah"+id).className="current";
+		}
+		}
+	}
+	function fleshVerify(){
+		//重载验证码
+	   var timenow = new Date().getTime();
+	   document.getElementById('verifyImg').src= '/Public/verify/'+timenow;
+	}
+	
+	function myDialog(url){
+	  Util.Dialog({
+		  title : "投标",
+		  content : "url:get?"+url,
+		  showbg: true,
+		  width:550,
+		  height:297
+	  });
+	  return false;		
+	}
+	function myDialogs(url){
+	  Util.Dialog({
+		  title : "加为好友",
+		  content : "url:get?"+url,
+		  showbg: true,
+		  width:550,
+		  height:297
+	  });
+	  return false;		
+	}
+</script><style>	.rate_bg {
+  border: 1px solid #CCCCCC;
+  height: 12px;
+  line-height: 12px;
+  overflow: hidden;
+  padding: 1px;
+  width: 64px;
+}
+.rate_tiao {
+  background-color:#FE6F2B;
+  height: 11px;
+  line-height: 12px;
+  overflow: hidden;
+  width: auto;
+  padding-top:1px;
+  text-align:center;
+}
+</style></head><body><div class="top"><div class="ding1"><table width="1003" border="0" cellspacing="0" cellpadding="0" align="center"><tr><td align="left"><a onclick="myAddPanel('美冠信投','http://www.mgxtou.com','美冠信投');" href="javascript:vods();">收藏本站</a> | <a href="http://www.mgxtou.com/Help/explain/site_id/5">联系我们</a></td><td align="right">      欢迎您<span style="color:#F00">fhq12345</span>登录美冠信投网贷平台
+      <a  href="/public/login_out"><span style="color:#F00">[退出]</span></a><a href="/help/index">帮助中心</a></td></tr></table></div><div class="tou"><table width="1003" border="0" cellspacing="0" cellpadding="0" height="111" align="center"><tr><td><a href="#"><img src="/Public/Images/home/02.jpg" /></a></td><td><img src="/Public/Images/home/03.jpg" /></td><td><img src="/Public/Images/home/04.jpg" /></td></tr></table></div><div class="navd"><div class="dh"><ul id="nav"><li class="current"><a href="/" style="color:#ff6600; background:url(/Public/Images/home/32.jpg) 30px  center no-repeat; font-size:15px;">首页</a></li><li><a href="/invest/index">我要理财</a></li><li><a href="/borrow/index">我要借款</a><ul class="sub" ><li><a href="/borrow/Fast">发布给力标</a></li><li><a href="/borrow/Jin">发布净值标</a></li><li><a href="/borrow/Miao">发布秒还标</a></li></ul></li><li><a href="/ucenter/user">我的账户</a></li><li><a href="/Help/index">在线咨询</a><ul class="sub" ><li><a href="/Help/news/site_id/10">新手上路</a></li><li><a href="/Help/news/site_id/22">网站公告</a></li><li><a href="/Help/news/site_id/59">新闻动态</a></li><li><a href="/Help/explain/site_id/57">资费说明</a></li><!--<li><a href="/Help/explain/site_id/68">公司证件</a></li>--></ul></li><li><a href="/help/news/site_id/22">最新公告</a></li><li><a href="http://bbs.mgxtou.com">咨询论坛</a></li></ul></div></div></div><script type="text/javascript">//加入收藏
+function myAddPanel(title,url,desc){ 
+	if((typeof window.sidebar == 'object')&&(typeof window.sidebar.addPanel == 'function')){  
+		window.sidebar.addPanel(title,url,desc);  
+	} else {  
+		window.external.AddFavorite(url,title);
+	}  
+}
+//空函数
+function voids(){
+	
+}
+
+</script><div class="main2"><div class="fb1_nr"><div class="jkxq_s"><div class="jkxq_sl"><table border="0" cellspacing="0" cellpadding="0" align="center" width="180" height="350"><tr><td colspan="4" class="jkxq_bh" height="40">借款编号：3602</td></tr><tr><td colspan="4"  height="140"  class="jkxq_tu"><img src="/data/avatar/2815_avatar_middle.jpg" /></td></tr><tr><td colspan="4" class="jkxq_zl">信用积分：<img src="/data/images/credit/credit_s35.gif"  height="16"/></td></tr><tr><td colspan="4" class="jkxq_zl">用户名：东方神箭</td></tr><tr><td colspan="4" class="jkxq_zl">跟踪客服：客服草莓</td></tr><tr><td width="58" class="jkxq_zl">客服QQ：</td><td colspan="3"><a target="_blank" href="http://wpa.qq.com/msgrd?v=3&uin=321691484&site=qq&menu=yes"><img border="0" src="http://wpa.qq.com/pa?p=2:321691484:41" alt="点击这里给我发消息" title="点击这里给我发消息"></a></td></tr><tr><td colspan="4"><img src="/Public/Images/home/ico07.gif" width="25px" height="18px"title="实名认证"/><img src="/Public/Images/home/ico08.gif" title="手机已认证" height="18px"/><img src="/Public/Images/home/ico09a.gif" width='25px'height="17px"title="邮箱未认证"/><img src="/Public/Images/home/ico10a.gif" width='18px'title="视频未认证"/><img src="/Public/Images/home/ico11.gif" width='22px'height="17px"title="会员"/><img src="/Public/Images/home/ico12a.gif" height="16px"title="未通过现场认证"/></td></tr><tr><td width="68"><a href="/Ucenter/letter/id/2815"><img src="/Public/Images/home/106.jpg"/>&nbsp;站内信</a></td><td width="68"><a href="# " onclick="javascript:myDialogs('/Friend/index/user_id/2815');"><img src="/Public/Images/home/107.jpg" />&nbsp;加好友</a></td></tr></table></div><div class="jkxq_sr"><div class="jkxq_grbt" style="color:#fd6600;"><strong>房产抵押，资金周转标一</strong></div><div class="jkxq_grgg">投资100元，年利率：20.00%，期限 
+      
+      2个月，可获得利息收益￥3.33元</div><div class="jkxq_grnr"><table width="740" border="0" cellspacing="0" cellpadding="0" height="95"><tr><td colspan="2" align="left" height="40">借款金额：<span class="hz">￥100000元</span><img src="/Public/Images/home/ico02.gif" width="17" height="16" /><img src="/Public/Images/home/jiangli.gif" width="17" height="16" /></td></tr><tr><td width="273" align="left">年利率：20.00%</td><td align="left">借款期限:2个月</td><td><input name="" type="button" style=" border:0px;background:url(/Public/Images/home/btn02.gif); width:85px; color:#FFF;height:28px;margin-right:13px;cursor:pointer"value="还款中" /></td></tr><tr><td align="left">月利率：1.67%</td><td align="left">还款方式：                  到期还本按月付息</td></tr></table></div><div class="jkxq_grnr"><table width="740" border="0" cellspacing="0" cellpadding="0" height="97"><tr><td height="30" width="273"><span style="float:left; line-height:30px">已经完成：</span><div class="rate_bg" style="margin-top:8px; float:left"><div class="rate_tiao" style="width:100%"></div></div><span style="float:left; line-height:30px">100%</span></td><td class="jkxys" align="left"><a href="/Public/protocol/id/3602">借款协议书</a></td></td><td>投标金额：￥50元--
+               不限
+                </td></tr><tr><td>总投标数：4次</td><td>交易类型：在线交易</td></tr><tr><td>距离还款时间：<span id="endtime">5249260</span></td><td>审核时间：2015-04-15 09:33:00</td></td></tr></table></div><div class="jkxq_grnr"><table width="740" border="0" cellspacing="0" cellpadding="0" height="93"><tr><td>奖励方式：
+                                  按比例奖励</td></tr><tr><td>奖励比例：2%</td></tr><tr><td>奖励条件：                        投标且成功复审通过后才有奖励</td></tr></table></div></div></div><div class="jkxq_sz"><div id="container"><div id="title"><ul><li id="tag1"><a href="javascript:;" onclick="switchTag('tag1','content1');this.blur();" class="selectli1"><span class="selectspan1">投标记录</span></a></li><li id="tag2"><a href="javascript:;" onclick="switchTag('tag2','content2');this.blur();"><span>借款详情</span></a></li><li id="tag3"><a href="javascript:;" onclick="switchTag('tag3','content3');this.blur();"><span>个人资料</span></a></li><li id="tag4"><a href="javascript:;" onclick="switchTag('tag4','content4');this.blur();"><span>账号详情</span></a></li><li id="tag5"><a href="javascript:;" onclick="switchTag('tag5','content5');this.blur();"><span>还款信用</span></a></li><li id="tag6"><a href="javascript:;" onclick="switchTag('tag6','content6');this.blur();"><span>待还记录</span></a></li><li id="tag7"><a href="javascript:;" onclick="switchTag('tag7','content7');this.blur();"><span>留言列表</span></a></li></ul></div><div id="content" class="content1"><div id="content1"><table border="0" cellspacing="0" cellpadding="0" width="980" class="jkxq_xxk1_bg"><tr><td class="jkxq_xxk1_bgbt">投标人</td><td class="jkxq_xxk1_bgbt">投标金额</td><td class="jkxq_xxk1_bgbt">有效金额</td><td class="jkxq_xxk1_bgbt">当前年利率</td><td class="jkxq_xxk1_bgbt">投标时间</td><td class="jkxq_xxk1_bgbt">投标状态</td></tr><tr><td  class="jkxq_xxk1_bgnr">yim***</td><td class="jkxq_xxk1_bgnr" id="tbje">90000元</td><td class="jkxq_xxk1_bgnr" id="yxje">￥90000元</td><td class="jkxq_xxk1_bgnr">20.00%</td><td class="jkxq_xxk1_bgnr">2015-04-15 09:31:15</td><td class="jkxq_xxk1_bgnr"><img src="/Public/Images/home/112.jpg" />全部成功</td></tr><tr><td  class="jkxq_xxk1_bgnr">秀财商***</td><td class="jkxq_xxk1_bgnr" id="tbje">200元</td><td class="jkxq_xxk1_bgnr" id="yxje">￥200元</td><td class="jkxq_xxk1_bgnr">20.00%</td><td class="jkxq_xxk1_bgnr">2015-04-15 09:31:15</td><td class="jkxq_xxk1_bgnr"><img src="/Public/Images/home/112.jpg" />全部成功</td></tr><tr><td  class="jkxq_xxk1_bgnr">118***</td><td class="jkxq_xxk1_bgnr" id="tbje">500元</td><td class="jkxq_xxk1_bgnr" id="yxje">￥500元</td><td class="jkxq_xxk1_bgnr">20.00%</td><td class="jkxq_xxk1_bgnr">2015-04-15 09:31:43</td><td class="jkxq_xxk1_bgnr"><img src="/Public/Images/home/112.jpg" />全部成功</td></tr><tr><td  class="jkxq_xxk1_bgnr">zh1***</td><td class="jkxq_xxk1_bgnr" id="tbje">9300元</td><td class="jkxq_xxk1_bgnr" id="yxje">￥9300元</td><td class="jkxq_xxk1_bgnr">20.00%</td><td class="jkxq_xxk1_bgnr">2015-04-15 09:32:10</td><td class="jkxq_xxk1_bgnr"><img src="/Public/Images/home/112.jpg" />全部成功</td></tr></table></div><div id="content2" class="hidecontent"><div class="jkxq_xxk_nr2"><p><span style="font-family:微软雅黑;font-size:14px;line-height:normal;">借款人为个体经营者，因急需资金，现把房产作为抵押物，从平台借款30万元，承诺到期还款。经营收入稳定，有自己的房产和私家车，在当地信誉良好，还款能力较强。风控部门已经对借款人资料进行了多方审核，信息属实，平台授予借款人借款额度30万元，资料审核通过。</span></p> <p>借款详情：房产抵押，资金周转 </p> <p>站内关联用户名：东方神箭</p> <p>还款保障：</p> <p><img src="/data/upfiles/article/20150415/20150415085949_53429.jpg" alt="" border="0" /><img src="/data/upfiles/article/20150415/20150415085956_46349.jpg" alt="" border="0" /><img src="/data/upfiles/article/20150415/20150415090002_92660.jpg" alt="" border="0" /><img src="/data/upfiles/article/20150415/20150415090008_38206.jpg" alt="" border="0" /><img src="/data/upfiles/article/20150415/20150415090014_50988.jpg" alt="" border="0" /></p></div></div><div id="content3" class="hidecontent"><div class="jkxq_xxk_nr3"><table width="963" border="0" cellspacing="0" cellpadding="0" height="100"><tr><td>性别：<span class="fb3_hong">                  女</span></td><td>年龄：<span class="fb3_hong">53岁<span class="fb3_hong"></td><td>婚姻状况：<span class="fb3_hong">已婚<span class="fb3_hong"></td></tr><tr><td>文化程度：<span class="fb3_hong">高中<span class="fb3_hong"></td><td>每月收入：<span class="fb3_hong">8001-10000元<span class="fb3_hong"></td><td>社保：<span class="fb3_hong">有<span class="fb3_hong"></td></tr><tr><td>住房条件:<span class="fb3_hong">自有房屋</span></td><td>是否购车：<span class="fb3_hong">有</span></td><td>是否逾期：<span class="fb3_hong">没有</span></td></tr></table></div></div><div id="content4" class="hidecontent"><div class="jkxq_xxk_nr3"><table width="963" border="0" cellspacing="0" cellpadding="0" height="130"><tr><td>账户总金额：<span class="fb3_hong">                     ￥96200.89</span></td><td>待还总额：<span class="fb3_hong">￥103333.34<span class="fb3_hong"></td><td>负债情况：<span class="fb3_hong">                      借出小于借入<span class="fb3_hong"></td><td>借款总额：<span class="fb3_hong">                 ￥1373833.34<span class="fb3_hong"></td></tr><tr><td>已还总额：<span class="fb3_hong">                ￥1270500<span class="fb3_hong"></td><td>网站垫付未还：<span class="fb3_hong">                ￥0<span class="fb3_hong"></td><td>借出总额<span class="fb3_hong">                 ￥0<span class="fb3_hong"></td><td>已收总额：<span class="fb3_hong">                ￥0<span class="fb3_hong"></td></tr><tr><td>待收总额：<span class="fb3_hong">                ￥0<span class="fb3_hong"></td><td>借款信用额度：<span class="fb3_hong">                ￥402000.00<span class="fb3_hong"></td><td>剩余额度：<span class="fb3_hong">                ￥342500.00<span class="fb3_hong"></td></tr></table></div></div><div id="content5" class="hidecontent"><div class="jkxq_xxk_nr3"><table width="963" border="0" cellspacing="0" cellpadding="0" height="100"><tr><td>借款:<span class="fb3_hong">10</span>次成功</td><td><span class="fb3_hong">0</span>次流标</td><td><span class="fb3_hong">2</span>笔待还款</td></tr><tr><td><span class="fb3_hong">0</span> 笔提前还款</td><td><span class="fb3_hong">17</span> 笔准时还款</td><td><span class="fb3_hong">0</span> 笔迟还款</td></tr><tr><td><span class="fb3_hong">0</span>笔30天之内的逾期还款</td><td><span class="fb3_hong">0</span>笔超过30天的逾期还款</td><td><span class="fb3_hong">0</span>笔逾期未还款</td></tr></table></div></div><div id="content6" class="hidecontent"><div class="jkxq_xxk_nr3"><table width="963" border="0" cellspacing="0" cellpadding="0"><tr><td class="jkxq_xxk1_bgnr">借款标题</td><td class="jkxq_xxk1_bgnr">期数</td><td class="jkxq_xxk1_bgnr">还款本息</td><td class="jkxq_xxk1_bgnr">实际到期日期</td></tr><tr><td class="jkxq_xxk1_bgnr"><a target="_blank" href="/Invest/invest/id/3602" style="color: #000";>房产抵押，资金周转标一</a></td><td class="jkxq_xxk1_bgnr">1/2</td><td class="jkxq_xxk1_bgnr">￥1666.67</td><td class="jkxq_xxk1_bgnr">2015-05-15</td></tr><tr><td class="jkxq_xxk1_bgnr"><a target="_blank" href="/Invest/invest/id/3602" style="color: #000";>房产抵押，资金周转标一</a></td><td class="jkxq_xxk1_bgnr">2/2</td><td class="jkxq_xxk1_bgnr">￥101666.67</td><td class="jkxq_xxk1_bgnr">2015-06-15</td></tr></table></div></div><div id="content7" class="hidecontent"></div></div></div><!--结束--></div><div class="jkxq_lyb"><div class="jkxq_lyb_bt">留言薄</div><div class="jkxq_lyb_nr"><form name="" id="" action="/Invest/lv_message" value="" method='post'><input type="hidden" name="id" value="3602"} /><table width="940" border="0" cellspacing="0" cellpadding="0" align="center" height="174"><tr><td>咨询或评论：<span style="color:#fe0000;">（字数在1-120之间）</span></td></tr><tr><td><textarea id="mes" name="mes" cols="115" rows="5"></textarea></td></tr><tr><td><span>验证码：</span><input type="text" size="4" name="verify"  id="verify"  /><img id="verifyImg" src="/Public/verify"   onclick="fleshVerify()"/><input type="submit" value=""   style=" border:0px;background:url(/Public/Images/home/114.jpg) no-repeat; float:right; width:87px; height:30px; padding-left:100px;margin-right:13px;cursor:pointer"/></td><td></td></tr></table><input type="hidden" name="__hash__" value="962f7b98c6336afc678fee15c8d9c80b_90a9150d9691e53717488e6048b3d661" /></form></div></div></div></div><script type="text/javascript">var CID = "endtime";
+if(window.CID != null){
+    var iTime = document.getElementById(CID).innerHTML;
+	
+    var Account;
+    RemainTime();
+}
+function RemainTime(){
+var iDay,iHour,iMinute,iSecond;
+var sDay="",sTime="";
+    if (iTime >= 0){
+        iDay = parseInt(iTime/24/3600);
+        iHour = parseInt((iTime/3600)%24);
+        iMinute = parseInt((iTime/60)%60);
+        iSecond = parseInt(iTime%60);
+  
+		   if (iDay > 0){ 
+			sDay = iDay + "天"; 
+		   }
+            sTime =sDay + iHour + "小时" + iMinute + "分钟" + iSecond + "秒";
+  
+			if(iTime==0){
+			   clearTimeout(Account);
+			   sTime="<span style='color:green'>时间到了！</span>";
+			}else{
+			   Account = setTimeout("RemainTime()",1000);
+			}
+            iTime=iTime-1;
+    }else{
+		
+        sTime="<span style='color:red'>此标已完成！</span>";
+    }
+document.getElementById(CID).innerHTML = sTime;
+}
+</script><div class="bottom"><div class="b_shang"><div class="d_lb" style="margin-left:50px;"><dl><dt style="background:url(/Public/Images/home/118.jpg) left center no-repeat;">使用帮助</dt><dd><a href="http://www.mgxtou.com/Help/news/site_id/11" target="_blank">常见问题</a></dd><dd><a href="http://www.mgxtou.com/help/news_content/id/2" target="_blank">平台原理</a></dd><dd><a href="http://www.mgxtou.com/help/news_content/id/3" target="_blank">如何借款</a></dd><dd><a href="http://www.mgxtou.com/help/news_content/id/4" target="_blank">如何理财</a></dd></dl></div><div class="d_lb"><dl><dt style="background:url(/Public/Images/home/119.jpg) left center no-repeat;">关于我们</dt><dd><a href="http://www.mgxtou.com/Help/explain/site_id/2" target="_blank">平台简介</a></dd><dd><a href="http://www.mgxtou.com/Help/explain/site_id/5" target="_blank">联系我们</a></dd><dd><a href="http://www.mgxtou.com/help/news_content/id/9" target="_blank">加入我们</a></dd><dd><a href="http://www.mgxtou.com/help/news_content/id/10" target="_blank">社会责任</a></dd></dl></div><div class="d_lb"><dl><dt style="background:url(/Public/Images/home/120.jpg) left center no-repeat;">安全保护</dt><dd><a href="http://www.mgxtou.com/help/news_content/id/5" target="_blank">安全保障</a></dd><dd><a href="http://www.mgxtou.com/help/news_content/id/6" target="_blank">政策法规</a></dd><dd><a href="http://www.mgxtou.com/help/news_content/id/7" target="_blank">隐私保护</a></dd><dd><a href="http://www.mgxtou.com/Help/explain/site_id/73" target="_blank">保障金查询</a></dd></dl></div><div class="d_lb" style="margin-right:0px; border-right:none;"><dl><dt style="background:url(/Public/Images/home/121.jpg) left center no-repeat;">了解更多</dt><dd><a href="http://www.mgxtou.com/Help/explain/site_id/70" target="_blank">公司展示</a></dd><dd><a href="/help/news_content/id/16" target="_blank">网贷计算器</a></dd><dd><a href="http://www.mgxtou.com/Help/explain/site_id/69" target="_blank">合作机构</a></dd><dd><a href="http://www.mgxtou.com/help/news_content/id/728" target="_blank">媒体报道</a></dd></dl></div></div><div class="b_xia"><div class="b_xia_wz1" style="margin-top:10px;">公司地址:泰安市东岳大街信用大厦10层  服务电话:400-6587-278</div><div class="b_xia_wz1">&copy;  美冠智赢 版权所有  备案号:鲁ICP备13015339号 <script language="javascript" type="text/javascript" src="http://js.users.51.la/16142419.js"></script><noscript><a href="http://www.51.la/?16142419" target="_blank"><img alt="&#x6211;&#x8981;&#x5566;&#x514D;&#x8D39;&#x7EDF;&#x8BA1;" src="http://img.users.51.la/16142419.asp" style="border:none" /></a></noscript></div><div class="b_xia_tu"><a href="http://icp.aizhan.com/mgxtou.com/" target="_blank"><img src="http://icp.aizhan.com/geticp/?host=mgxtou.com&style=2" style="width:74px;height:29px;border:0;" /></a> &nbsp;&nbsp;
+		<a href="http://webscan.360.cn/index/checkwebsite/url/www.mgxtou.com"><img border="0" src="http://img.webscan.360.cn/status/pai/hash/e5cff184ded4689f5058df15ec2f1889/?size=74x27"/></a></div></div></div></body></html>

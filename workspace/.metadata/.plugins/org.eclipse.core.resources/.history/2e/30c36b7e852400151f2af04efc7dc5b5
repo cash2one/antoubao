@@ -1,0 +1,175 @@
+#!/usr/bin/python
+#coding=utf-8
+
+from atbtools.header import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+import random
+import os
+import json
+
+if __name__ == "__main__":
+    
+    #获得连接        
+    conn_db = getConn(DBHOST, USERNAME, PASSWORD, DB, PORT)
+    cur_db  = getCursors(conn_db)
+    initializeCursors(cur_db)
+    
+    wdzjDict = {}
+    fpBlack = open('../conf/wdzjBlack.conf', 'r')
+    wdzjBlack = []
+    for lines in fpBlack:
+        wdzjBlack.append(lines.strip())
+    fpBlack.close()
+
+    fpWhite = open('../conf/wdzjWhite.conf', 'r')
+    wdzjWhite = []
+    for lines in fpWhite:
+        wdzjWhite.append(lines.strip())
+    fpWhite.close()
+
+    wdzjDict = {}
+    wdzjKeyDict = {}
+    fpWdzj = open('../conf/wdzj.conf', 'r')
+    for lines in fpWdzj:
+        if lines[0] == '#':
+            continue
+        line = lines.split()
+        wdzjDict[line[0]] = line[1]
+        wdzjKeyDict[line[0]] = line[2]
+    
+    wdzjListDict = {}
+    wdzjNameDict = {}
+    fpWdzjList = open('../conf/wdzjList.conf', 'r')
+    for lines in fpWdzjList.readlines():
+        line = lines.split()
+        date = line[0]
+        platid = line[1]
+        prop = line[2]
+        platname = line[3]
+        if platname == '凤凰金融':
+            platname = '凤凰金融（江西）'
+        if date not in wdzjListDict:
+            wdzjListDict[date] = {}
+        if platid not in wdzjListDict[date]:
+            wdzjListDict[date][platid] = []
+        wdzjListDict[date][platid].append(wdzjDict[prop])
+        wdzjNameDict[platid] = platname
+
+    for timestamp in wdzjListDict:
+        date = time.strftime("%Y-%m-%d", time.localtime(float(timestamp)))
+        for platid in wdzjListDict[timestamp]:
+            platname = wdzjNameDict[platid]
+            future4week_maturity = -1
+            for prop in wdzjListDict[timestamp][platid]:
+                if prop != "-1":
+                    if prop in ["15","16"]:
+                        url = "http://shuju.wangdaizhijia.com/archives-chart.html?platId=" + platid + "&type1=" + prop + "&type2=999&status=0"
+                        dataCmd = 'curl "http://shuju.wangdaizhijia.com/archives-chart.html?platId='+platid+'&type1='+prop+'&type2=999&status=0" -X POST -H "User-Agent: Windows IE 7"'
+                    else:
+                        url = "http://shuju.wangdaizhijia.com/archives-chart.html?platId=" + platid + "&type1=" + prop + "&type2=999&status=0"
+                        dataCmd = 'curl "http://shuju.wangdaizhijia.com/archives-chart.html?platId='+platid+'&type1='+prop+'&type2=999&status=0" -X POST -H "User-Agent: Windows IE 7"'
+#                     res_data = getHtml(url)
+                    print decodejson
+                    res_data = os.popen(dataCmd)
+                    try:
+                        decodejson = json.loads(res_data.read())
+                    except:
+                        continue
+                    if res_data == None:
+                        continue
+                    decodejson = json.loads(res_data)
+                    time.sleep(5)
+
+                    for propName in wdzjDict:
+                        if wdzjDict[propName] == prop:
+                            break
+
+                    if 'x' not in decodejson.keys():
+                        print decodejson
+                        if platid not in wdzjWhite and platid not in wdzjBlack:
+                            fpBlack = open('../conf/wdzjBlack.conf', 'a')
+                            wdzjBlack.append(platid)
+                            fpBlack.write(platid+'\r\n')
+                            fpBlack.close()
+                        print "No found x!"
+                        break
+                    dateList = decodejson['x']
+                    start = -1
+                    for i in range(0, len(dateList)):
+                        if dateList[i] == date:
+                            start = i
+                    if start == -1 and propName != 'future4week_maturity':
+                        print decodejson
+                        print "No found "+str(date)+"!"
+                        continue
+
+                    if wdzjKeyDict[propName] not in decodejson.keys():
+                        print decodejson
+                        print "Error: "+dataCmd
+                        continue
+                    dataList = decodejson[wdzjKeyDict[propName]]
+                    data=str(dataList[start])
+
+                    if ((propName == 'investor_HHI') or (propName == 'borrower_HHI')) and (data == "-1"):
+                        #data = 0
+                        continue
+                    elif propName == 'future4week_maturity':
+                        data = 0
+                        for i in range(0, len(dataList)):
+                            data = data + dataList[i]
+                            if i == 27:
+                                future4week_maturity = data
+                                break
+                    elif propName == 'cash_flow_in':
+                        data = dataList[start]-dataList[start-1]
+                    stringSQL="SELECT * FROM platform_quantitative_wdzj_weekly_A WHERE platform_id = '"+platid+"' AND date = '"+str(timestamp)+"'"
+                    ret = cur_db.execute(stringSQL)
+                    if ret == 0:
+                        stringSQL="INSERT INTO `platform_quantitative_wdzj_weekly_A` (`platform_id`, `platform_name`, `date`, `"+propName+"`) VALUES('"+platid+"', '"+platname+"', '"+str(timestamp)+"', '"+str(data)+"')"
+                    else:
+                        stringSQL="UPDATE `platform_quantitative_wdzj_weekly_A` SET `"+propName+"` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                    print stringSQL
+                    cur_db.execute(stringSQL)
+                else:
+                    continue
+                    url = "http://shuju.wangdaizhijia.com/archives-"+platid+".html"
+                    print url
+                    datas = getHtml(url)
+                    time.sleep(5)
+                    print datas
+                    top_sum = 0
+                    for i in range(1, 11):
+                        top_investment, tmp = extractor(datas, ['待收投资人排行', '土豪'+str(i), '<td>', '万元'])
+                        if top_investment == None:
+                            continue
+                        top_sum += float(top_investment)
+                        if i == 5 and top_sum > 0:
+                            stringSQL = "UPDATE `platform_quantitative_wdzj_weekly_A` SET `top5_ratio_investment` = '"+str(top_sum)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                            print stringSQL
+                            cur_db.execute(stringSQL)
+                    if top_sum > 0:
+                        stringSQL = "UPDATE `platform_quantitative_wdzj_weekly_A` SET `top10_ratio_investment` = '"+str(top_sum)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                        print stringSQL
+                        cur_db.execute(stringSQL)
+
+                    top_sum = 0
+                    for i in range(1, 11):
+                        top_lending, tmp = extractor(datas, ['待还借款人排行', '借款大户'+str(i), '<td>', '万元'])
+                        if top_lending == None:
+                            continue
+                        top_sum += float(top_lending)
+                        if i == 5 and top_sum > 0:
+                            stringSQL = "UPDATE `platform_quantitative_wdzj_weekly_A` SET `weekly_top5_lending` = '"+str(top_sum)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                            print stringSQL
+                            cur_db.execute(stringSQL)
+                    if top_sum > 0:
+                        stringSQL = "UPDATE `platform_quantitative_wdzj_weekly_A` SET `weekly_top10_lending` = '"+str(top_sum)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                        print stringSQL
+                        cur_db.execute(stringSQL)
+                conn_db.commit()
+            if future4week_maturity != -1: 
+                stringSQL = "UPDATE `platform_quantitative_wdzj_weekly_A` SET `future4week_maturity` = '"+str(future4week_maturity)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                print stringSQL
+                cur_db.execute(stringSQL)
+                conn_db.commit()

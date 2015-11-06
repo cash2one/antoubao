@@ -1,0 +1,46 @@
+#!/usr/bin/python
+#encoding=utf-8
+
+from header import *
+
+def usage():
+    print "COMMAND:"
+    print "\tpython "+sys.argv[0]+" [-all|-t|-p]"
+    print ""
+    print "OPTIONS:"
+    print "\t-all: 计算所有周的平台维度分数"
+    exit(-1)
+
+scount = 0
+statis = {}
+
+if len(sys.argv) < 2:
+    usage()
+elif sys.argv[1] == '-all':
+    rSCORED.flushdb()
+    #循环遍历所有平台，按照时间维度存入pinfoDict
+    for platid in rQUASCO.keys():
+        if platid != "fcb48d4644":
+            continue
+        for timestamp in rQUASCO.hkeys(platid):
+            if timestamp < SCOREDATE:
+                continue
+            if timestamp not in statis:
+                statis[timestamp] = readStatis(rSTATIS, timestamp)
+            jsonPlat = json.loads(rQUASCO.hget(platid, timestamp))
+            #计算总分
+            jsonScore = computeScore(jsonPlat)
+            print jsonScore["score"]
+            if jsonScore == '{}':
+                continue
+            jsonScore['platform_id'] = platid
+            jsonScore['date'] = timestamp
+            jsonScore['platform_name'] = jsonPlat['platform_name']
+            jsonScore['source'] = jsonPlat['source']
+            fromHashToRedis(rSCORED, jsonScore, 'platform_id', 'date')
+            scount += 1
+quanti = readQuanti(rQUANTI)
+scored, scoreRange = readScored(rSCORED)
+setTop20Ave(rSTATIS, scoreRange, quanti, INVALID_TITLE)
+
+print "Score data("+str(scount)+") written to redis-db("+str(dbSCORED)+")!"

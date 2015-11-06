@@ -1,0 +1,242 @@
+#!/usr/bin/python
+#coding=utf-8
+import numpy as np
+from scipy import interpolate
+import time
+import hashlib
+from atbtools.header import *
+from atbtools.mysqlTools import *
+from atbtools.computeTools import *
+
+
+if __name__ == '__main__':
+    _start_time = time.time()
+    
+    #获取连接
+    conn_ddpt_data=MySQLdb.connect(host=DDPT_DATAHOST_OUT, user=USERNAME, passwd=PASSWORD, db=DB, port=PORT) 
+    cur_ddpt_data=getCursors(conn_ddpt_data)
+    initializeCursors(cur_ddpt_data)
+    
+    SRCDB_V = "V_view"
+    
+    date_list = getDifferentFieldlist(SRCDB_V, cur_ddpt_data, "date")
+    for date in date_list :
+        #先确定每一周B++中分数最高的坏站（注意一定是本周坏的站，否则+500分没有意义），取它的分数+500之前的站作为集合，如果B++没有本周的坏站，则直接取B++及之前所有的站
+        print date
+        stringSQL = "SELECT `score` FROM " + SRCDB_V + " WHERE `date` = '" + str(date) + "' AND `level` = 'B++' AND `old_date` IS NULL AND `status` < 0.89 ORDER BY `score` DESC LIMIT 1"
+        ret = cur_ddpt_data.execute(stringSQL)
+        if ret == 0:
+            print 111
+            stringSQL = "SELECT `score` FROM " + SRCDB_V + " WHERE `date` = '" + str(date) + "' AND `level` = 'B++' AND `status` > 0.89 ORDER BY `score` ASC LIMIT 1"
+            cur_ddpt_data.execute(stringSQL)
+            min_score = cur_ddpt_data.fetchone()[0]
+        else:
+            print 222
+            min_score = cur_ddpt_data.fetchone()[0] + 500
+        print min_score
+        stringSQL = "SELECT `platform_name`, `old_date`, `rank_score`, `level` FROM " + SRCDB_V + " WHERE `date` = '" + str(date) + "' AND `status` > '0.89' AND `score` >= '" + str(min_score) + "'"
+        count = cur_ddpt_data.execute(stringSQL)
+        
+        rank_score_sum = 0
+        for platform_name, old_date, rank_score, level in cur_ddpt_data.fetchall():
+            if level not in ["A++", "A+", "A", "B++"]:
+                print "数据集中存在等级在B++以下的站："
+                print date, platform_name, rank_score, level
+                exit(0)
+            rank_score_sum += rank_score
+            #如果该好站是补数，那么用所补的数据来代替
+            date_real = date
+            if None != old_date:
+                date_real = old_date
+            
+    exit(0)
+    SRCDB_R = "platform_alert_info_R"
+    SRCDB_E3 = "E3_quantitative_score"
+    SRCDB_H = "H_score"
+    SRCDB_SIGMA3 = "K_statis_3sigma"
+    SRCDB_Y = "total_status"
+   
+    cur_dev.execute("DELETE FROM " + SRCDB_R)
+    conn_dev.commit()
+ 
+    #准备源数据列表
+    del_list = ["date", "id", "platform_id", "platform_name", "source"]
+    field_list_E3 = getAllColumnsFromTable(cur_ddpt_data, SRCDB_E3, del_list = del_list, merge_list = None)
+    field_number_E3 = len(field_list_E3)
+#     field_list_H = getAllColumnsFromTable(cur_ddpt_data, SRCDB_H, del_list = del_list, merge_list = None)
+    field_list_H = ["capital_adequacy_ratio", "activeness_credibility", "distribution", "mobility", "security", "pellucidity", "growth"]
+    field_number_H = len(field_list_H)
+     
+    w4_field_list = ["turnover_registered", "weekly_ave_bid_close_time", "weekly_ratio_new_old", "not_returned_yet", "outstanding_loan"]
+    w4_field_number = len(w4_field_list)
+     
+    date_list_E3 = getDifferentFieldlist(SRCDB_E3, cur_ddpt_data, "date")
+    date_number_E3 = len(date_list_E3)
+    date_list_H = getDifferentFieldlist(SRCDB_H, cur_ddpt_data, "date")
+    date_number_H = len(date_list_H)
+    platform_name_list_E3 = getDifferentFieldlist(SRCDB_E3, cur_ddpt_data, "platform_name")
+    platform_name_number_E3 = len(platform_name_list_E3)
+    platform_name_list_H = getDifferentFieldlist(SRCDB_H, cur_ddpt_data, "platform_name")
+    platform_name_number_H = len(platform_name_list_H)
+     
+    #获取E3中所有数据，没有的用None代替
+    value_dict_E3 = {}
+    for platform_name in platform_name_list_E3:
+        value_dict_E3[platform_name] = {}
+        for field in field_list_E3:
+            value_dict_E3[platform_name][field] = [None] * date_number_E3
+    stringSQL = "SELECT `platform_name`, `date`, `" + "`, `".join(field_list_E3) + "` FROM " + SRCDB_E3
+    print "正在从数据库传输E3数据回本地..."
+    cur_ddpt_data.execute(stringSQL)
+    rows = cur_ddpt_data.fetchall()
+    for row in rows:
+        platform_name = row[0]
+        date = row[1]
+        value_list = row[2:]
+        date_index = date_list_E3.index(date)
+        for i in range(field_number_E3):
+            value_dict_E3[platform_name][field_list_E3[i]][date_index] = value_list[i]
+ 
+    #获取H中所有数据，没有的用None代替
+    value_dict_H = {}
+    for platform_name in platform_name_list_H:
+        value_dict_H[platform_name] = {}
+        for field in field_list_H:
+            value_dict_H[platform_name][field] = [None] * date_number_H
+    stringSQL = "SELECT `platform_name`, `date`, `" + "`, `".join(field_list_H) + "` FROM " + SRCDB_H
+    print "正在从数据库传输H数据回本地..."
+    cur_ddpt_data.execute(stringSQL)
+    rows = cur_ddpt_data.fetchall()
+    for row in rows:
+        platform_name = row[0]
+        date = row[1]
+        value_list = row[2:]
+        date_index = date_list_H.index(date)
+        for i in range(field_number_H):
+            value_dict_H[platform_name][field_list_H[i]][date_index] = value_list[i]
+            
+    #获取3sigma数据
+    sigma3_dict_high = {}
+    sigma3_dict_low = {}
+    for field in w4_field_list:
+        sigma3_dict_high[field] = [None] * date_number_E3
+        sigma3_dict_low[field] = [None] * date_number_E3
+    stringSQL = "SELECT `type`, `date`, `" + "`, `".join(w4_field_list) + "` FROM " + SRCDB_SIGMA3
+    cur_ddpt_data.execute(stringSQL)
+    rows = cur_ddpt_data.fetchall()
+    for row in rows:
+        _type = row[0]
+        date = row[1]
+        value_list = row[2:]
+        date_index = date_list_E3.index(date)
+        for i in range(w4_field_number):
+            if _type == "h":
+                sigma3_dict_high[w4_field_list[i]][date_index] = value_list[i]
+            else:
+                sigma3_dict_low[w4_field_list[i]][date_index] = value_list[i]
+     
+    #获得所有平台的status属性
+    status_dict = {}
+    stringSQL = "SELECT A.platform_name, A.status FROM total_status AS A,(SELECT `platform_name`, MAX(`date`) AS `date` FROM total_status GROUP BY `platform_name`) AS B WHERE A.platform_name = B.platform_name AND A.`date` = B.`date`"
+    ret = cur_db.execute(stringSQL)
+    rows = cur_db.fetchall()
+    for row in rows:
+        platform_name = row[0]
+        status = row[1]
+        status_dict[platform_name] = status
+    
+    #开始计算预警
+    result_field_list = ["ratio", "ave_bad_w", "ave_good_w", "ave_bad_f", "ave_good_f", "ratio_bad", "ratio_good"]
+    warning_file = open("warning_statistics.txt", 'w')
+    
+    for w1_value in range(20, 51, 1):
+        w1_value = w1_value / 10.0
+        _str = "W1 value = " + str(w1_value) + "\n"
+        print _str
+        warning_file.write(_str)
+        warning_dict_1 = computeWarnings("w1", date_list_E3, value_dict_E3, field_list_E3, w1_value)
+        output_dict = getWarningStatistics(warning_dict_1, "w1", "f1")
+        warning_file.write(getStringForOutput(output_dict))
+        warning_file.flush()
+  
+#     for w2_value in range(90, 100, 1):
+#         w2_value = w2_value / 100.0
+#         _str = "W2 value = " + str(w2_value) + "\n"
+#         print _str
+#         warning_file.write(_str)
+#         warning_dict_2 = computeWarnings("w2", date_list_E3, value_dict_E3, field_list_E3, w2_value)
+#         output_dict = getWarningStatistics(warning_dict_2, "w2", "f2")
+#         warning_file.write(getStringForOutput(output_dict))
+#         warning_file.flush()
+           
+    for w3_value in range(41, 61):
+        _str = "W3 value = " + str(w3_value) + "\n"
+        print _str
+        warning_file.write(_str)
+        warning_dict_3 = computeWarnings("w3", date_list_E3, value_dict_E3, field_list_E3, w3_value)
+        output_dict = getWarningStatistics(warning_dict_3, "w3", "f3")
+        warning_file.write(getStringForOutput(output_dict))
+        warning_file.flush()
+      
+#     warning_dict = computeWarnings("w4", [])
+          
+    for w5_value in range(0, 5, 1):
+        w5_value_min = 0.1 + w5_value / 10.0
+        w5_value_max = 2.0 / w5_value_min
+        _str = "W5 value_min = " + str(w5_value_min) + ", value_min = " + str(w5_value_max) + "\n"
+        print _str
+        warning_file.write(_str)
+        warning_dict_5 = computeWarnings("w5", date_list_E3, value_dict_E3, field_list_E3, [w5_value_min, w5_value_max])
+        output_dict = getWarningStatistics(warning_dict_5, "w5", "f5")
+        warning_file.write(getStringForOutput(output_dict))
+        warning_file.flush()
+    
+#     for w6_value in range(20, 41):
+#         _str = "W6 value = " + str(w6_value) + "\n"
+#         print _str
+#         warning_file.write(_str)
+#         warning_dict_6 = computeWarnings("w6", date_list_H, value_dict_H, field_list_H, w6_value)
+#         output_dict = getWarningStatistics(warning_dict_6, "w6", "f6")
+#         warning_file.write(getStringForOutput(output_dict))
+#         warning_file.flush()
+            
+    warning_file.close()
+        
+    #将最后一次结果插入数据库
+    date_list = list(set(date_list_E3) | set(date_list_H))
+    platform_name_list = list(set(platform_name_list_E3) | set(platform_name_list_H))
+    field_list = list(set(field_list_E3) | set(field_list_H))
+    warning_dict = {}
+    for platform_name in platform_name_list:
+        warning_dict[platform_name] = {}
+        for date in date_list:
+            warning_dict[platform_name][date] = {}.fromkeys(field_list, "")
+    
+    for dict_temp in [warning_dict_1, warning_dict_3, warning_dict_5]:
+        for platform in dict_temp:
+            for date in dict_temp[platform]:
+                for field in dict_temp[platform][date]:
+                    warning_dict[platform][date][field] += dict_temp[platform][date][field]
+    
+    print "向" + SRCDB_R + "写入数据..."
+    for platform_name in platform_name_list:
+        print platform_name
+        platform_id = hashlib.md5(platform_name).hexdigest()[0:10]
+        for date in date_list:
+            field_list_new = ["platform_name", "platform_id", "date"] + field_list         
+            value_list = [platform_name, platform_id, date]
+            for field in field_list:
+                value_list.append(warning_dict[platform_name][date][field])
+            if platform_name in status_dict:
+                field_list_new += ['status']
+                value_list += [str(status_dict[platform_name])]
+            stringSQL = "INSERT INTO " + SRCDB_R + "(`" + "`,`".join(field_list_new) + "`) VALUES('" + "','".join(value_list) + "')"
+#             print stringSQL
+            cur_dev.execute(stringSQL)
+            conn_dev.commit()
+
+        
+    closeCursors(cur_dev, cur_ddpt_data, cur_db)
+    closeConns(conn_dev, conn_ddpt_data, conn_db)  
+    _end_time = time.time()
+    print "The whole program costs " + str(_end_time - _start_time) + " seconds." 

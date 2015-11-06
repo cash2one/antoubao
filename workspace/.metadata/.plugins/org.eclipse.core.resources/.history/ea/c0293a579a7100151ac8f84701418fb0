@@ -1,0 +1,41 @@
+#!/usr/bin/python
+#coding=UTF-8
+
+from atbtools.header import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+import random
+import os
+import json
+
+if __name__ == "__main__":
+    
+    #获得平台名称platform_name和对应的平台编号platform_number
+    #1. 查找所有的平台中文名称
+    platform_name_set = set()
+    #佳璐数据有两个网页有平台，一个是首页，一个是问题平台
+    for url in ["http://www.jlsj888.cn", "http://www.jlsj888.cn/trouble.php"]:
+        _html = getHtml(url) #佳璐数据的正常站主页
+        html = _html
+        while True:
+            (platform_name, html) = extractor(html, HOMEPAGEPLATFORMSPECIAL)
+            if None == platform_name:
+                break
+            if "无数据" not in platform_name:
+                platform_name_set.add(platform_name)
+    platform_number = len(platform_name_set)
+    print "一共有" + str(platform_number) + "个平台."
+    
+        
+    #获取贷出去的所有平台列表
+    list_file = open('../conf/jlsj_all.conf', 'w')
+    for platform_name in platform_name_set:
+        _str = platform_name + "\n"
+        list_file.write(_str.encode("UTF-8"))
+    list_file.close()
+    platform_name_number = len(platform_name_list)
+    if platform_name_number == 0:
+        print "贷出去平台列表有误."
+        exit(-1)
+    else:
+        print "贷出去一共有" + str(platform_name_number) + "个平台."

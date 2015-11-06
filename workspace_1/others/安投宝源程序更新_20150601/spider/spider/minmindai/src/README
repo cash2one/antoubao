@@ -1,0 +1,2 @@
+认证方式：将cookie中的 PHPSESSID 字段写入到 PHPSESSID 文件中
+

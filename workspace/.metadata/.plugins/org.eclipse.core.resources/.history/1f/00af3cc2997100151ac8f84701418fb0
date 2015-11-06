@@ -1,0 +1,49 @@
+#!/usr/bin/python
+#coding=UTF-8
+
+from atbtools.header import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+import random
+import os
+import json
+
+if __name__ == "__main__":
+    
+    #获得平台名称platform_name和对应的平台编号platform_number
+    url = "http://www.daichuqu.com/Compare/"
+    html = getHtml(url)
+    platform_number_dict = {}
+    while 1:
+        platform_number, html = extractor(html, ['span class="com" ', 'data="', '"'])
+        if platform_number == None:
+            break
+        platform_name, html = extractor(html, ['>', '</span>'])
+        platform_number_dict[platform_name] = int(platform_number)
+    
+    #获得平台名称platform_name和对应的平台网址platform_id
+    url = "http://www.daichuqu.com/Search/"
+    html = getHtml(url)
+    html = extractor(html, ['id="myList"'])[1]
+    platform_id_dict = {}
+    while 1:
+        platform_id, html = extractor(html, ['a href="http://', '.daichuqu.com'])
+        if platform_id == None:
+            break
+        platform_name, html = extractor(html, ['title="', '"'])
+        platform_id_dict[platform_name] = platform_id
+        
+    #获取贷出去的所有平台列表
+    list_file = open('../conf/dcq_all.conf', 'w')
+    platform_name_list = list(set(platform_number_dict.keys()) & set(platform_id_dict.keys()))
+    platform_name_list = sortListByDicts(platform_name_list, [1], platform_number_dict)
+    for platform_name in platform_name_list:
+        _str = str(platform_id_dict[platform_name]) + " " + str(platform_number_dict[platform_name]) + " " + str(platform_name).decode("UTF-8") + "\n"
+        list_file.write(_str.encode("UTF-8"))
+    list_file.close()
+    platform_name_number = len(platform_name_list)
+    if platform_name_number == 0:
+        print "贷出去平台列表有误."
+        exit(-1)
+    else:
+        print "贷出去一共有" + str(platform_name_number) + "个平台."

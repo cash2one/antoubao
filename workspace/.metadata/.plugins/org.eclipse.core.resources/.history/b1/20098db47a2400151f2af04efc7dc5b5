@@ -1,0 +1,70 @@
+#!/usr/bin/python
+#coding=utf-8
+
+from atbtools.header import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+import random
+import os
+import json
+
+if __name__ == "__main__":
+    
+    #获得连接        
+    conn_db = getConn(DBHOST, USERNAME, PASSWORD, DB, PORT)
+    cur_db  = getCursors(conn_db)
+    initializeCursors(cur_db)
+    
+    wdzjDict = {}
+    fpWdzj = open('../conf/wdzj.conf')
+    for lines in fpWdzj:
+        if lines[0] == '#':
+            continue
+        line = lines.split()
+        wdzjDict[line[0]] = line[1]
+    fpWdzj.close()
+
+    blackArr = []
+    fpBlack = open('../conf/wdzjBlack.conf')
+    for lines in fpBlack:
+        blackArr.append(lines.strip())
+    fpBlack.close()
+
+    whiteArr = []
+    fpWhite = open('../conf/wdzjWhite.conf')
+    for lines in fpWhite:
+        whiteArr.append(lines.strip())
+    fpWhite.close()
+
+    platIdArr = []
+    platNameArr = {}
+    res_data = os.popen('curl "http://www.wangdaizhijia.com/wdzj/html/json/dangan_search.json" -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.81 Safari/537.36" --compressed')
+    print 111, res_data.read()
+    res_data = getHtml("http://www.wangdaizhijia.com/wdzj/html/json/dangan_search.json")
+    print 222, res_data.read()
+    platIdList = json.loads(res_data.read())
+    for platIdStr in platIdList:
+        platIdArr.append(platIdStr['platId'])
+        platNameArr[platIdStr['platId']] = platIdStr['platName'].encode('utf-8')
+
+    fpWdzjList = open('../conf/wdzjList.conf', 'w')
+    for index in range(0, len(TIMESTAMP)):
+        fpStr = ""
+        for platId in platIdArr:
+            if platId not in whiteArr:
+                continue
+            stringSQL = "SELECT `platform_id`, `platform_name`, `date`, `"+"`, `".join(wdzjDict.keys())+"` FROM platform_quantitative_wdzj_weekly_A WHERE `date` = '"+str(TIMESTAMP[index])+"' AND `platform_id` = '"+str(platId)+"'"
+            ret = cur_db.execute(stringSQL)
+            if ret == 0:
+                for prop in wdzjDict.keys():
+                    fpStr += str(TIMESTAMP[index])+" "+str(platId)+" "+str(prop)+" "+platNameArr[platId]+"\r\n"
+            else:
+                for _list in cur_db.fetchall():
+                    platId = _list[0]
+                    platName = _list[1]
+                    date = _list[2]
+                    for i in range(3, len(_list)):
+                        if _list[i] is None:
+                            fpStr += str(date)+" "+platId+" "+wdzjDict.keys()[i-3]+" "+platName+"\r\n"
+        fpWdzjList.write(fpStr)
+    fpWdzjList.close()

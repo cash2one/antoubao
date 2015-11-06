@@ -1,0 +1,15 @@
+eclipse.preferences.version=1
+encoding//src/computeE2initial.py=utf-8
+encoding//src/computeE2weekly.py=utf-8
+encoding//src/computePhotoPath.py=utf-8
+encoding//src/computeScoreinitial.py=utf-8
+encoding//src/computeScoreweekly.py=utf-8
+encoding//src/computeTotalStatus.py=utf-8
+encoding//src/network_programm.py=utf-8
+encoding//src/order.py=utf-8
+encoding//src/spider_dcq_pp.py=utf-8
+encoding//src/spider_dcq_word.py=utf-8
+encoding//src/test.py=utf-8
+encoding//src/test_fanyi.py=utf8
+encoding//src/test_mm.py=utf8
+encoding//src/test_re.py=utf8

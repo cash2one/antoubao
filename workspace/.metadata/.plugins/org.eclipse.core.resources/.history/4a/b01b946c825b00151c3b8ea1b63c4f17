@@ -1,0 +1,35 @@
+#!/usr/bin/python
+#encoding=utf-8
+
+from header import *
+
+def usage():
+    print "COMMAND:"
+    print "\tpython "+sys.argv[0]+" [-all|-t|-p]"
+    print ""
+    print "OPTIONS:"
+    print "\t-all: 计算所有周的平台指标分数"
+    exit(-1)
+
+qcount = 0
+statis = {}
+
+if len(sys.argv) < 2:
+    usage()
+elif sys.argv[1] == '-all':
+    rQUASCO.flushdb()
+    #循环遍历所有平台，按照时间维度存入pinfoDict
+    for platid in rQUANTI.keys():
+        for timestamp in rQUANTI.hkeys(platid):
+            if timestamp < SCOREDATE:
+                continue
+            if timestamp not in statis:
+                statis[timestamp] = readStatis(rSTATIS, timestamp)
+            #计算定量分数
+            jsonPlat = computeQuantitativeScore(rQUANTI.hget(platid, timestamp), rQUALIT.get(platid), statis[timestamp])
+            if jsonPlat == '{}':
+                continue
+            fromHashToRedis(rQUASCO, jsonPlat, 'platform_id', 'date')
+            qcount += 1
+
+print "Score data("+str(qcount)+") written to redis-db("+str(dbQUASCO)+")!"

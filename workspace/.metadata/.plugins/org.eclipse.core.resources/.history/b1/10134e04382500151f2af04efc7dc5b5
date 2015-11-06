@@ -1,0 +1,8 @@
+eclipse.preferences.version=1
+encoding//src/daichuqu/spider_pr.py=utf-8
+encoding//src/spider/bin/getDcqPlatList.py=utf-8
+encoding//src/spider/bin/getWdzjPlatList.py=utf-8
+encoding//src/spider/bin/header.py=utf-8
+encoding//src/spider/bin/spiderDcq.py=utf-8
+encoding//src/spider/bin/spiderWdzj.py=utf-8
+encoding//src/spider/bin/spiderWdzj_test.py=utf-8

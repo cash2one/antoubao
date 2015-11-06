@@ -1,0 +1,162 @@
+# /usr/bin/python
+# coding=utf8
+
+#1.从y表中获得所有坏站
+#2.对每一个E1中的时刻，判断waiting-list并进行相应的操作
+
+from atbtools.header import * 
+from atbtools.mysqlTools import *
+from atbtools.computeTools import *
+import time
+import hashlib
+import sys
+
+if __name__ == '__main__':
+    _start_time = time.time()
+    #获得连接   
+    conn_dev = getConn(DEVHOST, USERNAME, PASSWORD, DB, PORT)
+    conn_db = getConn(DBHOST, USERNAME, PASSWORD, DB, PORT)
+    cur_dev = getCursors(conn_dev)
+    (cur1_db, cur2_db)  = getCursors(conn_db,2)
+    initializeCursors(cur_dev, cur1_db, cur2_db)
+    
+    SRCDB_Y = "platform_problem_record_Y"   
+    SRCDB_E1 = "platform_quantitative_data_E1"
+    SRCDB_INDEX_WAITING = "index_waiting_list"
+    SRCDB_INDEX_TARGET = "index_platform_list"
+    
+    _fields_list = ["weekly_outstanding_loan", "ave_annualized_return", "weekly_lending", "weekly_total_investor", "weekly_loan_period"]
+    value_format = "%.4f"
+    #1.获得指数指标的时间节点
+    date_list_E1 = getDifferentFieldlist(SRCDB_E1, cur1_db, "date")
+    date_number =len(date_list_E1)
+    date_list_waiting = getDifferentFieldlist(SRCDB_INDEX_WAITING, cur_dev, "date")
+    #判断是增量还是全量
+    isreset = 0
+    if (len(sys.argv) == 2):
+        if (sys.argv[1] == "reset"):
+            print "Reset '" + SRCDB_INDEX_TARGET + "'"
+            start = 0
+            cur_dev.execute("TRUNCATE " + SRCDB_INDEX_TARGET)
+            conn_dev.commit()
+            isreset = 1
+    if isreset == 0:
+        print "Update '" + SRCDB_INDEX_TARGET + "'"
+        start = date_number - 1
+        stringSQL = "DELETE FROM " + SRCDB_INDEX_TARGET + " WHERE `date` = '" + str(date_list_E1[-1]) + "'"
+        cur_dev.execute(stringSQL)
+        conn_dev.commit()
+    #1.从y表中获得所有坏站
+    bad_platform_list = getDifferentFieldlist(SRCDB_Y, cur1_db, "platform_name")
+    bad_platform_date_dict = {}
+    bad_platform_dict = {}
+    for _date in date_list_E1[start : date_number]:
+        bad_platform_date_dict[_date] = []
+    for platform_name in bad_platform_list:
+        stringSQL = "SELECT MIN(date), MIN(status) FROM " + SRCDB_Y + " WHERE `platform_name` = '" + str(platform_name) + "' GROUP BY platform_name"
+        cur1_db.execute(stringSQL)
+        (bad_date, status) = cur1_db.fetchone()
+        bad_date = getDateTimestamp(int(bad_date)) + SECONDSPERWEEK #坏的当周
+        if bad_date in date_list_E1[start : date_number]:
+            
+            max_date = bad_date
+            min_date = max_date - (INDEXTOLERANCE - 1) * SECONDSPERWEEK
+            stringSQL = "SELECT `" + "`,`".join(_fields_list) + "` FROM " + SRCDB_E1 + " WHERE `date` <= " + str(max_date) + " AND `date` >= " + str(min_date) + " AND `weekly_outstanding_loan` <> 0.0 " + " AND `platform_name`  = '" + str(platform_name) + "' ORDER BY date DESC LIMIT 1" 
+            ret = cur1_db.execute(stringSQL)
+            if ret == 0:
+                bad_platform_date_dict[bad_date][platform_name] = 0
+            else:
+                bad_platform_date_dict[bad_date][platform_name] = 1
+                bad_platform_dict[platform_name] = {}
+                bad_platform_dict[platform_name]["fields"] = getString(cur1_db.fetchone())
+                bad_platform_dict[platform_name]["status"] = str(status)
+                bad_platform_dict[platform_name]["platform_id"] = hashlib.md5(platform_name).hexdigest()[0:10]
+                bad_platform_dict[platform_name]["value"] = value_format % getValue(cur2_db,SRCDB_E1,["weekly_lending", "weekly_total_investor"],platform_name,max_date,INDEXTOLERANCE)
+    
+    #2.对每一个E1中的时刻，判断waiting-list并进行相应的操作
+    for _date in date_list_E1[start : date_number]:
+        date_waiting = getValueNoMoreThanValue(_date, date_list_waiting)
+        if None == date_waiting:
+            continue
+        #2.1.从y表中获得所有坏站
+        bad_platform_list = getDifferentFieldlistEarly(SRCDB_Y, cur1_db, "platform_name", _date)
+        bad_platform_number = len(bad_platform_list)
+        if 0 != bad_platform_number:
+            print "在" + str(_date) + "这个时间节点，已经有" + str(bad_platform_number) + "个坏站."
+        else:
+            print "在" + str(_date) + "这个时间节点，还没出现坏站."
+        #2.2.从SRCDB_INDEX_WAITING表中获得所有的站，并根据来源设置不同的时间阈值，同时判断是否有效并插入E1数据
+        stringSQL = "SELECT platform_name, value, source FROM " + SRCDB_INDEX_WAITING + " WHERE `date` = '" + str(date_waiting) + "' ORDER BY `rank` ASC"
+        waiting_list_number = cur_dev.execute(stringSQL)
+        print "对应的waiting_list时间节点为" + str(date_waiting) + ", 在waiting list 中有" + str(waiting_list_number) + "个站." 
+        rank = 0
+        bad_platform_list_new = []
+        bad_platform_number = 0
+        notvalid_best_platform_list = []
+        notvalid_best_platform_number = 0
+        notvalid_normal_platform_list = []
+        notvalid_normal_platform_number = 0
+        for platform_name, _value, source in cur_dev.fetchall():
+            platform_name = str(platform_name)
+            _value = float(_value)
+            source = int(source)
+            if source == 1:
+                last_weeks = 12
+            else:
+                last_weeks = 4
+            status = 1
+            if platform_name in bad_platform_list:
+                bad_platform_number += 1
+                bad_platform_list_new.append(platform_name)
+                continue
+            else:
+                (isValid, value_list) = cheakValid(cur1_db, SRCDB_E1, platform_name, _date, last_weeks, _fields_list, 2)
+                if isValid == 0:
+                    if source == 1:
+                        notvalid_best_platform_number += 1
+                        notvalid_best_platform_list.append(platform_name)
+                    else:
+                        notvalid_normal_platform_number += 1
+                        notvalid_normal_platform_list.append(platform_name)
+                else:
+                    rank += 1
+                    platform_id = hashlib.md5(platform_name).hexdigest()[0:10]
+                    value_new = getValue(cur2_db,SRCDB_E1,["weekly_lending", "weekly_total_investor"],platform_name,_date,last_weeks)
+                    fields_list = _fields_list + ["date", "platform_name", "platform_id", "status", "rank", "source",  "value", "value_new"]
+                    value_list = getString(value_list) + [str(_date), platform_name, platform_id, str(status), str(rank), str(source), value_format % _value, value_format % value_new]
+                    stringSQL = "INSERT INTO " + SRCDB_INDEX_TARGET + "(`" + "`,`".join(fields_list) + "`) VALUES('" + "','".join(value_list) + "')"
+                    cur_dev.execute(stringSQL)
+                    conn_dev.commit()
+            if rank == RANKALL:
+                break
+        print "有" + str(bad_platform_number) + "个已有站在这一周变为坏站."
+        if bad_platform_number != 0:
+            for platform_name in bad_platform_list_new:
+                print platform_name
+        print "有" + str(notvalid_best_platform_number) + "个已有优选站(50)没有满足有效数据(12周)的定义."
+        if notvalid_best_platform_number != 0:
+            for platform_name in notvalid_best_platform_list:
+                print platform_name
+        print "有" + str(notvalid_normal_platform_number) + "个已有平常站没有满足有效数据(4周)的定义."
+        if notvalid_normal_platform_number != 0:
+            for platform_name in notvalid_normal_platform_list:
+                print platform_name
+        print ""
+        #2.3.找到在当周出事的坏站并写入数据库中
+        bad_platform_number = len(bad_platform_date_dict[_date])
+        print "有" + str(bad_platform_number) + "个坏站在该时间节点出事."
+        if bad_platform_number != 0:
+            for platform_name in bad_platform_date_dict[_date]:
+                print platform_name
+                fields_list = _fields_list + ["date", "platform_name", "platform_id", "status", "rank", "source",  "value_new"]
+                value_list = bad_platform_dict[platform_name]["fields"] + [str(_date), platform_name, bad_platform_dict[platform_name]["platform_id"], str(bad_platform_dict[platform_name]["status"]), "10000", "-1", bad_platform_dict[platform_name]["value"]]
+                stringSQL = "INSERT INTO " + SRCDB_INDEX_TARGET + "(`" + "`,`".join(fields_list) + "`) VALUES('" + "','".join(value_list) + "')"
+                cur_dev.execute(stringSQL)
+                conn_dev.commit()
+        print ""  
+                  
+    closeCursors(cur_dev, cur1_db, cur2_db)
+    closeConns(conn_dev, conn_db)  
+    _end_time = time.time()
+    print "The whole program costs " + str(_end_time - _start_time) + " seconds."  
+    

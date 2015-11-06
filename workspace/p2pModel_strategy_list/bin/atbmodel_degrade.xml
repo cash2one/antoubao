@@ -1,0 +1,38 @@
+<?xml version = "1.0" encoding="UTF-8"?>
+<degrade>
+		<APP>
+		
+				<top10_ratio_loan info = "TOP10" threshold = "0.25" symbol = "GT"/>
+				<ave_annualized_return info = "AVE" threshold = "15.5" symbol = "GT"/>
+				<weekly_total_borrower info = "BORROWER" threshold = "50" symbol = "LT"/>
+
+		</APP>
+		
+		<AP>
+		
+				<top10_ratio_loan info = "TOP10" threshold = "0.35" symbol = "GT"/>
+				<ave_annualized_return info = "AVE" threshold = "15.99" symbol = "GT"/>
+				<weekly_total_borrower info = "BORROWER" threshold = "20" symbol = "LT"/>
+				<weekly_lending info = "LENDING" threshold = "500" symbol = "LT"/>
+				<not_returned_yet info = "YET" threshold = "1" symbol = "LT"/>
+
+		</AP>
+		
+		<A>
+		
+				<top10_ratio_loan info = "TOP10" threshold = "0.55" symbol = "GT"/>
+				<ave_annualized_return info = "AVE" threshold = "16.99" symbol = "GT"/>
+				<weekly_total_borrower info = "BORROWER" threshold = "5" symbol = "LT"/>
+				<weekly_lending info = "LENDING" threshold = "300" symbol = "LT"/>
+				<status info = "BADPLAT" threshold = "0.89" symbol = "LT"/>
+
+		</A>
+		
+		<BPP>
+		
+				<ave_annualized_return info = "AVE" threshold = "18.99" symbol = "GT"/>
+
+		</BPP>
+		
+		
+</degrade>

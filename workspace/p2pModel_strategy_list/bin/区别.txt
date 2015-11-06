@@ -1,0 +1,30 @@
+header.py:
+	TABLE = {dbQUANTI: "0_E2_quantitative_data", \
+			dbQUALIT: "1_platform_qualitative_F", \
+			dbSTATUS: "2_total_status", \
+			dbQUASCO: "4_E3_quantitative_score", \
+			dbSCORED: "5_H_score", \
+			dbPUNISH: "6_P_punishment", \
+			dbSMOOTH: "7_S_smooth", \
+			dbRAKPUN: "8_T_rank", \
+			dbRESULT: "9_V_view", \
+	只保留ddpt_test的数据库指针
+	
+initRedis.py：
+	更改数据库指针
+			
+getwhiteList:
+	更改一些cur的配置文件，使得其指向不同的数据库。
+
+RedisToMySQL.py：
+	对F表输出做特殊处理。
+	改变其他表的输出位置，使得全部进入ddpt_test数据库中。
+	
+start.sh:
+	从真实系统中拿出E1和V_view的最后一天的数据，作为测试程序的开头和校验对象。
+
+evaluateCapBackground.sh:
+	测试文件。
+
+computeE1AndViewMobile.py：
+	补充测试集合的E1和view_mobile头尾表。

@@ -1,0 +1,178 @@
+#!/usr/bin/python
+#coding=utf8
+
+from atbtools.header import *
+from atbtools.computeTools import *
+from atbtools.mysqlTools import *
+import xml.dom.minidom
+import sys
+
+def usage():
+    print "COMMAND:"
+    print "\tpython "+sys.argv[0]+" [-c|-r]"
+    print ""
+    print "OPTIONS:"
+    print "\t-c: 检查权重"
+    print "\t-r: 重建权重(须指定被固定的指标名称)"
+    exit(-1)
+
+#查找子节点
+def findChildrenNodes(_node):
+    children_nodes = []
+    for child in _node.childNodes:
+        if "#text" != child.nodeName:
+            children_nodes.append(child)
+    return children_nodes
+
+#查找兄弟节点
+def findSiblingNodes(_node):
+    Sibling_nodes = []
+    parent_node = _node.parentNode
+    for child in parent_node.childNodes:
+        if "#text" != child.nodeName and child != _node:
+            Sibling_nodes.append(child)
+    return Sibling_nodes
+
+#根据最终的权重值配置文件，判断各级权重是否正确，并生成相应的单指标配置文件
+def checkXmlWeightFromXmlFile(_file):
+    dom = xml.dom.minidom.parse(_file)
+    root = dom.documentElement
+    first_level_field_dict = {}
+    second_level_field_dict = {}
+    third_level_field_dict = {}
+    for first_level_node in findChildrenNodes(root):
+        first_name = first_level_node.nodeName
+        first_level_field_dict[first_name] = float(first_level_node.getAttribute("weight"))
+        for second_level_node in findChildrenNodes(first_level_node):
+            second_name = second_level_node.nodeName
+            second_level_field_dict[second_name] = [first_name, float(second_level_node.getAttribute("weight"))]
+            third_level_field_list = findChildrenNodes(second_level_node)
+            if len(third_level_field_list) == 0:
+                third_level_field_dict[second_name] = [second_name, 1.0]
+            else:
+                for third_level_node in third_level_field_list:
+                    third_name = third_level_node.nodeName
+                    third_level_field_dict[third_name] = [second_name, float(third_level_node.getAttribute("weight"))]
+    
+    if not checkGradeIndex(first_level_field_dict):
+        print "一级指标权重加和有误。"
+        return False
+    if not checkGradeIndex(second_level_field_dict, 1):
+        print "二级指标权重加和有误。"
+        return False
+    if not checkGradeIndex(third_level_field_dict, 1):
+        print "三级指标权重加和有误。"
+        return False
+    weight_dict = assembledGrade(first_level_field_dict, second_level_field_dict, third_level_field_dict)
+    if not checkGradeIndex(weight_dict):
+        print "三级指标权重加和有误。"
+        return False
+    field_list_order = sortDictByValue(weight_dict)[0]
+    
+    xml_final_indexes_file = _file[:_file.index(".xml")] + "_index.xml"
+    doc = xml.dom.minidom.Document() 
+    fp = open(xml_final_indexes_file, "w+")
+    score = doc.createElement('score') 
+    doc.appendChild(score) 
+    for field in field_list_order:
+        field_node = doc.createElement(field) 
+        field_node.setAttribute("weight", str(weight_dict[field]))
+        score.appendChild(field_node)
+    doc.writexml(fp, "\n", "\t\t", "", "UTF-8")
+    fp.seek(0)
+    _str = fp.read().replace("=", ' = ').replace("><score>", ">\n<score>")#.replace("\t\t\t", "\t\t")
+    fp.seek(0)
+    fp.truncate()
+    fp.write(_str)
+    fp.close()
+    return True
+
+#根据某个固定指标的权重值，等比例变化其兄弟节点的权重值，并保存为最终配置文件
+def resetXmlWeightFromXmlFile(_file, _fix_field):
+    dom = xml.dom.minidom.parse('atbmodel.xml')
+    fix_node = dom.getElementsByTagName(_fix_field)[0]
+    fix_weight = float(fix_node.getAttribute("weight"))
+    sibling_nodes_dict = {}
+    origin_sibling_nodes_weight_sum = 0
+    sibling_nodes_list = findSiblingNodes(fix_node)
+    for sibling_node in sibling_nodes_list:
+        origin_sibling_nodes_weight_sum += float(sibling_node.getAttribute("weight"))
+        sibling_nodes_dict[sibling_node.nodeName] = float(sibling_node.getAttribute("weight"))
+    sibling_nodes_weight_ratio = (1.0 - fix_weight) / origin_sibling_nodes_weight_sum
+    for sibling_node in sibling_nodes_list:
+        node_name = sibling_node.nodeName
+        sibling_nodes_dict[node_name] *= sibling_nodes_weight_ratio
+        sibling_node.setAttribute("weight", str(sibling_nodes_dict[node_name]))
+        
+    xml_final_grade_file = "atbmodel_final_grade.xml"
+    fp = open(xml_final_grade_file, "w+")
+    dom.writexml(fp, "", "\t", "", "UTF-8")
+    fp.seek(0)
+    _str = fp.read().replace("=", ' = ').replace("><score>", ">\n<score>").replace("\t\t\t", "\t\t")
+    fp.seek(0)
+    fp.truncate()
+    fp.write(_str)
+    fp.close()
+    
+    if not checkXmlWeightFromXmlFile("atbmodel_final.xml"):
+        return False
+    
+    field_list_order = sortDictByValue(weight_dict)[0]
+    xml_final_indexes_file = "atbmodel_final_indexes.xml"
+    doc = xml.dom.minidom.Document() 
+    fp = open(xml_final_indexes_file, "w+")
+    score = doc.createElement('score') 
+    doc.appendChild(score) 
+    for field in field_list_order:
+        field_node = doc.createElement(field) 
+        field_node.setAttribute("weight", str(weight_dict[field]))
+        score.appendChild(field_node)
+    doc.writexml(fp, "\n", "\t\t", "", "UTF-8")
+    fp.seek(0)
+    _str = fp.read().replace("=", ' = ').replace("><score>", ">\n<score>")#.replace("\t\t\t", "\t\t")
+    fp.seek(0)
+    fp.truncate()
+    fp.write(_str)
+    fp.close()
+    return True
+
+#从指标权重直接获得权重值
+def getThirdWeightFromXmlFile(_file):
+    dom = xml.dom.minidom.parse(_file)
+    score = dom.documentElement
+    weight_dict = {}
+    for child_node in findChildrenNodes(score):
+        child_name = child_node.nodeName
+        weight_dict[child_name] = float(child_node.getAttribute("weight"))
+    if not checkGradeIndex(weight_dict):
+        print "三级指标权重加和有误，请务必修正。"
+        return False
+    return True
+        
+if __name__ == '__main__':
+    
+    operation = "-c"
+    if (len(sys.argv) != 1):
+        operation = str(sys.argv[1])
+    
+    if operation == "-c":    
+        if not checkXmlWeightFromXmlFile('atbmodel.xml'):
+            print "请重新设置指标权重文件'atbmodel.xml'!"
+            exit(1)
+        else:
+            print "指标权重正常."
+    
+    elif operation == "-r":     
+        if (len(sys.argv) < 3):
+            print "须指定被固定的指标名称"
+            exit(1)
+        else:
+            fix_field = str(sys.argv[2])
+            if not resetXmlWeightFromXmlFile('atbmodel.xml', fix_field):
+                print "除固定指标外，其他指标的权重有误，请重新设置指标权重文件'atbmodel.xml'!"
+                exit(1)
+            else:
+                print "重置指标权重成功."
+    else:
+        usage()
+    

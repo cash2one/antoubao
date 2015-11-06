@@ -1,0 +1,67 @@
+-- VERSION_4
+-- START DISKCACHE_2
+C:\Java\workspace\.metadata\.plugins\org.eclipse.core.resources\.projects\merge\com.python.pydev.analysis\v2_indexcache
+mergeE106|1445320100143283000|C:\Java\workspace\merge\src\mergeE106.py
+computeTableE2_ABP|1445320195555740000|C:\Java\workspace\merge\src\computeTableE2_ABP.py
+getDataForML|1445322690938468000|C:\Java\workspace\merge\src\getDataForML.py
+-- END DISKCACHE
+-- START DICTIONARY
+3
+1=mergeE106
+2=getDataForML
+3=computeTableE2_ABP
+-- END DICTIONARY
+-- START TREE 1
+48
+_da|4|_date!11@_date_start!19@_date!19@_date_end!19@
+_de|1|_del_list!11@
+_en|3|_end_time!27@_end_time!19@_end_time!11@
+_in|1|_insert!19@
+_nu|1|_num!19@
+_st|3|_start_time!11@_start_time!27@_start_time!19@
+acu|1|aCur!27@
+arr|1|arrKeys!27@
+bad|4|bad_platform_name_list!11@bad_platform_dict_number!19@bad_platform_dict!19@bad_platform_list!19@
+bcu|1|bCur!27@
+con|5|conn!27@conn_db!11@conn_dev!19@conn_db!19@condKeys!27@
+cou|1|counter!11@
+cur|4|cur_db!11@cur!27@cur_db!19@cur_dev!19@
+dat|8|date_start!19@dates_number!19@dates_list!19@date_list!19@date_end!19@dates!27@date!27@date_list!11@
+del|2|del_list!19@del_index_list!19@
+dou|1|doubtArr!27@
+dst|1|DSTDB!27@
+fie|5|field_list_dict!11@field_dict!11@fields_list!19@fields_number!19@field_list!11@
+fp|1|fp!19@
+goo|3|good_platform_dict_number!19@good_platform_dict!19@good_platform_list!19@
+i|1|i!27@
+inf|1|info!19@
+k|1|k!27@
+key|1|key_list!19@
+lev|3|levelKeys!27@level_list!19@level!19@
+max|1|max_date!11@
+mer|2|merge_simga3_list!19@merge_E2_list!19@
+new|4|new_good_number!19@new_platform_dict!19@new_platform_dict_number!19@new_bad_number!19@
+ord|1|order!19@
+per|1|PercentList!11@
+pla|7|platform_dict_fields!19@platid!27@platform_number!11@platform_status_dict!19@platform_name!19@platform_id!11@platform_name!11@
+pro|3|proAll!27@proArr!27@PRODB!27@
+pun|1|punishment!27@
+rat|1|ratios!27@
+ret|3|rets!11@rets!19@ret!19@
+rev|2|review_list!19@review_index_list!19@
+sco|1|sconn!27@
+scu|1|scur!27@
+sig|5|sigma4_fields_list!19@sigma4_fields_number!19@sigma4_dict!19@sigma4_index_list!19@sigma3_dict!19@
+sou|2|source_index!19@source!19@
+src|8|SRCDB_T!19@SRCDB_E2_ML!19@SRCDB_Y!19@SRCDB_E2!19@SRCDB_view_mobile!19@SRCDB!27@SRCDB_4sigma!19@SRCDB_F!19@
+sta|1|start!27@
+str|3|stringSQL!11@stringSQL!27@stringSQL!19@
+tab|5|TABLE_06!11@TABLE_E1!11@TABLE_E1_ABP!11@table!11@TABLE_Y!11@
+tag|1|tag_dict!11@
+v|1|v!27@
+val|3|value_list!19@value_list!11@value_format!11@
+vie|1|view_mobile_platform_list!19@
+-- END TREE
+-- START TREE 2
+0
+-- END TREE

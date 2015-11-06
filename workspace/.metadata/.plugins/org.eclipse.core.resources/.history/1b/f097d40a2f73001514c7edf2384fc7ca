@@ -1,0 +1,608 @@
+#!/usr/bin/python
+#coding=utf-8
+
+from atbtools.mysqlTools import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+import sys
+import urllib2
+import time
+import re
+import hashlib
+
+#错误处理函数
+def errorhandle(_field, _fp, _platform_name):
+    print "No " + _field + " data."
+    _fp.write(_platform_name + " " + str(timestamp) + " \n")
+    platform_white_dict[_platform_name] = 0
+
+#得到按天平均求和的数据    
+def getDataAveByDate(_content, _fp, _field, _platform_name, _date_list, _data_list, _date_day_list, _last_time):
+    dates = extractor(_content, _date_list)[0]
+    if dates == None:
+        errorhandle(_field, _fp, _platform_name)
+        return None, None
+    datas = extractor(_content, _data_list)[0]
+    if datas == None:
+        errorhandle(_field, _fp, _platform_name)
+        return None
+    dates_list = delQuotes(dates.split(','))
+    datas_list = delQuotes(datas.split(','))
+    if len(dates_list) != len(datas_list):
+        errorhandle(_field, _fp, _platform_name)
+        return None
+    if False == existListValue(dates_list, _date_day_list):
+        errorhandle(_field, _fp, _platform_name)
+        return None
+    
+    index_list = getIndexFromList(dates_list, _date_day_list)
+    data = 0
+    count = 0
+    for index in index_list:
+        if index != -1:
+            value = datas_list[index]
+            if value.lstrip('-').replace('.', '').isdigit(): 
+                data += float(value)
+                count += 1
+        if count == _last_time:
+            break
+    else:
+        if count == 0:
+            errorhandle(_field, _fp, _platform_name)
+            return None
+        else:
+            return data / count * _last_time
+    return data
+
+#得到按天平均求和的数据    
+def getDataAveByMonth(_content, _fp, _field, _platform_name, _date_list, _data_list, _date_day_list, _last_time):
+    dates = extractor(_content, _date_list)[0]
+    if dates == None:
+        errorhandle(_field, _fp, _platform_name)
+        return None, None
+    dates_list = delQuotes(dates.split(','))
+    date_number = len(dates_list)
+#     pass 
+#     if day_month_dict[field] == 2: #按月计算
+#         try: 
+#             index = dates_list.index(date_month)
+#         except:
+#             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#             continue
+#         #再获得数据
+#         data_number_whole = field_special_number / 4 - 1
+#         count = 0
+#         data_list = []
+#         for i in range(data_number_whole):
+#             datas, tmp = extractor(content, field_special_dict[field][4*(1+i):4*(1+i)+4])
+#             if datas != None:
+#                 dataArr = delQuotes(datas.split(','))
+#                 data_number = len(dataArr)
+#                 if date_number != data_number:
+#                     print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                     break
+#                 value = dataArr[index]
+#                 if value.lstrip('-').replace('.', '').isdigit():
+#                     data_list.append(float(value))
+#         data = getListAverage(data_list, 0)
+#         if data == 0:
+#             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#             continue
+    
+def getPersonNumber(_content, _fp, _field, _platform_name, _title_list, _data_list, _separator_1, _separator_2):
+    person_number = 0
+    thead = extractor(_content, _title_list)[0]
+    if thead == None:
+        errorhandle(_field, _fp, _platform_name)
+        return None
+    thead = delBlank(thead)
+    thead_list = thead.split("</th><th>")
+    thead_number = len(thead_list)
+    pos = -1
+    for i in range(thead_number):
+        if "最近一次" in thead_list[i]:
+            pos = i
+            break
+    else:
+        print "列表中没有'最近一次'字样，要重新设置该字段."
+        errorhandle(_field, _fp, _platform_name)
+        exit(-1)
+    datas = extractor(_content, _data_list)[0]
+    if datas == None:
+        errorhandle(_field, _fp, _platform_name)
+        return None
+    try:
+        datas = delBlank(datas)
+        _separator_1 = delBlank(_separator_1)
+        _separator_2 = delBlank(_separator_2)
+        data_list = datas.split(_separator_1)
+        for data in data_list:
+            person_info = data.split(_separator_2)
+            person_newest_date = person_info[pos]
+            if person_newest_date in date_day_list:
+                person_number += 1
+        return person_number
+    except:
+        errorhandle(_field, _fp, _platform_name)
+        return None
+
+def getTopTotal(_content, _fp, _field, _platform_name, _data_list, _separator_1, _separator_2):
+    datas = extractor(_content, _data_list)[0]
+    if datas == None:
+        print "No " + _field + " data."
+        _fp.write(platform_name + " " + str(timestamp) + " \n")
+        platform_white_dict[platform_name] = 0
+        return None, None
+    try:
+        datas = delBlank(datas)
+        _separator_1 = delBlank(_separator_1)
+        _separator_2 = [delBlank(x) for x in _separator_2]
+        data_list = datas.split(_separator_1)
+        value_list = []
+        for data in data_list:
+            try:
+                value_list.append(float(extractor(data, _separator_2)[0]))
+            except:
+                continue
+        value_list.sort(reverse = True) #从大到小排列
+        _num = len(value_list)
+        _num_5 = min(5, _num)
+        _num_10 = min(10, _num)
+        return sum(value_list[:_num_5]),sum(value_list[:_num_10]) 
+    except:
+        print "No " + _field + " data."
+        return None, None
+
+if __name__ == "__main__":
+    startTime = time.time()
+    field_list = ["weekly_lending", "weekly_outstanding_loan", "future4week_maturity", "weekly_total_investor", "weekly_top10_lending", "weekly_top10_investment", "weekly_total_borrower"]
+    #获取连接
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    initializeCursors(cur_db)
+    SRCDB_C = "platform_quantitative_jlsj_weekly_C"
+    
+    #黑名单(暂时停用)
+    #platform_id_list_black = getListByTxt('../conf/dcqBlack.conf')
+    #白名单(暂时停用)
+    #platform_id_list_white = getListByTxt('../conf/dcqWhite.conf')
+    
+    field_special_dict = {}
+    day_month_dict = {}
+    config_file = open('../conf/jlsj.conf', 'r')
+    for lines in config_file:
+        if len(lines) == 0:
+            continue
+        if lines[0] == '#':
+            continue
+        line = lines.split('$$')
+        if lines[0] == "!":
+            vip_field = line[1] #优先抓得指标，决定其他指标是否抓取
+            vip_field_special_list = [x.replace("\n","") for x in line[3:]]
+            for i in range(len(vip_field_special_list)):
+                if "main" in vip_field_special_list[i]:
+                    vip_field_special_list[i] = "document.getElementById('" + vip_field_special_list[i] + "')"
+                
+        else:
+            field_special_dict[line[1]] = [x.replace("\n","") for x in line[3:]]
+            for i in range(len(field_special_dict[line[1]])):
+                if "main" in field_special_dict[line[1]][i]:
+                    field_special_dict[line[1]][i] = "document.getElementById('" + field_special_dict[line[1]][i] + "')"
+            day_month_dict[line[1]] = int(line[0])
+
+    field_date_dict = {}
+    list_file = open('../conf/jlsjList.conf', 'r')
+    platform_white_dict = {} #建立白名单
+    for lines in list_file.readlines():
+        line = lines.split()
+        date = line[0]
+        platform_name = line[1]
+        field = line[2]
+        if date not in field_date_dict:
+            field_date_dict[date] = {}
+        if platform_name not in field_date_dict[date]:
+            field_date_dict[date][platform_name] = []
+        if field != vip_field:
+            field_date_dict[date][platform_name].append(field)
+        if platform_name not in platform_white_dict:
+            platform_white_dict[platform_name] = 1
+    list_file.close()
+    
+    fp = open("Jlsj_del_platform.txt", "w")
+    for timestamp in sorted(field_date_dict.keys(),reverse = True):
+        #准备时间字符串
+        date_month = time.strftime("%Y-%m", time.localtime(float(timestamp)))
+#         date_cash_flow_in_month = getLastMonthString(date_month)
+        date_day = time.strftime("%Y-%m-%d", time.localtime(float(timestamp)))
+        date_day_list = []
+        for i in range(DAYSPERWEEK):
+            date_day_list.append(time.strftime("%Y-%m-%d", time.localtime(float(timestamp) - SECONDSPERDAY * i)))
+        date_day_future4week_list = []
+        for i in range(1, DAYSPERWEEK * 4 + 1):
+            date_day_future4week_list.append(time.strftime("%Y-%m-%d", time.localtime(float(timestamp) + SECONDSPERDAY * i)))
+        #抓取数据
+        for platform_name in field_date_dict[timestamp]:
+            print platform_name
+            platform_id = hashlib.md5(platform_name).hexdigest()[0:10]
+            time.sleep(2)
+            url = "http://www.jlsj888.cn/detaildata.php?site_name=" + str(platform_name)
+            print url
+            content = getHtml(url)
+            if content == None:
+                print "0. No HTML "
+                fp.write(platform_name + " " + str(timestamp) + " \n")
+                platform_white_dict[platform_name] = 0
+                continue
+            #优先抓weekly_lending，抓不到的直接略过
+            print vip_field
+            weekly_lending = getDataAveByDate(content, fp, vip_field, platform_name, vip_field_special_list[:4], vip_field_special_list[4:], date_day_list, DAYSPERWEEK)
+            if weekly_lending == None:
+                continue
+            stringSQL="SELECT * FROM " + SRCDB_C + " WHERE platform_name = '" + platform_name + "' AND date = '"+str(timestamp)+"'"
+            ret = cur_db.execute(stringSQL)
+            if ret == 0:
+                #先插入平台name和时间戳
+                stringSQL="INSERT INTO " + SRCDB_C + " (`platform_name`, `platform_id`, `date`, `weekly_lending`) VALUES('" + platform_name +"', '" + platform_id + "', '" + str(timestamp) + "', '" + str(weekly_lending) + "')"
+                print stringSQL
+                cur_db.execute(stringSQL)
+                conn_db.commit()
+            else:
+                stringSQL="UPDATE " + SRCDB_C + " SET `weekly_lending` = '" + str(weekly_lending) + "' WHERE `platform_name` = '" + platform_name +"' AND `date` = '" + str(timestamp) + "'"
+                print stringSQL
+                cur_db.execute(stringSQL)
+                conn_db.commit()
+            if float(weekly_lending) == 0:
+                isvalid = 0
+                errorhandle(vip_field, fp, platform_name)
+                continue
+            
+            #查找其他的指标
+            for field in mergeListAndDictForSort(field_date_dict[timestamp][platform_name], field_list):
+#             for field in field_date_dict[timestamp][platform_name]:
+                field_special_number = len(field_special_dict[field])
+                print field
+                #借款人、投资人明细，需要查找网页
+                if day_month_dict[field] == 4:
+                    time.sleep(3)
+                    url = field_special_dict[field][0] + str(platform_name)
+                    print url
+                    content_detail = getHtml(url)
+                    if content_detail == None:
+                        print "0. No HTML "  + platform_name + "(" + str(timestamp) + ")"
+                        fp.write(platform_name + " " + str(timestamp) + " \n")
+                        platform_white_dict[platform_name] = 0
+                        continue
+                    #优先抓weekly_lending，抓不到的直接略过
+                    data = getPersonNumber(content_detail, fp, field, platform_name, ["<thead>", "<tr>", "</tr>"], field_special_dict[field][1:], "</tr><tr>", "</td><td>")
+                
+                #十大投资人、借款人
+                elif day_month_dict[field] == 3:
+                    top_5, top_10 = getTopTotal(content, fp, field, platform_name, field_special_dict[field], '</ul><ul class="list flex">', ["<li>", "</li><li>", "</li>"])
+                    if top_5 == None:
+                        continue
+                    else:
+                        stringSQL = "UPDATE " + SRCDB_C + " SET `" + field + "` = '" + str(top_10)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+                        print stringSQL
+                        cur_db.execute(stringSQL)
+                        stringSQL = "UPDATE " + SRCDB_C + " SET `" + field.replace("10", "5") + "` = '" + str(top_5)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+                        print stringSQL
+                        cur_db.execute(stringSQL)
+                    continue
+                #按照天来统计的，其前系数一定是1
+                elif field_special_number == 8 and day_month_dict[field] == 1:
+                    date_day_list_temp = date_day_list
+                    last_dates = DAYSPERWEEK
+                    if field == "future4week_maturity":
+                        date_day_list_temp = date_day_future4week_list
+                        last_dates = DAYSPERWEEK * 4
+                    data = getDataAveByDate(content, fp, field, platform_name, field_special_dict[field][:4], field_special_dict[field][4:], date_day_list_temp, last_dates)
+                    if data == None:
+                        continue
+                elif field_special_number > 8 and day_month_dict[field] == 2:
+                    print field_special_number
+                    continue
+#                 #按照不同种类来统计的，其前系数一定是2
+#                 elif field_special_number > 8:
+#                     #先获得时间戳
+#                     dates, tmp = extractor(content, field_special_dict[field][:4])
+#                     if dates == None:
+#                         print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                         continue
+#                     dateArr = delQuotes(dates.split(','))
+#                     date_number = len(dateArr)
+#                      
+#                     if day_month_dict[field] == 2: #按月计算
+#                         try: 
+#                             index = dateArr.index(date_month)
+#                         except:
+#                             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             continue
+#                         #再获得数据
+#                         data_number_whole = field_special_number / 4 - 1
+#                         count = 0
+#                         data_list = []
+#                         for i in range(data_number_whole):
+#                             datas, tmp = extractor(content, field_special_dict[field][4*(1+i):4*(1+i)+4])
+#                             if datas != None:
+#                                 dataArr = delQuotes(datas.split(','))
+#                                 data_number = len(dataArr)
+#                                 if date_number != data_number:
+#                                     print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                                     break
+#                                 value = dataArr[index]
+#                                 if value.lstrip('-').replace('.', '').isdigit():
+#                                     data_list.append(float(value))
+#                         data = getListAverage(data_list, 0)
+#                         if data == 0:
+#                             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             continue
+#                     else: #按日计算
+#                         #先获得时间
+#                         if False == existListValue(dateArr, date_day_list):
+#                             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             continue
+#                         index_list = getIndexFromList(dateArr, date_day_list)
+#                         #再获得数据
+#                         data_number_whole = field_special_number / 4 - 1
+#                         count = 0
+#                         data_dict = {}
+#                         loan_period_dict = {0:1,1:30,2:60,3:90,4:180} #不同期限表的还款期限预估值
+#                         for i in range(data_number_whole):
+#                             data_dict[i] = None
+#                             datas, tmp = extractor(content, field_special_dict[field][4*(1+i):4*(1+i)+4])
+#                             if datas != None:
+#                                 dataArr = delQuotes(datas.split(','))
+#                                 data_number = len(dataArr)
+#                                 if date_number != data_number:
+#                                     print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                                     break
+#                                 data_dict[i] = dataArr
+#                         data = 0
+#                         data_list = []
+#                         for index in index_list:
+#                             if index != -1:
+#                                 _sum = 0
+#                                 _sum_weight = 0
+#                                 data_list_temp = []
+#                                 for i in range(data_number_whole):
+#                                     if data_dict[i] != None:
+#                                         value = data_dict[i][index]
+#                                         if value.lstrip('-').replace('.', '').isdigit(): 
+#                                             _sum_weight += float(value) * loan_period_dict[i] / DAYSPERMONTH
+#                                             _sum += float(value)
+#                                 data_list.append(0 if _sum == 0 else _sum_weight / _sum)
+#                         data = getListAverage(data_list, 0)
+#                         if data == 0:
+#                             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             continue
+#                 if field_special_number == 8:
+#                     #先获得时间戳
+#                     dates, tmp = extractor(content, field_special_dict[field][:4])
+#                     if dates == None:
+#                         print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                         platform_white_dict[platform_name] = 0
+#                         continue
+#                     #再获得数据
+#                     datas, tmp = extractor(content, field_special_dict[field][4:])
+#                     if datas == None:
+#                         print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                         platform_white_dict[platform_name] = 0
+#                         continue
+#                     dateArr = delQuotes(dates.split(','))
+#                     dataArr = delQuotes(datas.split(','))
+#                     date_number = len(dateArr)
+#                     data_number = len(dataArr)
+#                     if date_number != data_number:
+#                         print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                         platform_white_dict[platform_name] = 0
+#                         continue
+#                     if field == "future4week_maturity" :
+#                         if False == existListValue(dateArr, date_day_future4week_list):
+#                             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             platform_white_dict[platform_name] = 0
+#                             continue
+#                         index_list = getIndexFromList(dateArr, date_day_future4week_list)
+#                         count = 0
+#                         data = 0
+#                         for index in index_list:
+#                             if index != -1:
+#                                 value = dataArr[index]
+#                                 if value.lstrip('-').replace('.', '').isdigit(): 
+#                                     data += float(value)
+#                                     count += 1
+#                             if count == DAYSPERWEEK * 4:
+#                                 break
+#                         else:
+#                             if count == 0:
+#                                 print "2. No" + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                                 fp.write(platform_name + " " + str(timestamp) + " \n")
+#                                 platform_white_dict[platform_name] = 0
+#                                 continue
+#                             else:
+#                                 data = data / count * DAYSPERWEEK * 4
+#                     elif field == "cash_flow_in":
+#                         pass        
+#                     
+#                     else:
+#                         if False == existListValue(dateArr, date_day_list):
+#                             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             platform_white_dict[platform_name] = 0
+#                             continue
+#                         index_list = getIndexFromList(dateArr, date_day_list)
+#                         count = 0
+#                         data = 0
+#                         for index in index_list:
+#                             if index != -1:
+#                                 value = dataArr[index]
+#                                 if value.lstrip('-').replace('.', '').isdigit(): 
+#                                     data += float(value)
+#                                     count += 1
+#                             if count == DAYSPERWEEK:
+#                                 break
+#                         else:
+#                             platform_white_dict[platform_name] = 0
+#                             if count == 0:
+#                                 print "2. No" + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                                 fp.write(platform_name + " " + str(timestamp) + " \n")
+#                                 continue
+#                             else:
+#                                 data = data / count * DAYSPERWEEK
+#                 
+#                 elif field_special_number > 8:
+#                     #先获得时间戳
+#                     dates, tmp = extractor(content, field_special_dict[field][:4])
+#                     if dates == None:
+#                         print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                         continue
+#                     dateArr = delQuotes(dates.split(','))
+#                     date_number = len(dateArr)
+#                     
+#                     if day_month_dict[field] == 2: #按月计算
+#                         try: 
+#                             index = dateArr.index(date_month)
+#                         except:
+#                             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             continue
+#                         #再获得数据
+#                         data_number_whole = field_special_number / 4 - 1
+#                         count = 0
+#                         data_list = []
+#                         for i in range(data_number_whole):
+#                             datas, tmp = extractor(content, field_special_dict[field][4*(1+i):4*(1+i)+4])
+#                             if datas != None:
+#                                 dataArr = delQuotes(datas.split(','))
+#                                 data_number = len(dataArr)
+#                                 if date_number != data_number:
+#                                     print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                                     break
+#                                 value = dataArr[index]
+#                                 if value.lstrip('-').replace('.', '').isdigit():
+#                                     data_list.append(float(value))
+#                         data = getListAverage(data_list, 0)
+#                         if data == 0:
+#                             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             continue
+#                     else: #按日计算
+#                         #先获得时间
+#                         if False == existListValue(dateArr, date_day_list):
+#                             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             continue
+#                         index_list = getIndexFromList(dateArr, date_day_list)
+#                         #再获得数据
+#                         data_number_whole = field_special_number / 4 - 1
+#                         count = 0
+#                         data_dict = {}
+#                         loan_period_dict = {0:1,1:30,2:60,3:90,4:180} #不同期限表的还款期限预估值
+#                         for i in range(data_number_whole):
+#                             data_dict[i] = None
+#                             datas, tmp = extractor(content, field_special_dict[field][4*(1+i):4*(1+i)+4])
+#                             if datas != None:
+#                                 dataArr = delQuotes(datas.split(','))
+#                                 data_number = len(dataArr)
+#                                 if date_number != data_number:
+#                                     print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                                     break
+#                                 data_dict[i] = dataArr
+#                         data = 0
+#                         data_list = []
+#                         for index in index_list:
+#                             if index != -1:
+#                                 _sum = 0
+#                                 _sum_weight = 0
+#                                 data_list_temp = []
+#                                 for i in range(data_number_whole):
+#                                     if data_dict[i] != None:
+#                                         value = data_dict[i][index]
+#                                         if value.lstrip('-').replace('.', '').isdigit(): 
+#                                             _sum_weight += float(value) * loan_period_dict[i] / DAYSPERMONTH
+#                                             _sum += float(value)
+#                                 data_list.append(0 if _sum == 0 else _sum_weight / _sum)
+#                         data = getListAverage(data_list, 0)
+#                         if data == 0:
+#                             print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             continue
+#                 elif field_special_number == 5:
+#                     time.sleep(2)
+#                     field_url = field_special_dict[field][0] + str(platform_name)
+#                     content_temp = getHtml(field_url)            
+#                     if content_temp == None:
+#                         print "2. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                         continue
+#                     datas, tmp = extractor(content_temp, field_special_dict[field][1:4])
+#                     if datas == None:
+#                         print "21. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                         continue
+#                     datas = delBlank(datas)
+#                     value_list = []            
+#                     while True:
+#                         (info_str, datas) = extractor(datas, ["<tr><td>", "</td></tr>"])
+#                         if None == info_str or "" == info_str:
+#                             break
+#                         info_list = info_str.split("</td><td>")
+#                         if len(info_list) != 3:
+#                             print "21. No " + field + " "  + platform_name + "(" + str(timestamp) + ")"
+#                             continue
+#                         else:
+#                             try:
+#                                 order = int(info_list[0])
+#                                 money = float(info_list[2])
+#                             except:
+#                                 continue
+#                             value_list.append(money)
+#                     value_list.sort(reverse = True) #从大到小排列
+#                     _num = len(value_list)
+#                     _sum = sum(value_list)
+#                     if _num == 0 or _sum == 0:
+#                         continue
+#                     _num_5 = min(5, _num)
+#                     _num_10 = min(10, _num)
+#                     _sum5 = sum(value_list[:_num_5])
+#                     _ratio5 = _sum5 / _sum
+#                     _sum10 = sum(value_list[:_num_10])
+#                     _ratio10 = _sum10 / _sum
+#                     if field == "weekly_top10_lending":
+#                         stringSQL = "UPDATE " + SRCDB_C + " SET `weekly_top5_lending` = '" + str(_sum5)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+#                         #print stringSQL
+#                         cur_db.execute(stringSQL)
+#                         stringSQL = "UPDATE " + SRCDB_C + " SET `weekly_top10_lending` = '" + str(_sum10)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+#                         #print stringSQL
+#                         cur_db.execute(stringSQL)
+#                         stringSQL = "UPDATE " + SRCDB_C + " SET `top5_ratio_loan` = '" + str(_ratio5)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+#                         #print stringSQL
+#                         cur_db.execute(stringSQL)
+#                         stringSQL = "UPDATE " + SRCDB_C + " SET `top10_ratio_loan` = '" + str(_ratio10)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+#                         #print stringSQL
+#                         cur_db.execute(stringSQL)
+#                         continue
+#                     elif field == "weekly_top10_investment":
+#                         stringSQL = "UPDATE " + SRCDB_C + " SET `weekly_top5_investment` = '" + str(_sum5)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+#                         #print stringSQL
+#                         cur_db.execute(stringSQL)
+#                         stringSQL = "UPDATE " + SRCDB_C + " SET `weekly_top10_investment` = '" + str(_sum10)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+#                         #print stringSQL
+#                         cur_db.execute(stringSQL)
+#                         stringSQL = "UPDATE " + SRCDB_C + " SET `top5_ratio_investment` = '" + str(_ratio5)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+#                         #print stringSQL
+#                         cur_db.execute(stringSQL)
+#                         stringSQL = "UPDATE " + SRCDB_C + " SET `top10_ratio_investment` = '" + str(_ratio10)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+#                         #print stringSQL
+#                         cur_db.execute(stringSQL)
+#                         continue
+                stringSQL = "UPDATE " + SRCDB_C + " SET `" + field + "` = '" + str(data)+"' WHERE `platform_name` = '" + platform_name + "' AND `date` = '"+str(timestamp)+"'"
+                print stringSQL
+                cur_db.execute(stringSQL)
+            conn_db.commit()
+    fp.close()
+    closeCursors(cur_db)
+    closeConns(conn_db)
+#     print platform_white_dict
+#     white_file = open("Jlsj_white.txt", "w")
+#     for platform_name in platform_white_dict:
+#         if platform_white_dict[platform_name] == 1:
+#             white_file.write(platform_name + "\n")
+#     white_file.close()
+    
+    print ""
+    print "finished"
+    endTime = time.time()
+    print "The whole program costs " + str(endTime - startTime) + " seconds."    

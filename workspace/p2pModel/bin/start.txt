@@ -1,0 +1,140 @@
+模型数值初始化 ... 
+Quantitative data(9317) written to redis-db(0)!
+Qualitative data(733) written to redis-db(1)!
+Status data(1365) written to redis-db(2)!
+完成！用时40秒。
+
+统计学参数合成 ... 
+Statistics data(189) written to redis-db(3)!
+完成！已时16秒。
+
+平台分数计算 ... 
+Score data(9293) written to redis-db(4)!
+Score data(9293) written to redis-db(5)!
+完成！用时13秒。
+
+平台纵向惩罚 ... 
+Punishment data(9293) written to redis-db(6)!
+完成！用时11秒。
+
+数据平滑处理 ... 
+Smooth data(9293) written to redis-db(7)!
+完成！用时5秒。
+
+计算平台级别 ... 
+Rank data(9293) written to redis-db(8)!
+完成！用时17秒。
+
+计算平台展示信息 ... 
+View data(10344) written to Redis-db(9)!
+完成！用时11秒。
+
+计算平台排名 ... 
+View data(9655) written to Redis-db(9)!
+完成！用时12秒。
+
+模型分析完毕
+
+向ddpt-data同步数据 ... 
+/home/xiebo/p2pModel/bin/utils.py:61: Warning: Data truncated for column 'weekly_ave_investment_per_bid' at row 1
+  cur.execute(stringSQL)
+/home/xiebo/p2pModel/bin/utils.py:61: Warning: Data truncated for column 'market_share_growth' at row 1
+  cur.execute(stringSQL)
+Dump E2_quantitative_data Data ...
+Dump E2_quantitative_data_report Data ...
+Dump T_rank Data ...
+完成！用时93秒。
+
+计算报告数据 ... 
+Comment data(341) written to MySQL-db(view_mobile)!
+完成！用时6秒。
+
+展示数据拼装 ... 
+viewE2Bad.py:135: Warning: Data truncated for column 'turnover_period' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'ave_annualized_return' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'not_returned_yet' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'vc_cap_usd' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'registered_cap' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'PR_transparency1' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_lending' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_total_borrower' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_total_investor' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_new_investor' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_ave_lending_per_bid' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_ave_lending_per_borrower' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_ave_investment_old' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_ave_investment' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_ave_investment_per_bid' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_ave_bid_close_time' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_loan_period' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_ratio_new_old' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'short_term_debt_ratio' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'investor_HHI' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'borrower_HHI' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'provision_of_risk' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'borrower_growth' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'money_growth' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'market_share_growth' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'investor_growth' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'top5_ratio_loan' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'top10_ratio_loan' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'top5_ratio_investment' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'top10_ratio_investment' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'turnover_registered' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'outstanding_loan' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'compensation' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'cash_flow_in' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'future4week_maturity' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'latest4week_lending' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'weekly_outstanding_loan' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'provision_of_risk_num' at row 1
+  DEVCUR.execute(stringSQL)
+viewE2Bad.py:135: Warning: Data truncated for column 'cap_background' at row 1
+  DEVCUR.execute(stringSQL)
+Bad-platform data(1164) written to MySQL-db(view_mobile&E2_BAD)!
+完成！用时177秒。
+
+生成报告配置 ... 
+完成！用时1秒。
+
+缓存索引生成 ... 
+完成！用时1秒。
+
+总用时403秒。

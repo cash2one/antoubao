@@ -1,0 +1,16 @@
+#!/usr/bin/python
+#coding=utf-8
+
+import urllib2
+import time
+import re
+from atbtools.header import * 
+from atbtools.mysqlTools import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+
+if __name__ == "__main__":
+    url = "http://shuju.wangdaizhijia.com/archives-60.html"
+    print url
+    datas = urllib.urlopen(url).read()
+    print datas

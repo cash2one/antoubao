@@ -1,0 +1,36 @@
+#!/use/bin/python
+#coding=utf-8
+
+import random
+
+def InsertSort(_list):
+    value_list = [_list[0]]
+    for value_new in _list[1:]:
+        count = 0
+        for value_old in value_list:
+            if value_old >= value_new:
+                break
+            count += 1
+        value_list.insert(count, value_new)
+    return value_list
+
+def ShellSort(_list):
+    list_number = len(_list)
+    d = list_number / 2
+    while d > 0:
+        for i in range(d):
+            index_list = range(i, list_number, d)
+            list_temp = _list[i::d]
+            list_temp = InsertSort(list_temp)
+            for j in range(index_list):
+                _list[index_list[j]] = list_temp[j]
+        d /= 2
+    return _list
+    
+if __name__ == "__main__":
+    N = 20
+    value_list = random.sample(range(N), N)
+    print "排序以前："
+    print value_list
+    print "排序以后："
+    print InsertSort(value_list) 

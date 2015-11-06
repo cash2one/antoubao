@@ -1,0 +1,7 @@
+HOST="https://www.yingzt.com"
+INDEXPAGE="${HOST}/invest/list?from=menu_invest_v2&p1="
+DETAILPAGE1="${HOST}/invest/detail?id="
+DETAILPAGE2="${HOST}/invest/apiUserInvests"
+POSTDATA2="id=\${ID}&_fromAjax_=1"
+#GETPAGE="wget --no-cookies --header=\"Cookie: ${COOKIE}\" --header=\"User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36\" --keep-session-cookie"
+GETPAGE="wget"

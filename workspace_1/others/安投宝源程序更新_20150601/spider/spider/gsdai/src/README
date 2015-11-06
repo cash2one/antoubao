@@ -1,0 +1,2 @@
+认证方式：将cookie中的 JSESSIONID 字段写入到 JSESSIONID 文件中
+

@@ -1,0 +1,73 @@
+#!/usr/bin/python
+#coding=utf-8
+
+from atbtools.header import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+import random
+import os
+import json
+
+if __name__ == "__main__":
+    
+    #获得连接        
+    conn_db = getConn(DBHOST, USERNAME, PASSWORD, DB, PORT)
+    cur_db  = getCursors(conn_db)
+    initializeCursors(cur_db)
+    
+    dcqArr = []
+    fpDcq = open('../conf/dcq.conf')
+    for lines in fpDcq:
+        if lines[0] == '#':
+            continue
+        line = lines.split('$$')
+        if lines[0] == "0":
+            dcqCharArr = line[2:]
+            dcqCharArr = [x.replace("\n","") for x in dcqCharArr]
+        elif lines[0] == "1":
+            print line[2:]
+            dcqArr.append(line[1])
+    fpDcq.close()
+
+    blackArr = []
+    fpBlack = open('../conf/dcqBlack.conf')
+    for lines in fpBlack:
+        blackArr.append(lines.strip())
+
+    whiteArr = []
+    fpWhite = open('../conf/dcqWhite.conf')
+    for lines in fpWhite:
+        whiteArr.append(lines.strip())
+
+    url = "http://www.daichuqu.com/Search"
+    content = getHtml(url)
+    platIdArr = []
+    print dcqCharArr
+    while True:
+        platId, content = extractor(content, dcqCharArr)
+        print platId
+        if platId == None or platId == 'www' or len(platId) > 100:
+            break
+        platIdArr.append(platId)
+    print platIdArr
+    fpDcqList = open('../conf/dcqList.conf', 'w')
+    for index in range(0, len(TIMESTAMP_LIST)):
+        fpStr = ""
+        for platId in platIdArr:
+            if platId not in whiteArr:
+                continue
+            stringSQL = "SELECT `platform_id`, `platform_name`, `date`, `"+"`, `".join(dcqArr)+"` FROM platform_quantitative_dcq_weekly_B WHERE `date` = '"+str(TIMESTAMP_LIST[index])+"' AND `platform_id` = '"+platId+"'"
+            ret = cur_db.execute(stringSQL)
+            if ret == 0:
+                for prop in dcqArr:
+                    fpStr += str(TIMESTAMP_LIST[index])+" "+platId+" "+str(prop)+"\r\n"
+            else:
+                for _list in cur_db.fetchall():
+                    platId = _list[0]
+                    platName = _list[1]
+                    date = _list[2]
+                    for i in range(3, len(_list)):
+                        if _list[i] is None:
+                            fpStr += str(date)+" "+platId+" "+dcqArr[i-3]+"\r\n"
+        fpDcqList.write(fpStr)
+    fpDcqList.close()

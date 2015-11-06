@@ -1,0 +1,24 @@
+#!/bin/bash
+
+source ./conf.sh
+
+>data/id.list
+for ((i=1;i<=2;i++))
+do
+    eval "${GETPAGE}" -O - "\"${INDEXPAGE}${i}&type=5\"" \
+        | awk '{s=$0; while (match(s, "\\\/dinvest\\\/[a-z]+\\\/detail\?id=[0-9a-z]+")) {print substr(s,RSTART,RLENGTH); s=substr(s, RSTART+1);}}' | sed -r 's/^\\\/[a-z]+\\\/([a-z]+)\\\/detail\?id=([0-9a-z]+)$/\1_\2/g'| sort | uniq>>data/id.list
+
+    exit 0
+    eval "${GETPAGE}" -O - "\"${INDEXPAGE}${i}&type=7\"" \
+        | awk '{s=$0; while (match(s, "/dinvest/[a-z]+/detail?id=[0-9a-z]+")) {print substr($0,RSTART,RLENGTH);}}' | sed -r 's/^\/[a-z]+\/([a-z]+)\/detail?id=([0-9a-z]+)$/\1_\2/g'| sort | uniq>>data/id.list
+
+    eval "${GETPAGE}" -O - "\"${INDEXPAGE}${i}&type=6\"" \
+        | awk '{s=$0; while (match(s, "/dinvest/[a-z]+/detail?id=[0-9a-z]+")) {print substr($0,RSTART,RLENGTH);}}' | sed -r 's/^\/[a-z]+\/([a-z]+)\/detail?id=([0-9a-z]+)$/\1_\2/g'| sort | uniq>>data/id.list
+
+    eval "${GETPAGE}" -O - "\"${INDEXPAGE}${i}&type=2\"" \
+        | awk '{s=$0; while (match(s, "/dinvest/[a-z]+/detail?id=[0-9a-z]+")) {print substr($0,RSTART,RLENGTH);}}' | sed -r 's/^\/[a-z]+\/([a-z]+)\/detail?id=([0-9a-z]+)$/\1_\2/g'| sort | uniq>>data/id.list
+        sleep 1
+done
+
+exit 0
+

@@ -1,0 +1,42 @@
+#!/usr/bin/python
+# coding=utf-8
+
+HOST = "127.0.0.1"
+DBHOST = "db-x1.antoubao.cn"
+DEVHOST = "dev-x1.antoubao.cn"
+ANAHOST = "ana-x1.antoubao.cn"
+DATEXML = "./date.xml"
+PORT = 3306
+USERNAME = "root"
+PASSWORD = "4njMOzOjli"
+DB = "antoubao"
+LINEDATE="1422720000"
+INITIALTIMESTRAMP = 1356969600  # 2013年1月1日零点
+DURATIONWEEKS = 300  # 300周的时间
+DAYSPERYEAR = 360
+MONTHSPERYEAR = 12
+DAYSPERHALFMONTH = 15
+DAYSPERMONTH = 30
+DAYSPERWEEK = 7
+SECONDSPERDAY = 86400
+SECONDSPERWEEK = 604800
+MONTHSPERQUARTOR = 3
+QUARTORSPERYEAR = 4
+BUFFERNUMBER = 100 #设置多个缓冲点，可以估计程序运行时间
+LASTLENDINGWEEKS = 4 #过去几周的的总借款量，默认为4周
+FUTUREPAYBACKWEEKS = 4 #未来几周的的待还款量，默认为4周
+FUTUREPAYBACKEVER = 1000 #未来所有的待还款量，默认为1000周
+INITIALYEAR = 2013 #所有平台数据的最早年份
+MAXPLATFORMSCORE = 10000 #平台打分的最大值
+MINPLATFORMSCORE = -10000 #平台打分的最小值
+LIMITEDLEVELFORBIAS = "levela" #贝叶斯计算当中截取等级1的最低平均等级
+RATEGOODBAD = 2 #最后的计分中，好站和坏站的比例
+SHIFTWEEKS = 2 #在贝叶斯计算权重的时候，提取坏站数据需要提前的周数
+LASTWEEKS = 4 #在贝叶斯计算权重的时候，提取坏站数据需要提前的周数
+RANKFLOATING = 15 #在贝叶斯计算权重的时候，允许的排名上下浮动值。
+LISTCUT = 0.1 #在计算closetime的时候，上下截取的百分比
+WRONGNUMBER = 0 #在计算表中，出现分母为零时候的默认值
+WEIGHTAB = 0.5 #A、B外来数据源中的数据所占权重（总数据源=A+B+project_info）
+MONEYUNIT = 10000 #project_info中和钱有关的单位
+FULLBIDPERCENT= 0.95 #投资额达到借款额的百分比，在这个数字之上即为满标
+MAXBIDCLOSEWEEKS = 4 #每个标开放窗口的最长时间（用于compute0106的增量，只取end_time在这个时间之后的）

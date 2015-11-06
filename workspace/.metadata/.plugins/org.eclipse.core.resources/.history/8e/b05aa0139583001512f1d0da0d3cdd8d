@@ -1,0 +1,204 @@
+# /usr/bin/python
+# encoding=utf8
+# 将project_info中的脏数据去掉，方便后续处理
+
+from atbtools.header import * 
+from atbtools.mysqlTools import *
+from atbtools.paymentTools import *
+from atbtools.computeTools import *
+import hashlib
+
+if __name__ == '__main__':
+    
+    # 确定金钱的误差0.01元
+    money_error = 0.01 / MONEYUNIT
+    # 获取连接
+    srcdb_info_F = "platform_qualitative_F"
+    srcdb_info_clean = "project_info_clean_whole"
+    srcdb_daily_error = "platform_error_daily_report"
+    srcdb_daily_bids = "platform_bids_daily_report"
+    srcdb_info_clean_for_table06 = "project_info_clean"
+    srcdb_Y = "total_status"
+    srcdb_view_mobile = "view_mobile"
+    srcdb_V = "V_view"
+    
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    conn_server = getConn(SERVERHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_server = getCursors(conn_server)
+    conn_ddpt_data = getConn(DDPT_DATAHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_ddpt_data = getCursors(conn_ddpt_data)
+    initializeCursors(cur_db, cur_server, cur_ddpt_data)
+    
+    #获得所有日期，从STARTDATE到当前日期所在周
+    date_start = STARTDATE
+    date_end = int(getDateTimestamp(time.time()) + SECONDSPERWEEK)
+    date_list = range(date_start, date_end + 1, SECONDSPERWEEK)
+    
+    #设定各个字段的默认值
+    field_default_dict = {}
+    stringSQL = "select column_name,data_type from information_schema.columns where `table_schema` = 'antoubao' and `table_name` = 'project_info_clean_whole' order by table_name,ordinal_position"
+    cur_db.execute(stringSQL)
+    for field, data_type in cur_db.fetchall():
+        if field == "id":
+            continue
+        if data_type == "varchar":
+            field_default_dict[field] = ""
+        else:
+            field_default_dict[field] = -1
+    this_date = time.strftime("%Y%m%d")
+    
+    fields_list = ["id", "project_id", "project_name", "site_id", "borrower", "investor", "payment_method", "loan_period", "annulized_rating", "borrowing_amount", "release_time", "end_time", "state"]
+    fields_number = len(fields_list)
+    
+    platform_id_list = getListByTxt("platform_id.txt")
+
+    for site_id in platform_id_list:
+        print site_id
+        bid_number_correct_ratio_dict = {}.fromkeys(date_list, 0) #每个时间周正确的标数
+        bid_number_total_dict = {}.fromkeys(date_list, 0) #每个时间周的总标数
+        
+        #获得platform_name
+        stringSQL = "SELECT platform_name FROM " + srcdb_info_F + " WHERE `platform_id` ='" + site_id + "' LIMIT 1"
+        ret = cur_db.execute(stringSQL)
+        if ret == 0:
+            platform_name = site_id
+        else:
+            platform_name = cur_db.fetchone()[0]
+#             if platform_name == "前海理想金融":
+#                 platform_name = "前海理想"
+#             if platform_name == "凤凰金融（江西）":
+#                 platform_name = "江西凤凰"
+#             if platform_name == "汇盈金服(汇盈贷)":
+#                 platform_name = "汇盈金服"
+            
+        #获得level
+        stringSQL = "SELECT `level_lock`, `date` FROM " + srcdb_V + " WHERE `platform_name` = '" + platform_name + "' ORDER BY `date` DESC LIMIT 1"
+        ret = cur_ddpt_data.execute(stringSQL)
+        if ret == 0:
+            level = None
+            date_level = None
+        else:
+            level, date_level = cur_ddpt_data.fetchone()
+            
+        #获得status    
+        stringSQL = "SELECT `status` FROM " + srcdb_Y + " WHERE `platform_name` = '" + platform_name + "' ORDER BY `date` DESC LIMIT 1"
+        ret = cur_db.execute(stringSQL)
+        if ret == 0:
+            status = None
+        else:
+            status = cur_db.fetchone()[0]
+    
+        #初始值设置
+        platform_id = hashlib.md5(platform_name).hexdigest()[0:10]
+        srcdb_info = getProjectInfo("project_info", site_id)
+        bad_bids_number = 0
+        bids_number_unfull = 0
+        error_set = set()
+        
+        #获得所有字段
+        stringSQL = "SELECT `" +"`,`".join(fields_list) + "` FROM "+ srcdb_info + " WHERE `site_id` ='" + site_id + "'"
+#         stringSQL += " AND `id` = '6200'"
+        #print "正在从数据库传输数据回本地..."
+        bids_number = cur_db.execute(stringSQL)
+        rows = cur_db.fetchall()
+        for row in rows:
+            v={}
+            for field in field_default_dict:
+                v[field] = field_default_dict[field]
+            for i in range(fields_number):
+                v[fields_list[i]] = row[i]
+            v["pid"] = v["id"]
+            del v["id"]
+            v["platform_name"] = platform_name
+            v["platform_id"] = platform_id
+            
+            v = cleanProjectInfoPerBid(v)
+            if v["date"] in date_list:
+                bid_number_total_dict[v["date"]] += 1
+            
+            if v["error"] != "":
+                bad_bids_number += 1
+                error_list = v["error"].split(", ")
+                for error in error_list:
+                    error_set.add(int(error))
+            else:
+                if v["date"] in date_list:
+                    bid_number_correct_ratio_dict[v["date"]] += 1
+            error_temp = v["error"]
+            if v["unfull"] == 1:
+                if error_temp == "":
+                    error_temp += "0"
+                else:
+                    error_temp += ", 0"
+                error_set.add(0)
+                bids_number_unfull += 1
+                
+            #在原表中填写字段方便spider校验
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '" + error_temp + "', `date` = '" + str(v["date"])+ "' WHERE `id` = '" + str(v["pid"]) + "'"
+            cur_db.execute(stringSQL)
+            conn_db.commit()
+            
+            #将清理后的数据写入新表
+            field_list_temp = field_default_dict.keys()
+            value_list_temp = []
+            for field in field_list_temp:
+                value_list_temp.append(str(v[field]))
+            stringSQL = "INSERT INTO " + srcdb_info_clean + "(`" + "`,`".join(field_list_temp) + "`) VALUES('" + "','".join(value_list_temp) + "')"
+#             print stringSQL
+            cur_db.execute(stringSQL)
+            conn_db.commit()
+            
+#             if v["error"] == "":
+#                 v["release_time"] = v["first_time"]
+#                 v["end_time"] = v["last_time"]
+#                 field_list_temp = field_default_dict.keys()
+#                 value_list_temp = []
+#                 for field in field_list_temp:
+#                     value_list_temp.append(str(v[field]))
+#                 stringSQL = "INSERT INTO " + srcdb_info_clean_for_table06 + "(`" + "`,`".join(field_list_temp) + "`) VALUES('" + "','".join(value_list_temp) + "')"
+# #                 print stringSQL
+#                 cur_db.execute(stringSQL)
+#                 conn_db.commit()
+            
+        #插入错误日表 
+        for date in date_list:
+            if bid_number_total_dict[date] != 0:
+                bid_number_correct_ratio_dict[date] = float(bid_number_correct_ratio_dict[date]) / bid_number_total_dict[date]
+        error_percentage = "%.2f" % (float(bad_bids_number) / bids_number * 100)
+        error_str = ", ".join(getString(list(error_set)))
+        #插入数据
+        field_list = [ "error", "percentage_total", "bids_number", "unfull_bids_number", "status", "level", "date_level"]
+        value_list = [error_str, str(error_percentage), str(bids_number), str(bids_number_unfull), str(status), str(level), str(date_level)]
+        for date in date_list:
+            field_list.append("T_" + str(date))
+            field_list.append("P_" + str(date))
+            value_list.append(str(bid_number_total_dict[date]))
+            value_list.append(str(bid_number_correct_ratio_dict[date]))
+        field_value_str = []
+        for i in range(len(field_list)):
+            field = field_list[i]
+            value = value_list[i]
+            field_value_str.append("`" + str(field) + "` = '" + str(value) + "'")
+        stringSQL = "UPDATE " + srcdb_daily_error + " SET " + ",".join(field_value_str) + " WHERE `site_id` = '" + site_id + "' AND `date` = '" + this_date + "'"     
+        stringSQL = stringSQL.replace("'None'", "NULL")
+        print stringSQL
+        cur_db.execute(stringSQL)
+        conn_db.commit()
+        
+        #插入数据
+        stringSQL="SELECT * FROM " + srcdb_daily_bids + " WHERE `site_id` = '" + site_id + "' AND date = '" + this_date + "'"
+        ret = cur_db.execute(stringSQL)
+        if ret == 0:
+            #先插入平台name和时间戳
+            stringSQL="INSERT INTO " + srcdb_daily_bids + " (`site_id`, `date`, `alive_bids_number`) VALUES('" + "', '".join([site_id, this_date, str(bids_number)]) + "')"
+            #print stringSQL
+            cur_db.execute(stringSQL)
+        else:
+            stringSQL = "UPDATE " + srcdb_daily_bids + " SET `alive_bids_number` = '" + str(bids_number) + "' WHERE `site_id` = '" + site_id + "' AND date = '" + this_date + "'"
+#             print stringSQL
+            cur_db.execute(stringSQL)
+        conn_db.commit()
+    
+    closeCursors(cur_db, cur_server)
+    closeConns(conn_db, conn_server)

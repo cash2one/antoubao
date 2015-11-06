@@ -1,0 +1,136 @@
+#!/usr/bin/python
+#encoding=utf-8
+
+from header import *
+
+def usage():
+    print "COMMAND:"
+    print "\tpython "+sys.argv[0]+" [-all|-t|-f]"
+    print "获取数据源的所有数据，如果是坏站，则拷贝出事前两周的数据。"
+    print ""
+    print "OPTIONS:"
+    print "\t-all: 初始化所有定量数据"
+    print "\t-t [timestamp]: 初始化指定周的定量数据"
+    print "\t-f: 初始化定性数据"
+    print "\t-y: 初始化平台状态数据"
+    exit(-1)
+
+def readQuantitative(d):
+    bad = {}
+    recovery = {}
+    ds = fromMySQLToArray(DSCUR, "platform_problem_record_Y")
+    if len(d) == 0:
+        print "Failure in reading in platform_problem_record_Y"
+        exit(-1)
+    for jsonStr in ds:
+        pinfo = json.loads(json.dumps(jsonStr))
+        #计算坏站出事所属周
+        date = int(pinfo['date'])-((int(pinfo['date'])-1388851200)%(7*24*3600))+(7*24*3600)
+        if pinfo['status'] > 0.89:
+            #0.9的表示坏站已经恢复，按照正常站处理
+            recovery[pinfo['platform_id']] = date
+            continue
+        if pinfo['platform_id'] not in bad.keys():
+            bad[pinfo['platform_id']] = []
+        #坏站使用两周前的数据
+        bad[pinfo['platform_id']].append(date-2*7*24*3600)
+    #遍历定量表内容，依次写入Redis的db(0)和db(9)。
+    count = 0
+    bcount = 0
+    for jsonStr in d:
+        pinfo = json.loads(json.dumps(jsonStr))
+        #关键数值为0，跳过
+        if pinfo['black'] is not None and 'B' in pinfo['black']:
+            continue
+        else:
+            del pinfo['black']
+        if pinfo['platform_id'] in recovery and \
+            int(pinfo['date']) >= recovery[pinfo['platform_id']]:
+            #如果平台已经回复，则进入正常库
+            r = rQUANTI
+            count+=1
+        elif pinfo['platform_id'] in bad and \
+            int(pinfo['date']) in bad[pinfo['platform_id']]:
+            #如果属于当周坏站，则进入坏站库
+            r = rQUABAD
+            bcount+=1
+        elif pinfo['platform_id'] not in bad or \
+            (pinfo['platform_id'] in bad and int(pinfo['date']) < min(bad[pinfo['platform_id']])):
+            #不属于坏站，或当前时间小于该平台的最早出事时间，则进入正常库
+            r = rQUANTI
+            count+=1
+        else:
+            continue
+        ret = fromHashToRedis(r, pinfo, 'platform_id', 'date')
+        if ret == 0:
+            print "Failure in writing out "+pinfo['platform_name']+"."
+        else:
+            count+=1
+    return count, bcount
+
+if len(sys.argv) < 2:
+    usage()
+elif sys.argv[1] == '-all':
+    rQUANTI.flushdb()
+    rQUABAD.flushdb()
+    #读取定量表E1所有内容。
+    d = fromMySQLToArray(DSCUR, "platform_quantitative_data_E1", " WHERE `date` >= "+str(STARTDATE)+" ORDER BY `date` ASC")
+    if len(d) == 0:
+        print "Failure in reading in platform_quantitative_data_E1."
+        exit(-1)
+    count, bcount = readQuantitative(d)
+    print "Quantitative data("+str(count)+") written to redis-db("+str(dbQUANTI)+")!"    
+    print "Bad-platform data("+str(bcount)+") written to redis-db("+str(dbQUABAD)+")!"
+elif sys.argv[1] == '-t':
+    #读取指定日期的表E1。
+    if len(sys.argv) < 3:
+        usage()
+    else:
+        timestamp = int(sys.argv[2])
+        if timestamp < STARTDATE:
+            print "Invalid date("+str(timestamp)+"), the must be equal or greater than "+str(STARTDATE)
+            exit(-1)
+    d = fromMySQLToArray(DSCUR, "platform_quantitative_data_E1", " WHERE `date` = '"+str(timestamp)+"'")
+    if len(d) == 0:
+        print "Failure in reading in platform_quantitative_data_E1."
+        exit(-1)
+    count, bcount = readQuantitative(d)
+    print "Quantitative data("+str(count)+") written to redis-db("+str(dbQUANTI)+")!"
+    print "Bad-platform data("+str(bcount)+") written to redis-db("+str(dbQUABAD)+")!"
+elif sys.argv[1] == '-f':
+    #读取定性表F
+    d = fromMySQLToArray(DSCUR, "platform_qualitative_F")
+    if len(d) == 0:
+        print "Failure in reading in platform_qualitative_F."
+        exit(-1)
+    #遍历定性表内容，依次写入Redis的db(1)
+    count = 0
+    for v in d:
+        if 'platform_name' not in v.keys():
+            print "Invalid data."
+            continue
+        v['platform_id'] = str(hashlib.md5(v['platform_name']).hexdigest())[:10]
+        ret = fromDictToRedis(rQUALIT, v['platform_id'], v)
+        if ret == 0:
+            print "Failure in writing out "+v['platform_name']+"."
+        else:
+            count+=1
+    print "Qualitative data("+str(count)+") written to redis-db("+str(dbQUALIT)+")!"
+elif sys.argv[1] == '-y':
+    #读取平台状态表Y
+    d = fromMySQLToArray(DSCUR, "platform_problem_record_Y")
+    if len(d) == 0:
+        print "Failure in reading in platform_problem_record_Y."
+        exit(-1)
+    #遍历状态表内容，依次写入Redis的db(3)
+    count = 0
+    for jsonStr in d:
+        pinfo = json.loads(json.dumps(jsonStr))
+        ret = fromHashToRedis(rSTATUS, pinfo, 'platform_id', 'date', 'status|summary')
+        if ret == 0:
+            print "Failure in writing out "+pinfo['platform_name']+"."
+        else:
+            count+=1
+    print "Status data("+str(count)+") written to redis-db("+str(dbSTATUS)+")!"
+else:
+    usage()

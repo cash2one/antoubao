@@ -1,0 +1,165 @@
+# /usr/bin/python
+# encoding=utf8
+# 将project_info中的脏数据去掉，方便后续处理
+
+from atbtools.header import * 
+from atbtools.mysqlTools import *
+from atbtools.paymentTools import *
+from atbtools.computeTools import * 
+from math import floor
+import time
+import sys
+
+if __name__ == '__main__':
+    if (len(sys.argv) == 1):
+        print "'必须指定要查询的site_id"
+        exit(1)
+    else:
+        site_id = str(sys.argv[1])
+    # 确定金钱的误差0.01元
+    money_error = 0.01 / MONEYUNIT
+    # 获取连接    
+    srcdb_info = "project_info"
+    conn_db = getConn(DBHOST, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    initializeCursors(cur_db)
+
+    neglect_payment_method_list = ["",None,"无", "无担保"]
+
+    #获得所有字段
+    fields_list = getAllColumnsFromTable(cur_db, srcdb_info, del_list = ["date", "error"])
+    fields_number = len(fields_list)
+    stringSQL = "SELECT `" +"`,`".join(fields_list) + "` FROM "+ srcdb_info + " WHERE `site_id` ='" + site_id + "'"
+    print "正在从数据库传输数据回本地..."
+    bids_number = cur_db.execute(stringSQL)
+    bidsPercentList = [floor(float(x) * bids_number / BUFFERNUMBER) for x in range(1, BUFFERNUMBER + 1)] 
+    bad_bids_number = 0
+    rows = cur_db.fetchall()
+    counter = 0
+    v={}
+    print "cleaning: 0%"
+    for row in rows:
+        counter += 1
+        if counter in bidsPercentList:
+            print "cleaning: " + str((1 + bidsPercentList.index(counter)) * 100 / BUFFERNUMBER) + "%"
+        for i in range(fields_number):
+            v[fields_list[i]] = row[i]
+        v["id"] = str(v["id"])
+        #投资人列表以及相应的满标时间，发标时间
+        #投资人字段检查
+        v["investor"] = v["investor"].strip()
+        if 0 == len(v["investor"]):
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '1' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            bad_bids_number += 1
+            print str(v["id"]) + "(" + str(v["project_id"]) + ")" +": " + "investor is blank."
+            continue
+        #删除investor中的可能重复字段
+        investor = v["investor"]
+        investor_set = set()
+        investor_list = investor.split("|")
+        if len(investor_list) < 3:
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '1' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            bad_bids_number += 1
+            print str(v["id"]) + "(" + str(v["project_id"]) + ")" +": " + "investor is blank."
+            continue
+        investor_number = len(investor_list) / 3
+        for i in range(investor_number):
+            investor_str = investor_list[i * 3:(i + 1) * 3]
+            investor_set.add("|".join(investor_str))
+        investor_set_number = len(investor_set)
+        repeat_time = investor_number / investor_set_number
+        if repeat_time != 1:
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '2' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            investor = "|".join(investor_set)
+        v["investor"] = investor
+        full_time= getInterestDate(0, 0, 0, v["investor"])[0] #计息时间
+        if full_time <= 0:
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '3' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            bad_bids_number += 1
+            print str(v["id"]) + "(" + str(v["project_id"]) + ")" +": " + "full_time is invalid"
+            continue
+        count_date = getTimestampZero(full_time, 0, 0) + SECONDSPERWEEK
+        stringSQL = "UPDATE " + srcdb_info + " SET `date` = '" + str(count_date) + "' WHERE `id` = '" + v["id"] + "'"
+        cur_db.execute(stringSQL) 
+        conn_db.commit()
+        v["end_time"] = full_time #满标时间
+        first_time = getFirstDate(0, v["investor"])[0]  # 初次被投资时间
+        if first_time <= 0:
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '3' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            bad_bids_number += 1
+            print str(v["id"]) + "(" + str(v["project_id"]) + ")" +": " + "first_time is invalid"
+            continue
+        try: 
+            v["release_time"] = int(v["release_time"])
+        except:
+            v["release_time"] = 0
+        if v["release_time"] <= 0:
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '4' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            v["release_time"] = first_time
+        else:
+            v["release_time"] = min(v["release_time"], first_time) #放标时间
+        #和还款方式有关
+        v["payment_method"] = v["payment_method"].strip()
+        if v["payment_method"] in neglect_payment_method_list:
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '5' WHERE `id` = '" + v["id"] + "'"
+            print stringSQL
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            bad_bids_number += 1
+            print str(v["id"]) + "(" + str(v["project_id"]) + ")" +": " + "payment_method is blank."
+            continue
+        try:
+            v["annulized_rating"] = float(v["annulized_rating"])
+        except:
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '6' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            print str(v["id"]) + "(" + str(v["project_id"]) + ")" +": " + "annulized_rating is wrong."
+            continue
+        if v["annulized_rating"] <= 1E-6:
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '6' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            bad_bids_number += 1
+            print str(v["id"]) + "(" + str(v["project_id"]) + ")" +": " + "annulized_rating is zero."
+            continue
+        try: 
+            v["loan_period"] = int(v["loan_period"])
+        except:
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '7' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            print str(v["id"]) + "(" + str(v["project_id"]) + ")" +": " + "loan_period is not integer."
+            continue
+        v["invested_amount"] = countGross(v["investor"], 3)
+        if v["invested_amount"] <= money_error:
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '8' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            bad_bids_number += 1
+            print str(v["id"]) + "(" + str(v["project_id"]) + ")" +": " + "invested_amount is too small"
+            continue
+        v["borrowing_amount"] = float(v["borrowing_amount"])
+        if v["invested_amount"] < FULLBIDPERCENT * v["borrowing_amount"]: #满标策略
+            stringSQL = "UPDATE " + srcdb_info + " SET `error` = '0' WHERE `id` = '" + v["id"] + "'"
+            cur_db.execute(stringSQL) 
+            conn_db.commit()
+            bad_bids_number += 1
+            #print str(v["id"]) + "(" + str(v["project_id"]) + ")" +": " + "bid is not full"
+            continue
+    print "共有" + str(bids_number) + "个标."
+    print "在满额限制为"+ str(FULLBIDPERCENT) + "的情况下, 只有" + "%.2f" % (100 * (1-float(bad_bids_number)/bids_number)) + "%的数据是可用的."
+    closeCursors(cur_db)
+    closeConns(conn_db)  

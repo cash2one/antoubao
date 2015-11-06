@@ -1,0 +1,90 @@
+# /usr/bin/python
+# encoding=utf8
+# 从project_info中读取数据来更新E1
+
+from atbtools.header import * 
+from atbtools.mysqlTools import *
+from atbtools.computeTools import *
+from atbtools.paymentTools import *
+from math import floor
+import time
+import hashlib
+
+if __name__ == '__main__':
+    _start_time = time.time()
+    value_format = "%.4f"
+    _del_list = ["id", "platform_name", "platform_id", "date", "source"]
+    
+    # 获取连接    
+    TABLE_E1 = "platform_quantitative_data_E1"
+    TABLE_06 = "Table_06_parameter_quantitative"
+    TABLE_E1_ABP = "platform_quantitative_data_E1_ABP"
+    TABLE_Y = "total_status"
+
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    initializeCursors(cur_db)
+    
+#     stringSQL = "DELETE FROM " + TABLE_E1_ABP
+#     cur_db.execute(stringSQL)
+#     conn_db.commit()
+    
+    #时间的最大值
+    date_list = getDifferentFieldlist(TABLE_E1, cur_db, "date")
+    max_date = max(date_list)
+    
+    bad_platform_name_list = []
+    stringSQL = "SELECT A.platform_name FROM " + TABLE_Y + " AS A,(SELECT `platform_name`, MAX(`date`) AS `date` FROM " + TABLE_Y + " GROUP BY `platform_name`) AS B WHERE A.platform_name = B.platform_name AND A.date = B.date AND A.`status` < '0.89'"
+    cur_db.execute(stringSQL)
+    for platform_name in cur_db.fetchall():
+        bad_platform_name_list.append(platform_name[0].replace("\n", ""))
+    # 合并指标
+    tag_dict = {TABLE_E1:"AB", TABLE_06:"P"}
+    field_dict = {}
+    field_list_dict={}
+#     for table in [TABLE_E1, TABLE_06]: #排名有先后，后面的会覆盖前面的
+    for table in [TABLE_06]: #排名有先后，后面的会覆盖前面的
+        print 1111, table
+        field_list_dict[table] = getAllColumnsFromTable(cur_db, table, del_list = _del_list)
+#         del_index = field_list_dict[table].index("weekly_total_borrower")
+        stringSQL = "SELECT `platform_name`, `date`, `" + "`,`".join(field_list_dict[table]) + "` FROM " + table + " WHERE `date` <= '" + str(max_date) + "'"
+            
+        cur_db.execute(stringSQL)
+        rets = cur_db.fetchall()
+        for ret in rets:
+#             if int(ret[2 + del_index]) < MINBORROWERNUMBER:
+#                 continue
+            platform_name = str(ret[0])
+            if platform_name == "":
+                continue
+            if table == TABLE_06 and platform_name not in bad_platform_name_list:
+                continue
+            _date = int(ret[1])
+            if platform_name not in field_dict:
+                field_dict[platform_name] = {}
+            if _date not in field_dict[platform_name]:
+                field_dict[platform_name][_date] = {}
+            field_dict[platform_name][_date]["source"] = table
+            field_dict[platform_name][_date]["fields"] = getString(ret[2:])
+    platform_number = len(field_dict)
+    PercentList = [floor(float(x) * platform_number / BUFFERNUMBER) for x in range(1, BUFFERNUMBER + 1)] 
+
+    #插入数据库
+    counter = 0
+    for platform_name in field_dict:
+        counter += 1
+        if counter in PercentList:
+            print "inserting: " + str((1 + PercentList.index(counter)) * 100 / BUFFERNUMBER) + "%"
+        platform_id = hashlib.md5(platform_name).hexdigest()[0:10]
+        for _date in field_dict[platform_name]:
+            table = field_dict[platform_name][_date]["source"]
+            field_list = field_list_dict[table] + ["platform_name", "platform_id", "date"] + ["source"]
+            value_list = field_dict[platform_name][_date]["fields"] + [platform_name, platform_id, str(_date), tag_dict[table]]
+            stringSQL = "INSERT INTO " + TABLE_E1_ABP + "(`" + "`,`".join(field_list) + "`) VALUES('" + "','".join(value_list) + "')"
+            stringSQL = stringSQL.replace("'None'", "NULL")
+            cur_db.execute(stringSQL)
+            conn_db.commit()
+    closeCursors(cur_db)
+    closeConns(conn_db)  
+    _end_time = time.time()
+    print "The whole reset program costs " + str(_end_time - _start_time) + " seconds."  

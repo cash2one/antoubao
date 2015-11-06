@@ -1,0 +1,23 @@
+# /usr/bin/python
+# encoding=utf8
+
+from atbtools.header import * 
+from atbtools.mysqlTools import *
+from atbtools.computeTools import *
+from atbtools.paymentTools import *
+from math import floor
+import time
+import hashlib
+import sys
+
+if __name__ == '__main__':
+    #判断是增量还是全量
+    if (len(sys.argv) <= 1):
+        print "'divideId'程序必须指定对应的表格名称."
+        exit(1)
+    else:
+        table_name = str(sys.argv[1])
+        division_number = int(sys.argv[2])
+    conn_db = getConn(DBHOST, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    initializeCursors(cur_db)

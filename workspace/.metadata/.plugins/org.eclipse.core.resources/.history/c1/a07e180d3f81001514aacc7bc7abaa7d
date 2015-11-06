@@ -1,0 +1,1757 @@
+#!/usr/bin/python
+# coding=utf8
+
+from atbtools.header import *
+from atbtools.mysqlTools import *
+from atbtools.paymentTools import *
+import random
+import math
+import time
+import os.path
+import re
+
+class PinYin(object):
+    def __init__(self, dict_file='word.data'):
+        self.word_dict = {}
+        self.dict_file = dict_file
+
+    def load_word(self):
+        if not os.path.exists(self.dict_file):
+            raise IOError("NotFoundFile")
+
+        with file(self.dict_file) as f_obj:
+            for f_line in f_obj.readlines():
+                try:
+                    line = f_line.split('    ')
+                    self.word_dict[line[0]] = line[1]
+                except:
+                    line = f_line.split('   ')
+                    self.word_dict[line[0]] = line[1]
+
+    def hanzi2pinyin(self, string=""):
+        result = []
+        _string = string
+        if not isinstance(string, unicode):
+            _string = string.decode("utf-8")
+        for char in _string:
+            if char in "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ":
+                result.append(char.lower())
+            else:
+                key = '%X' % ord(char)
+#                 print key
+                result.append(self.word_dict.get(key, char).split()[0][:-1].lower())
+        return result
+
+    def hanzi2pinyin_split(self, string="", split=""):
+        result = self.hanzi2pinyin(string)
+        if split == "":
+            return result
+        else:
+            return split.join(result)
+    
+# 通过某一时间T戳得到N周前的星期M当天0点的时间戳
+def getTimestampZero(timestamp, week, day):
+    # 计算最近周日的24点，其中1357401600是2013年1月6日周日的0点          
+    timestamp = timestamp - (timestamp - 1357401600) % SECONDSPERWEEK
+    return timestamp - week * SECONDSPERWEEK + day * SECONDSPERDAY
+
+#获得一个月份字符串"2015-03"的上一个月份字符串
+def getLastMonthString(_this_month_str):
+    [year, month] = _this_month_str.split("-")
+    if month == "01":
+        year = str(int(year) - 1)
+        month = "12"
+    else:
+        month = "%02d" % (int(month) - 1)
+    return year + "-" + month
+
+# 通过某一时间T戳得到相应的计算时间戳（前一周周日的零点）
+def getDateTimestamp(timestamp):
+    # 计算最近周日的24点，其中1357401600是2013年1月6日周日的0点  
+    remainder =  (timestamp - 1357401600) % SECONDSPERWEEK
+    if remainder % SECONDSPERWEEK == 0:
+        return timestamp - SECONDSPERWEEK  
+    else:
+        return timestamp - remainder
+
+# 根据程序运行时间得到查询时间
+def getQueryTime():
+    timestamp = int(time.time())
+    start_date4reset = -1
+    start_date4update = getTimestampZero(timestamp, 4, 0)  # 4周以前的星期日的0点
+    start_date = getTimestampZero(timestamp, 1, 0)  # 上一周最近周日的0点，即上上周日的0点
+    end_date = getTimestampZero(timestamp, 0, 0)  # 最近周日的0点，即上周日的0点
+    return (start_date, end_date, start_date4reset, start_date4update)
+
+# 通过某一时间T戳得到当天的24点的时间戳
+def getTimestampTonight(timestamp):
+    return timestamp - timestamp % SECONDSPERDAY + SECONDSPERDAY
+
+# 返回二维空数组
+def get2DEmptyArray(N):
+    emptyArray = []
+    while N > 0:
+        emptyArray.append([])
+        N -= 1
+    return emptyArray
+
+# 返回一维空数组
+def get1DZeroArray(N):
+    emptyArray = []
+    while N > 0:
+        emptyArray.append(0)
+        N -= 1
+    return emptyArray
+
+# 插入已排序序列
+def insertTopQueue(topQueue, temporaryData, queueLength):
+    if len(topQueue) < queueLength:
+        topQueue.append(temporaryData)
+        topQueue.sort()
+        topQueue.reverse() #从大到小排列
+        return topQueue
+    else:
+        if temporaryData > topQueue[0]:
+            topQueue.insert(0, temporaryData)
+            topQueue.pop()
+            return topQueue
+        else:
+            for i in range(0, len(topQueue) - 1):
+                if topQueue[i] >= temporaryData >= topQueue[i + 1]:
+                    topQueue.insert(i + 1, temporaryData) #最多只会有queueLength个元素
+                    topQueue.pop()
+                    return topQueue
+        return topQueue
+
+# 返回一个字典内所有value的值的和（如果值是一个列表的话，则应该指定所求元素的位置）
+def getColumnSum(tempDiction, columnIndex=0):
+    values = tempDiction.values()
+    firstvalue = values[0]
+    if type(firstvalue) in [int, float]:
+        return sum(tempDiction.values())
+    total = 0 
+    for value in values:
+        total += value[columnIndex]
+    return total
+
+# 按照字典指定的value的值进行从大到小排序（如果value是一个列表的话，则应该指定排序元素在列表中的位置），返回相应的key的列表
+def sortDictByValue(tempDiction, columnIndex=0):
+    values_initial = tempDiction.values()
+    firstvalue = values_initial[0]
+    if type(firstvalue) in [list]:
+        values=[]
+        for value in values_initial:
+            values.append(value[columnIndex])
+    else:
+        values = values_initial
+    keys = tempDiction.keys()
+    key_number = len(keys)
+    key_sorted_list=tempDiction.keys()
+    for i in range(0,key_number-1):
+        for j in range(i+1,key_number):
+            if values[i] < values[j]:
+                values[i], values[j] = values[j], values[i] 
+                key_sorted_list[i], key_sorted_list[j] = key_sorted_list[j], key_sorted_list[i]
+    return key_sorted_list,values
+
+#如果一个字典的value仍是字典，那么按照这个字典指定的key的value进行排序，从大到小
+def sortDictByKeyValue(tempDiction,keyStr):
+    values=[]
+    for key_temp in tempDiction:
+        values.append(tempDiction[key_temp][keyStr])
+    key_number = len(tempDiction)
+    key_sorted_list=tempDiction.keys()
+    for i in range(0,key_number-1):
+        for j in range(i+1,key_number):
+            if values[i] < values[j]:
+                values[i], values[j] = values[j], values[i] 
+                key_sorted_list[i], key_sorted_list[j] = key_sorted_list[j], key_sorted_list[i]
+    return key_sorted_list,values
+
+#获得两个向量的内积
+def getVectorInnerProduct(vector1, vector2):
+    inner_product = 0
+    for i in range(0,len(vector1)):
+        inner_product += vector1[i] * vector2[i]
+    return inner_product    
+
+#计算一个列表内所有值的加权平均
+def getWeightedMean(list_temp):
+    if len(list_temp) == 0:
+        return 0
+    weight_dict={1:[1],2:[0.7,0.3],3:[0.6,0.2,0.2],4:[0.4,0.3,0.2,0.1]}
+    return getVectorInnerProduct(list_temp, weight_dict[len(list_temp)])
+
+#在贝叶斯计算中，通过两个字典的比较，得到一个虚拟指数，表示这两个字典的相似的程度
+def getVirtualIndex(dict_test, dict_initial):
+    virtualIndex = 1
+    for key_temp in dict_test:
+        if dict_initial[key_temp] == 0:
+            continue
+        virtualIndex *= float(dict_test[key_temp])/dict_initial[key_temp]
+    return virtualIndex
+
+#返回在一个列表中第一个超过指定值的元素的指标
+def getIndexByValue(number, list_initial):
+    index_temp = len(list_initial)
+    for i in range(0,len(list_initial)):
+        if list_initial[i] >= number:
+            index_temp = i
+            break
+    return index_temp
+
+#返回一个列表前N个大项的和（从大到小排列）
+def getSumTopN(_list, _N):
+    list_new = sorted(_list,reverse = True)
+    return sum(list_new[0:_N])
+
+#获得一个数组中间部分的和（按大小排序）
+def getCenterSum(list_temp):
+    list_order = list(sorted(list_temp))
+    list_number = len(list_order)
+    lower = max(0, int(math.floor(list_number * LISTCUT)))
+    upper = min(list_number - lower, list_number)
+    if lower == upper:
+        return sum(list_order)
+    else:
+        return sum(list_order[lower:upper])/(upper-lower)*len(list_temp)
+
+#检查一个字典的值和是否为1
+def checkGradeIndex(grade_dict_initial, gradeInt = 0):
+    total = 0
+    if gradeInt == 0:
+        total = getColumnSum(grade_dict_initial, 0)
+        if abs(total - 1.0) > 1e-10:
+            print str(total) + "(!= 1): something wrong with the first_level_node."
+            return False
+        return True
+    else:
+        grade_dict={}
+        for index in grade_dict_initial:
+            grade = grade_dict_initial[index][0]
+            if grade not in grade_dict:
+                grade_dict[grade] = 0
+            grade_dict[grade] += grade_dict_initial[index][1]
+        isvalid = 1
+        for grade in grade_dict:
+            if abs(grade_dict[grade] - 1.0) > 1e-10:
+                print str(grade_dict[grade]) + "(!= 1): something wrong with the " + str(grade) + "."
+                isvalid = 0
+        if isvalid != 1:
+            return False
+        else:
+            return True
+        
+#将0、1、2级的指标组装为完整的初始权重字典
+def assembledGrade(total_grade_list,first_grade_list,second_grade_list,weight_dict = None):
+    if weight_dict != None:
+        for weight in weight_dict:
+            if weight in second_grade_list:
+                second_ratio = second_grade_list[weight][1]
+                first_ratio = first_grade_list[second_grade_list[weight][0]][1]
+                zero_ratio = total_grade_list[first_grade_list[second_grade_list[weight][0]][0]]
+            weight_dict[weight] =  second_ratio * first_ratio * zero_ratio
+    else:
+        weight_dict = {}
+        for weight in second_grade_list:
+            second_ratio = second_grade_list[weight][1]
+            first_ratio = first_grade_list[second_grade_list[weight][0]][1]
+            zero_ratio = total_grade_list[first_grade_list[second_grade_list[weight][0]][0]]
+            weight_dict[weight] =  second_ratio * first_ratio * zero_ratio
+    return weight_dict
+
+#将1、2级的指标组装为完整的初始权重字典
+def assembledGradeSmall(total_grade_list,first_grade_list):
+    weight_dict = {}
+    for weight in first_grade_list:
+        first_ratio = first_grade_list[weight][1]
+        zero_ratio = total_grade_list[first_grade_list[weight][0]][1]
+        weight_dict[weight] = first_ratio * zero_ratio
+    return weight_dict
+
+#定义特殊除法，如果分母为零，返回零，否则正常除法
+def specialDivision(dividend, divider, default_number=0):
+    if abs(divider - 0) < 1e-12:
+        return default_number
+    else:
+        return float(dividend)/divider
+    
+#列表线性归一化
+def getNormalization(list_temp):
+    sum_temp = 0
+    for value in list_temp:
+        sum_temp += value
+    return [float(x)/sum_temp for x in list_temp]
+
+# 获得一个数组的HHI指标
+def getHHI(totalList):
+    total = float(sum(totalList))
+    if total < 0.01 / MONEYUNIT:
+        return 0
+    HHI = 0
+    for l in totalList:
+        HHI += (l / total) ** 2
+    return HHI
+
+# 通过投资人信息字符串获得项目的计息初始日期，默认为defaultTime,如果尚未满标，则计息初始日期为defaultTime，否则，计息初始日期为满标日期的下一天0点    
+def getInterestDate(defaultTime, borrowing_amount, invested_amount, investorInfo):
+    if len(investorInfo) == 0 or borrowing_amount != invested_amount:
+        return defaultTime
+    submit_dates = []
+    investorArr = investorInfo.split("|")
+    for i in range(0, len(investorArr) - 1):
+        if i % 3 == 0:
+            try:
+                temp = int(investorArr[i])
+            except:
+                return (-1,-1)
+            if temp <= 0:
+                return (-1,-1)
+            else:
+                submit_dates.append(temp)
+    last_date = max(submit_dates)
+    last_date_str = time.strftime("%Y%m%d", time.localtime(last_date))
+    interestDate = int(time.mktime(time.strptime(last_date_str, "%Y%m%d"))) + SECONDSPERDAY
+    return (last_date,interestDate)
+
+# 通过投资人信息字符串获得第一个投标时间    
+def getFirstDate(defaultTime, investorInfo):
+    if len(investorInfo) == 0:
+        return defaultTime
+    submit_dates = []
+    investorArr = investorInfo.split("|")
+    for i in range(0, len(investorArr) - 1):
+        if i % 3 == 0:
+            try:
+                temp = int(investorArr[i])
+            except:
+                return (-1,-1)
+            if temp <= 0:
+                return (-1,-1)
+            else:
+                submit_dates.append(temp)
+    first_date = min(submit_dates)
+    first_date_str = time.strftime("%Y%m%d", time.localtime(first_date))
+    firstData = int(time.mktime(time.strptime(first_date_str, "%Y%m%d")))
+    return (first_date,firstData)
+
+# 一些空白数据的预处理，空数据、null置0等
+def replaceNullData(*datas):
+    datesOutput = []
+    for data in datas:
+        try: 
+            float(data)
+        except:
+            data = "0" #if not data.isdigit(): 不能判断浮点数，即10.00.isdigit()=false
+        datesOutput.append(str(data))
+    if len(datesOutput) == 1:
+        return data
+    else:
+        return datesOutput
+
+# 随机获得一个时间戳创建标
+def getRandomTimestamp(max_date_str):
+    max_year = max_date_str[0:4]
+    max_month = max_date_str[4:6]
+    max_day = max_date_str[6:8]
+    randomYear = "%04d" % random.randint(int(INITIALYEAR), int(max_year))
+    randomMonth = "%02d" % random.randint(1, 12)
+    if randomYear == max_year:
+        randomMonth = "%02d" % random.randint(1, int(max_month))
+    if int(randomMonth) == 2:
+        randomDay = random.randint(1, 28)
+    else:
+        if int(randomMonth) in [1, 3, 5, 7, 8, 10, 12]:
+            randomDay = random.randint(1, 31)
+        else:
+            randomDay = random.randint(1, 30)
+    if randomYear == max_year and randomMonth == max_month:
+        if int(randomMonth) == 2:
+            randomDay = random.randint(1, min(28, int(max_day)))
+        else:
+            if int(randomMonth) in [1, 3, 5, 7, 8, 10, 12]:
+                randomDay = random.randint(1, min(31, int(max_day)))
+            else :
+                randomDay = random.randint(1, min(30, int(max_day)))   
+    randomHour = "%02d" % random.randint(0, 23)
+    randomMinute = "%02d" % random.randint(0, 59)
+    randomSecond = "%02d" % random.randint(0, 59)
+    randomTime = str(randomYear) + str(randomMonth) + str(randomDay) + " " + str(randomHour) + ":" + str(randomMinute) + ":" + str(randomSecond) 
+    return int(time.mktime(time.strptime(randomTime, "%Y%m%d %H:%M:%S")))
+    
+#计算形如"name|monty|name|money"字符串中所包含的总额
+def countGross(investor,order=3):
+    Gross = 0
+    investor_list = investor.split("|")
+    for i in range(0, len(investor_list)):
+        if i % order == order - 1 :
+            try: 
+                money_str = investor_list[i].replace(",", "") # 防止出现2,000.00的情况
+                if money_str.endswith("元"):
+                    money_str = money_str[0:money_str.index("元")]
+                Gross += float(money_str) 
+            except:
+                pass
+    return Gross
+
+#获得一个表中的所有不同的字段列表
+def getDifferentFieldlist(table_name, _cur, fieldname):
+    field_list = []
+    stringSQL = "SELECT DISTINCT `" + str(fieldname) + "` FROM " + table_name + " ORDER BY `" + str(fieldname) + "` ASC" 
+    _cur.execute(stringSQL)
+    for field_temp in _cur.fetchall():
+        field_list.append(field_temp[0])
+    return field_list
+
+#从project_info_X中获取所有的site_id
+def getSiteIdFromProjectInfos(_cur):
+    site_id_list = []
+    for letter in "abcdefghijklmnopqrstuvwxyz0":
+        project_info_name = "project_info_" + letter
+        stringSQL = "SELECT DISTINCT `site_id` FROM " + project_info_name + " ORDER BY `site_id` ASC" 
+        _cur.execute(stringSQL)
+        for site_id in _cur.fetchall():
+            site_id_list.append(site_id[0])
+    return site_id_list 
+            
+#打印列表
+def printList(_list):
+    for value in _list:
+        print value
+        
+#打印字典
+def printDict(_dict, _show_key = 1):
+    if _show_key == 1:
+        for key in _dict:
+            print key + ":"
+            print _dict[key]
+    else:
+        for key in _dict:
+            print _dict[key]
+        
+#获得一个表中指定时间的信息个数
+def getNumberFromFieldByDate(_table, _cur, _date):
+    stringSQL = "SELECT COUNT(*) FROM " + _table + " WHERE `date` = '" + str(_date) + "'" 
+    _cur.execute(stringSQL)
+    return _cur.fetchone()[0]
+
+#获得一个表中的所有不同的字段列表(在某个时间点之前)
+def getDifferentFieldlistEarly(table_name, _cur, fieldname, _date):
+    field_list = []
+    stringSQL = "SELECT DISTINCT `" + str(fieldname) + "` FROM " + table_name + " WHERE `date` <= '" + str(_date) + "' ORDER BY `" + str(fieldname) + "` ASC" 
+    _number = _cur.execute(stringSQL)
+    if _number != 0:
+        for field_temp in _cur.fetchall():
+            field_list.append(field_temp[0])
+        return field_list
+    
+#获得一个表中的所有不同的字段列表(在某个时间点之后)
+def getDifferentFieldlistLate(table_name, _cur, fieldname, _date):
+    field_list = []
+    stringSQL = "SELECT DISTINCT `" + str(fieldname) + "` FROM " + table_name + " WHERE `date` >= '" + str(_date) + "' ORDER BY `" + str(fieldname) + "` ASC" 
+    _number = _cur.execute(stringSQL)
+    if _number != 0:
+        for field_temp in _cur.fetchall():
+            field_list.append(field_temp[0])
+        return field_list
+
+#获得一个表中的所有不同的字段列表(指定时间戳)
+def getDifferentFieldlistByDate(table_name, cur_db, fieldname, _date):
+    field_list = []
+    stringSQL = "SELECT DISTINCT `" + str(fieldname) + "` FROM " + table_name + " Where `date` = '" + str(_date) + "' ORDER BY `" + str(fieldname) + "` ASC" 
+    cur_db.execute(stringSQL)
+    for field_temp in cur_db.fetchall():
+        field_list.append(field_temp[0])
+    return field_list
+
+#获得一个字段列表最近几周的数据
+def getlatestValueByDate(table_name, _cur, _field, _platform_name, _date, _limit):
+    stringSQL = "SELECT `" + _field + "` FROM " + table_name + " Where `date` < '" + str(_date) + "' AND `platform_name` = '" + _platform_name + "' ORDER BY `date` ASC LIMIT " + str(_limit) 
+    ret = _cur.execute(stringSQL)
+    if ret == 0:
+        return None
+    else:
+        return [x[0] for x in _cur.fetchall()]
+    
+#获得一个字段列表这一周的数据
+def getValueByDate(table_name, _cur, _field, _platform_name, _date):
+    stringSQL = "SELECT `" + _field + "` FROM " + table_name + " Where `date` = '" + str(_date) + "' AND `platform_name` = '" + _platform_name + "'" 
+    ret = _cur.execute(stringSQL)
+    if ret == 0:
+        return None
+    else:
+        return _cur.fetchone()[0]
+
+def return2para():
+    return 1,2     
+
+def test():
+    print "已经找到包文件."
+    
+#从指定的表里获取字段值列表，以platform_id和date作为指定条件
+def getFieldsDictFromTableByIdByDate(cur,table_name,platform_id,date,fields_list):
+    stringSQL = "SELECT " + ','.join(fields_list) +" FROM " + table_name+" WHERE `platform_id` = '" + str(platform_id) + "' AND `date` = '" + str(date) + "'"
+    ret_number = cur.execute(stringSQL)
+    ret_list = []
+    if ret_number == 0:
+        return {}.fromkeys(fields_list,0)
+    else:
+        for field in cur.fetchone():
+            ret_list.append(field) 
+    return dict(zip(fields_list,ret_list))
+
+#从指定的表里获取字段值列表，以platform_name和date作为指定条件
+def getFieldsListFromTableByNameByDate(cur,table_name,platform_name,date,fields_list):
+    stringSQL = "SELECT " + ','.join(fields_list) +" FROM " + table_name+" WHERE `platform_name` = '" + str(platform_name) + "' AND `date` = '" + str(date) + "'"
+    ret_number = cur.execute(stringSQL)
+    ret_list = []
+    if ret_number == 0:
+        return None
+    else:
+        for field in cur.fetchone():
+            ret_list.append(field) 
+    return ret_list
+
+#从指定的表里获取字段值列表，以platform_name和date作为指定条件
+def getFieldFromTableByNameByDate(cur,table_name,platform_name,date,field):
+    stringSQL = "SELECT " + str(field) +" FROM " + table_name+" WHERE `platform_name` = '" + str(platform_name) + "' AND `date` = '" + str(date) + "'"
+    ret_number = cur.execute(stringSQL)
+    if ret_number == 0:
+        return None
+    else:
+        return cur.fetchone()[0]
+
+#从指定的表里获取字段值列表，以platform_name和date作为指定条件
+def getFieldsFromTableByNameByDate(cur,table_name,platform_name,date,field_list):
+    stringSQL = "SELECT `" + "`, `".join(field_list) +"` FROM " + table_name+" WHERE `platform_name` = '" + str(platform_name) + "' AND `date` = '" + str(date) + "'"
+    ret_number = cur.execute(stringSQL)
+    if ret_number == 0:
+        return None
+    else:
+        return cur.fetchone()
+
+#将一个site_id从一个错误的project_info转移到正确的位置
+def changeProjectInfo(_cur, _conn, _site_id, project_info_origin):
+    project_info = getProjectInfo("project_info", _site_id)
+    del_list = ["id"]
+    field_list = getAllColumnsFromTable(_cur, project_info_origin, del_list = del_list , merge_list = None)
+    field_number = len(field_list)
+    stringSQL = "SELECT `" + "`, `".join(field_list) + "` FROM " + project_info_origin + " WHERE `site_id` = '" + _site_id + "'"
+    count = _cur.execute(stringSQL)
+    if count != 0:
+        for rets in _cur.fetchall():
+            key_str = []
+            value_str = []
+            for i in range(field_number):
+                key_str.append(field_list[i])
+                value_str.append(str(rets[i]))
+            stringSQL = "INSERT INTO " + project_info + "(`" + "`,`".join(key_str) + "`) VALUES('" + "','".join(value_str) + "')"
+            stringSQL = stringSQL.replace("'None'", "NULL")
+#             print stringSQL
+            _cur.execute(stringSQL)
+            _conn.commit()
+
+#通过site_id获得project_info对应的数据库
+def getProjectInfo(srcdb_info, site_id):
+    initial_letter = list(str(site_id))[0]
+    if initial_letter in "0123456789":
+        initial_letter = "0"
+    return srcdb_info + "_" + initial_letter
+
+#获得一个table的所有属性值
+def getAllColumnsFromTable(_cur, _table, del_list = [], merge_list = None):
+    all_columns_list = []
+    stringSQL = "SHOW FULL COLUMNS FROM " + _table
+    _cur.execute(stringSQL)
+    for field_temp in _cur.fetchall():
+        if field_temp[0] not in del_list:
+            if None != merge_list:
+                if field_temp[0] in merge_list:
+                    all_columns_list.append(field_temp[0])
+            else:
+                all_columns_list.append(field_temp[0])
+    return all_columns_list 
+
+#从一个文件中获得平台id信息
+def getPlatformIdList(_filename):
+    platform_id_list = []
+    fp = open(_filename)  
+    lines = fp.readlines() #读取全部内容  
+    for line in lines:  
+        platform_id_list.append(line.strip())
+    fp.close()
+    return platform_id_list
+
+#去掉字符串中的空白字符
+def delBlank(_str):
+    return _str.replace("\r","").replace("\t","").replace("\n","").replace(" ","")
+
+#返回第二个列表中的元素在第一个中的下标，没有用-1代替
+def getIndexFromList(_list1, _list2):
+    _list_index = []
+    for _index in _list2:
+        try:
+            result = _list1.index(_index)
+        except:
+            result = -1
+        _list_index.append(result)
+    return _list_index    
+
+#返回第一个列表中是否有第二个列表中的元素
+def existListValue(_list1, _list2):
+    for value in _list2:
+        if value in _list1:
+            return True
+    return False
+
+#去掉list中每个元素前后的单双引号
+def delQuotes(_list):
+    clean_list = []
+    for _str in _list:
+        str_new = _str.replace("'","").replace('"','').replace("“","").replace("”","").replace("‘","").replace("’","")
+        clean_list.append(str_new)
+    return clean_list
+
+#判断一个值是否在两个值之间（包含等于,None表示无限制），是返回1，不是返回0
+def checkThresholdValue(_num,_min, _max):
+    _num = float(_num)
+    if None == _min and None == _max:
+        return 1
+    if  None == _min and None != _max:
+        return 1 if _num <= float(_max) else 0 
+    if  None != _min and None == _max:
+        return 1 if float(_min) <= _num else 0
+    if  None != _min and None != _max:
+        return 1 if float(_min) <= _num <= float(_max) else 0  
+
+#判断一个值是否小于最大值（包含等于,None表示无限制），是返回1，不是返回0
+def checkMax(_num,_max):
+    if None == _max:
+        return 1
+    else:
+        return 1 if float(_num) <= float(_max) else 0  
+    
+#判断一个值是否大于最小值（包含等于,None表示无限制），是返回1，不是返回0
+def checkMin(_num,_min):
+    if None == _min:
+        return 1
+    else:
+        return 1 if float(_num) >= float(_min) else 0 
+
+#将列表中的元素转化为字符串格式
+def getString(_list):
+    return [str(value) for value in _list]
+
+#将列表中的元素转化为整数格式
+def getInteger(_list):
+    return [0 if value == None else int(value) for value in _list]
+
+#将列表中的元素转化为浮点数格式
+def getFloat(_list):
+    return [0 if value == None else float(value) for value in _list]
+
+#获得一个列表下一个线性拟合值：
+def forecastLinearValue(_Y):
+    number = len(_Y)
+    X = range(number)
+    sx, sy, sxx, syy, sxy = 0, 0, 0, 0, 0
+    for i in range(number):
+        sx += X[i]
+        sy += _Y[i]
+        sxx += X[i] * X[i]
+        syy += _Y[i] * _Y[i]
+        sxy += X[i] * _Y[i]
+    a = (sy*sx/number - sxy)/(sx*sx/number - sxx)
+    b = (sy - a*sx)/number
+    if (sxx - sx * sx/number) * (syy - sy * sy/number) == 0:
+        r = 0
+    else:
+        r = abs(sy * sx / number - sxy) / math.sqrt((sxx - sx * sx / number)*(syy - sy * sy / number))
+    return a, b, r, a * number + b 
+
+#查找所给的平台是否满足有效数据条件
+def checkValid(_field_list, _value_list, none_zero_list, _number):
+    fields_list = list(_field_list)
+    none_zero_index_list = getIndexFromList(fields_list, none_zero_list)
+    for i in none_zero_index_list:
+        if _value_list[i] == None or float(_value_list[i]) == 0:
+            return 0
+    if checkZeroNumber(_value_list)[0] > _number:
+        return 0
+    return 1
+
+#检查列表中零元素的个数以及相应的位置
+def checkZeroNumber(_list):
+    zero_number = 0
+    zero_position = []
+    for i in range(len(_list)):
+        if 0.0 == _list[i] or None == _list[i]:
+            zero_number += 1
+            zero_position.append(i)
+    return (zero_number, zero_position)
+
+#一直向前追溯至非零值，如果全部为零则返回0
+def getLastNoneZero(_cur, _table_name, _fields, _platform_name, _date, _value):
+    stringSQL = "SELECT `" + str(_fields) + "` FROM " + _table_name + " WHERE `date` < " + str(_date) + " AND `platform_name`  = '" + str(_platform_name) + "' AND `" + str(_fields) + "` <> '" + str(_value) + "' ORDER BY date DESC LIMIT 1" 
+    ret = _cur.execute(stringSQL)
+    if ret != 0:
+        return float(_cur.fetchone()[0])
+    return 0
+
+#一直向后追溯至非零值，如果全部为零则返回0
+def getNewestNoneZero(_cur, _table_name, _fields, _platform_name, _date, _value):
+    stringSQL = "SELECT `" + str(_fields) + "` FROM " + _table_name + " WHERE `date` > " + str(_date) + " AND `platform_name`  = '" + str(_platform_name) + "' AND `" + str(_fields) + "` <> '" + str(_value) + "' ORDER BY date ASC LIMIT 1" 
+    ret = _cur.execute(stringSQL)
+    if ret != 0:
+        return float(_cur.fetchone()[0])
+    return 0
+
+#在一个时期内追溯最近的非零值，如果全部为零则返回默认值
+def getNoneZeroValueByPeriod(_cur, _table_name, _fields, _platform_name, _date, _last_weeks, _value):
+    start_date = _date
+    end_date = _date - (_last_weeks - 1) * SECONDSPERWEEK
+    stringSQL = "SELECT `date`, `" + str(_fields) + "` FROM " + _table_name + " WHERE `date` <= '" + str(start_date) + "' AND `date` >= '" + str(end_date) + "' AND `platform_name`  = '" + str(_platform_name) + "' AND `" + str(_fields) + "` <> '" + str(_value) + "' ORDER BY date DESC LIMIT 1" 
+    ret = _cur.execute(stringSQL)
+    if ret != 0:
+        date, value = _cur.fetchone()
+        return [int(date), float(value)]
+    return [0,0]
+
+#将一个列表中的None都换成零
+def getNoNoneList(_list):
+    value_list = []
+    for value in _list:
+        if value != None:
+            value_list.append(value)
+        else:
+            value_list.append(0)
+    return value_list
+#在一个时期内追溯最近的非空值
+def getValueByPeriod(_cur, _table_name, _fields, _platform_name, _date, _last_weeks):
+    start_date = _date
+    end_date = _date - (_last_weeks - 1) * SECONDSPERWEEK
+    stringSQL = "SELECT `date`, `" + str(_fields) + "` FROM " + _table_name + " WHERE `date` <= '" + str(start_date) + "' AND `date` >= '" + str(end_date) + "' AND `platform_name`  = '" + str(_platform_name) + "' AND `" + str(_fields) + "` is not NULL ORDER BY date DESC LIMIT 1" 
+    ret = _cur.execute(stringSQL)
+    if ret != 0:
+        date, value = _cur.fetchone()
+        return [date, value]
+    return [None,None]
+
+#在一个时期内追溯最近的非空值
+def getValueListByPeriod(_cur, _table_name, _field_list, _platform_name, _date, _last_weeks):
+    start_date = _date
+    end_date = _date - (_last_weeks - 1) * SECONDSPERWEEK
+    stringSQL = "SELECT `date`, `" + "`, `".join(_field_list) + "` FROM " + _table_name + " WHERE `date` <= '" + str(start_date) + "' AND `date` >= '" + str(end_date) + "' AND `platform_name`  = '" + str(_platform_name) + "' AND " + " AND ".join(["`" + x + "` IS NOT NULL" for x in _field_list]) + " ORDER BY date DESC LIMIT 1" 
+    ret = _cur.execute(stringSQL)
+    if ret != 0:
+        return _cur.fetchone()
+    return [None,None,None]
+
+#在一个时期内追溯一个指标列表最近的非零值，如果全部为零则返回默认值
+def getNoneZeroListByPeriod(_cur, _table_name, _field_list, _platform_name, _date, _last_weeks, _value):
+    value_list = []
+    for field in _field_list:
+        value_list.append(getNoneZeroValueByPeriod(_cur, _table_name, field, _platform_name, _date, _last_weeks, _value)[1])
+    return value_list
+
+#表中获得某一指标的最大值和最小值
+def getExtremum(_cur, _table_name, _field):
+    stringSQL = "SELECT MAX(" + str(_field) + "), MIN(" + str(_field) + ") FROM " + _table_name 
+    _cur.execute(stringSQL)
+    return _cur.fetchone()
+
+#从表中获取属性值，分别为数据库指针，表明，要获取的属性列表，要去掉的属性列表，接受字典
+def getFieldValueFromTableByIdByDate(cur, _table, tag, field_list, _dict, zero_field_index_del_list = []):
+    blank_platform_set = set()
+    for _id in _dict:
+        _id = str(_id)
+        status = _dict[_id]["status"]
+        platform_name = _dict[_id]["platform_name"]
+        _date = _dict[_id]["date"]
+        _dict[_id][tag] = []
+        stringSQL = "SELECT "+','.join(field_list)+" FROM " + _table+ " WHERE `date` = '" + str(_date) + "' AND `platform_id` = '" + _id + "'"
+        have_data = cur.execute(stringSQL)
+        #判断是否有数据
+        if have_data == 0:
+            if status < 1:
+                print "Bad " + str(platform_name) + " delete: There is no data on timestamp " + str(_date)
+            else:
+                print "Good " + str(platform_name) + " delete: There is no data on timestamp " + str(_date)
+            blank_platform_set.add(_id)
+            continue
+        field_values = cur.fetchone()
+        for _value in field_values:
+            if None == _value:
+                _value = 0
+            _dict[str(_id)][tag].append(_value)
+        #删除某些关键属性为0的站
+        _fields = _dict[str(_id)][tag]
+        for i in zero_field_index_del_list:
+            if _fields[i] == 0:
+                if status < 1:
+                    print "Bad " + str(platform_name) + " delete: " + field_list[i] + " is zero."
+                else:
+                    print "Good " + str(platform_name) + " delete: " + field_list[i] + " is zero."             
+                blank_platform_set.add(_id)
+                break     
+    #去掉没有数据或者关键属性值为零的站
+    for _id in blank_platform_set:
+        del _dict[_id]
+    return _dict
+
+# 将为零的定量属性值用平均值来代替
+def cleanZeroValueByAverage(field_index_list, _field, _dict):
+    field_number = len(_dict.values()[0][_field])
+    ave_list = getDictAverage(_dict, _field)
+    for _id in _dict:
+        _member = _dict[_id][_field]
+        for i in range(field_number):
+            if i in field_index_list:
+                if None == _member[i] or 0 == _member[i]:
+                    _member[i] = ave_list[i]
+    return _dict
+
+# 获得一个字典下面某个属性值（列表）的平均值（要考虑0值不参与计算）
+def getDictAverage(_dict, _field):
+    field_number = len(_dict.values()[0][_field])
+    _list = []
+    for i in range(field_number):
+        _list.append([])
+    for _id in _dict:
+        _field_list = _dict[_id][_field]
+        for i in range(field_number):
+            _list[i].append(_field_list[i])
+    ave_list = [] 
+    for i in range(field_number):
+        ave_list.append(getListAverage(_list[i],0))
+    return ave_list
+
+#计算一个列表的平均值，注意这里考虑了最小阈值
+def getListAverage(_list, threshold_min):
+    ave = 0
+    valid_number = 0
+    for _value in list(_list):
+        if None != _value and _value > threshold_min:
+            valid_number += 1
+            ave += _value
+    if valid_number != 0:
+        return float(ave) / valid_number
+    else:
+        return 0
+
+#将一个字典的所有属性list插入表格中，_key_initial_list表示字典的一级属性集合，_field表示字典的单独一级属性，它的值为一个列表，对应_field_list
+def insertTableByDict( _cur, _conn, _table, _key_initial_list, _dict, sql_method ="insert", _field = None, _field_list = []):
+    key_list = _key_initial_list + _field_list
+    for _id in _dict:
+        value_list = []
+        member = _dict[_id]
+        for key in _key_initial_list:
+            value_list.append(str(member[key]))
+        if None != _field:
+            for field_temp in member[_field]:
+                value_list.append(str(field_temp))
+        if sql_method == "insert":
+            stringSQL = "INSERT INTO " + _table + "(`" + "`,`".join(key_list) + "`) VALUES('" + "','".join(value_list) + "')"
+        elif sql_method == "update":
+            key_value_list = []
+            for i in range(len(key_list)):
+                key_value_list.append("`" + str(key_list[i]) + "` = '" + str(value_list[i]) + "'")
+            stringSQL = "UPDATE " + _table + " SET " + ",".join(key_value_list) + " WHERE `platform_id` = '" + str(member["platform_id"]) + "' AND `date` = '" + str(member["date"]) + "'"    
+        _cur.execute(stringSQL)
+        _conn.commit() 
+
+#从一个_table通过id和date查找相应的属性值_field，并在字典_dict中创造相应的属性插入，None_default表示对空值的处理，为None的时候表示如果查找不到则去掉该字典的子集
+def addNewFieldFromTableByIdByDate(_cur,_table,_field,_dict,None_default = None):
+    id_none_list = []
+    for _id in _dict:
+        member = _dict[_id]
+        stringSQL = "SELECT " + _field + " FROM " + _table + " WHERE `date` = '" + str(member["date"]) + "' AND `platform_id` ='" + str(member["platform_id"]) + "'"
+        row_number = _cur.execute(stringSQL)
+        if row_number == 0:
+            id_none_list.append(_id)
+            member[_field] = None_default
+        else:        
+            member[_field] = _cur.fetchone()[0]
+    #None_default = None的时候删除相应的字典子集
+    if None == None_default:
+        for _id in id_none_list:
+            del _dict[_id]
+    return _dict
+
+#改写好站坏站的status分布
+def changeStatus(_dict, _field, _change_dict):
+    for _id in _dict:
+        member = _dict[_id]
+        if member[_field] in _change_dict:
+            member[_field] = _change_dict[member[_field]]
+    return _dict    
+
+#通过给定的区间节点，将连续的预测值变为离散的预测值，其中_interval_node_list必须由小到大排列
+def changePredictionFromCToD(_dict, _field, _interval_node_list,_change_value_list):
+    interval_node_number = len(_interval_node_list)
+    change_value_number = len(_change_value_list)
+    if _interval_node_list != sorted(_interval_node_list):
+        print "区间设置有误，并不是从小到大排列."
+        exit(1)
+    if change_value_number - interval_node_number == 1:
+        for _id in _dict:
+            member = _dict[_id]
+            if member[_field] < _interval_node_list[0]:
+                member[_field] = _change_value_list[0]
+            else:
+                for i in range(interval_node_number):
+                    if member[_field] >= _interval_node_list[i]:
+                        member[_field] = _change_value_list[i+1]
+    else:
+        print "区间设置有误，间隔数和节点数的差不为1."
+        exit(1)
+    return _dict 
+
+#比较两个集合正确个数的比例来，注意只取相应的_id
+def calculateCorrectProportion(_dict, _field1, _field2, _merge_list):
+    correct_proportion = 0
+    correct_proportion_length = 0
+    for _id in _dict:
+        if _id in _merge_list:
+            correct_proportion_length += 1
+            member = _dict[_id]
+            value1 = member[_field1]
+            value2 = member[_field2]
+            if abs(value1 - value2) < 1E-10:
+                correct_proportion += 1
+    return float(correct_proportion) / correct_proportion_length
+
+#查找一个时间范围内的所有值
+def getFieldsByNameByPeriod(_cur,_tabel_name,_field,_platform_name,_max_date,_min_date):
+    values_list = []
+    stringSQL = "SELECT " + str(_field) + " FROM " + _tabel_name + " WHERE `date` <= '" + str(_max_date) + "' AND `date` >= '" + str(_min_date) + "' AND `platform_name` ='" + str(_platform_name) + "'"
+    ret = _cur.execute(stringSQL)
+    if ret == 0:
+        return []
+    else:
+        for rets in _cur.fetchall():
+            values_list.append(float(rets[0]))
+        return values_list
+#指数名单中计算平均排序指标 value
+def getValue(_cur, _tabel_name, _fields_list, _platform_name, _date, _lastweeks, first_weight = 0.7, second_weight = 0.3):
+    max_date = _date
+    min_date = _date - (_lastweeks - 1) * SECONDSPERWEEK
+    dividend_str = _fields_list[0]
+    divider_str = _fields_list[1]
+    dividend_list = getFieldsByNameByPeriod(_cur, _tabel_name, dividend_str, _platform_name, max_date, min_date)
+    divider_list = getFieldsByNameByPeriod(_cur, _tabel_name, divider_str, _platform_name, max_date, min_date)
+    dividend = getListAverage(dividend_list, 0)
+    divider = getListAverage(divider_list, 0)
+#     if divider == 0:
+#         return 0.0
+#     else:
+#         return float(dividend)/divider
+    return first_weight * dividend + second_weight * divider #0.7 * weekly_lending + 0.3 * total_investor
+
+#合并两个文件
+def mergeTxt(_in_name1, _in_name2, _out_name): 
+    in_dict1 = getDictByTxt(_in_name1)
+    in_dict2 = getDictByTxt(_in_name2)
+    id_list = list(set(in_dict1.keys()) | set(in_dict2.keys()))
+    id_dict = {}
+    for _id in id_list:
+        id_dict[_id] = [0,0]
+        if _id in in_dict1:
+            id_dict[_id][0] = in_dict1[_id]
+        if _id in in_dict2:
+            id_dict[_id][1] = in_dict2[_id]
+    id_list_sorted = sortDictByValue(id_dict, 0)[0]
+    fp = open(_out_name, "w")
+    for i in range(len(id_list_sorted)):
+        _id = id_list_sorted[i]
+        number1 = id_dict[_id][0]
+        number2 = id_dict[_id][1]
+        fp.write(str(_id) + " " + str(number1) + " " + str(number2) + "\n")
+    fp.close()
+    
+#从一个字典类型的txt中获取字典  
+def getDictByTxt(_filename):
+    fp = open(_filename)  
+    lines = fp.readlines() #读取全部内容
+    _dict = {}  
+    for line in lines:
+        line = line.split(":")
+        line[0] =  line[0].strip()
+        line[1] =  line[1].strip()
+        if len(line[0]) == 0:
+            line[0] = " "
+        _dict[line[0]] = line[1]
+    fp.close() 
+    return _dict 
+
+#字符串预处理
+def stringPreTreatment(_str):
+    return _str.replace("‘", "").replace("'", "").replace(" ", "").replace("\r", "").replace("\n", "").replace("\t", "").replace("\\", "")
+
+#获得列表的平均值
+def calculateAve(_list):
+    return float(sum(_list)) / len(_list)
+
+#从一个列表类型的txt中获取字典  
+def getListByTxt(_filename):
+    fp = open(_filename)  
+    lines = fp.readlines() #读取全部内容
+    _list = []  
+    for line in lines:
+        _list.append(line.strip())
+    fp.close() 
+    return _list
+
+#在一个列表中获得不超过指定元素的最大元素
+def getValueNoMoreThanValue(_value, _value_list):
+    value_list_new = sorted(_value_list, reverse=True) #从大到小
+    for _value_temp in value_list_new:
+        if _value_temp <= _value:
+            return _value_temp
+    return None
+
+#在一个列表中获得不小于指定元素的最大元素
+def getValueNoLessThanValue(_value, _value_list):
+    value_list_new = sorted(_value_list) #从小到大
+    for _value_temp in value_list_new:
+        if _value_temp >= _value:
+            return _value_temp
+    return None
+
+#计算线性插值
+def calculateLinearValue(_index,_value_list,_index_min,_index_max):
+    data_min = _value_list[_index_min]
+    data_max = _value_list[_index_max]
+    return data_min + (_index - _index_min) * ((data_max - data_min)/(_index_max - _index_min))
+
+#计算不同指标的增长值
+def calculateGrowth(_cur, _table, _field, _platform_name, _end_date,  _last_weeks, _shift_weeks, _threshold_min):
+    ave1 = getAveFromTable(_cur, _table, _field, _platform_name, _end_date, _last_weeks, _threshold_min)
+    end_date_new = _end_date - _shift_weeks * SECONDSPERWEEK
+    ave2 = getAveFromTable(_cur, _table, _field, _platform_name, end_date_new, _last_weeks, _threshold_min)
+    return ave1 / ave2 if ave2 != 0 else 0
+
+#计算表中指标的平均值(不计算零)
+def getAveFromTable(_cur, _table, _field, _platform_name, _end_date, _last_weeks, threshold_min):
+    end_date = _end_date
+    start_date = end_date - (_last_weeks - 1) * SECONDSPERWEEK
+    stringSQL = "SELECT `" + str(_field) + "` FROM " + _table + " WHERE `platform_name` = '" + _platform_name + "' AND `date` >= '" + str(start_date) + "' AND `date` <= '" + str(end_date) + "' ORDER BY date DESC"               
+    ret = _cur.execute(stringSQL)
+    if ret == 0:
+        return 0
+    else:
+        value_list = []
+        for row in _cur.fetchall():
+            if float(row[0]) > threshold_min:
+                value_list.append(float(row[0]))
+    return getWeightedMean(delZeroValue(value_list))
+
+#计算表中指标的平均值(不计算零,贪婪算法)
+def getAveFromTableGreedy(_cur, _table, _field, _platform_name, _end_date, _last_weeks, threshold_min):
+    date_list = getDifferentFieldlist(_table, _cur, "date") #从小到大排列
+    end_date_index = date_list.index(_end_date)
+    last_weeks = 0
+    value_list = []
+    for end_date in date_list[end_date_index::-1]:
+        stringSQL = "SELECT `" + str(_field) + "` FROM " + _table + " WHERE `platform_name` = '" + _platform_name + "' AND `date` = '" + str(end_date) + "'"               
+        ret = _cur.execute(stringSQL)
+        if ret == 0:
+            continue
+        else:
+            _temp = float(_cur.fetchone()[0])
+            if _temp > threshold_min:
+                last_weeks += 1
+                value_list.append(_temp)
+        if last_weeks == _last_weeks:
+            break
+    return getWeightedMean(delZeroValue(value_list))
+
+#在指标计算中，通过status数值获得不同的权重用于后续的计算
+def getWeightByStatus(_status):
+    if 0.199 < _status <= 0.599:
+        return 0.8
+    elif _status == 0:
+        return 1.0
+    elif 0.599 < _status <= 0.899:
+        return 0.4
+    else:
+        return 0
+
+#检查表中是否有某个字段，如果没有的话就添加这个字段
+def insertField(_conn, _cur, _table, _field, _type):
+    _table = str(_table)
+    _field = str(_field)
+    _type = str(_type)
+    stringSQL = "show columns from " + _table + " like '" + _field + "'"
+    num = _cur.execute(stringSQL)
+    if num == 0:
+        stringSQL = "ALTER TABLE " + _table + " ADD COLUMN `" + _field + "` " + _type
+        _cur.execute(stringSQL)
+        _conn.commit()
+
+#去掉一个列表中的零元素
+def delZeroValue(_list):
+    value_list = []
+    for value in _list:
+        if value != 0:
+            value_list.append(value)
+    return value_list
+
+#返回两个列表的商（前者是分母，后者是分子）
+def divList(_list1, _list2):
+    value_list = []
+    for i in range(min(len(_list1), len(_list2))):
+        value_list.append(div(_list1[i],_list2[i]))
+    return value_list 
+
+#两个数的除法，去掉一些特殊情况
+def div(a,b):
+    if a == None or a == 0 or b == None:
+        return 0
+    else:
+        return float(b)/float(a)
+    
+def tianyidiv_update(ratio, a, b, c, d):
+    A, B = checkzero_update(div(a,c), div(b,d))
+    return ratio*A+(1-ratio)*B
+
+def xiebodiv(ratio, a, b, c, d):
+    A, B = checkzero_update(div(a,c), div(b,d))
+    if A > 1:
+        if B > 1:
+            return 0
+        return B
+    else:
+        if B > 1:
+            return A
+        return ratio*A+(1-ratio)*B
+#双源查找函数
+def checkzero_update(a,b):
+    if a == 0 or a is None:
+        if b == 0 or b is None:
+            return 0,0
+        return b,b
+    else:
+        if b == 0 or b is None:
+            return a,a
+        return a,b
+
+#双源查找函数
+def resetMarketShareGrowth(_cur, _conn, _table):
+    print "重置" + _table + "表的 market_share_growth"
+    platform_id_list = getDifferentFieldlist(_table, _cur, "platform_id")
+    date_list = getDifferentFieldlist(_table, _cur, "date")
+    dates_number = len(date_list)
+    total_market = [0] * dates_number
+    for i in range(dates_number):
+        _date = date_list[i]
+        stringSQL = "SELECT SUM(weekly_lending) FROM " + _table + " WHERE `date` = '" + str(_date) + "'"
+        _cur.execute(stringSQL)
+        total_market[i] = _cur.fetchone()[0]
+    for platform_id in platform_id_list:
+        market_share = [0] * dates_number 
+        for i in range(dates_number):
+            if total_market[i] == 0:
+                continue
+            else:
+                _date = date_list[i]
+                stringSQL = "SELECT weekly_lending FROM " + _table + " WHERE `date` = '" + str(_date) + "' AND `platform_id` = '" + platform_id + "'"
+                ret = _cur.execute(stringSQL)
+                if ret == 0:
+                    continue
+                else:
+                    market_share[i] = _cur.fetchone()[0] / total_market[i]
+                if i >= LASTLENDINGWEEKS:
+                    _this_week = market_share[i - LASTLENDINGWEEKS + 1:i + 1][::-1]
+                    _last_week = market_share[i - LASTLENDINGWEEKS:i][::-1]
+                    temp = getWeightedMean(delZeroValue(_last_week))
+                    market_share_growth = 0 if temp == 0 else getWeightedMean(delZeroValue(_this_week)) / temp
+                    if market_share_growth != 0:
+                        stringSQL = "UPDATE " + _table + " SET `market_share_growth` = '" + str(market_share_growth) + "' WHERE `platform_id` = '" + platform_id + "' AND `date` = '" + str(_date) + "'"   
+                        _cur.execute(stringSQL)
+                        _conn.commit() 
+
+#获取unicode汉字的首拼音
+def getCnFirstLetter(_str):
+    str_utf8 = _str.encode("utf-8")
+    if str_utf8.startswith("鑫"):
+        return "x"
+    if str_utf8.startswith("煜"):
+        return "y"
+    if str_utf8.startswith("泓"):
+        return "h"
+    if str_utf8.startswith("呱"):
+        return "g"
+    if str_utf8.startswith("掮"):
+        return "q"
+    if str_utf8.startswith("珞"):
+        return "l"
+    if str_utf8.startswith("甬"):
+        return "y"
+    if str_utf8.startswith("昊"):
+        return "h"
+    if str_utf8.startswith("瀚"):
+        return "h"
+    if str_utf8.startswith("玺"):
+        return "x"
+    if str_utf8.startswith("鸢"):
+        return "y"
+    if str_utf8.startswith("翡"):
+        return "f"
+    if str_utf8.startswith("饷"):
+        return "x"
+    if str_utf8.startswith("奕"):
+        return "y"
+    if str_utf8.startswith("吆"):
+        return "y"
+    if str_utf8.startswith("柘"):
+        return "z"
+    if str_utf8.startswith("睿"):
+        return "r"
+    if str_utf8.startswith("沐"):
+        return "m"
+    if str_utf8.startswith("喵"):
+        return "m"
+    if str_utf8.startswith("逍"):
+        return "x"
+    if str_utf8.startswith("巽"):
+        return "x"
+    if str_utf8.startswith("喔"):
+        return "w"
+    if str_utf8.startswith("祺"):
+        return "q"
+    if str_utf8.startswith("昱"):
+        return "y"
+    if str_utf8.startswith("汴"):
+        return "b"
+    if str_utf8.startswith("龍"):
+        return "l"
+    if str_utf8.startswith("麟"):
+        return "l"
+    _str_temp=_str.encode("GBK")
+#     if _str_temp<"\xb0\xa1" or _str_temp>"\xd7\xf9":
+#         return ""
+    
+    if _str_temp[0].isdigit():
+        return "0-9"
+    if _str_temp[0] in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        return _str_temp[0].lower()
+    if _str_temp<"\xb0\xc4":
+        return "a"
+    if _str_temp<"\xb2\xc0":
+        return "b"
+    if _str_temp<"\xb4\xed":
+        return "c"
+    if _str_temp<"\xb6\xe9":
+        return "d"
+    if _str_temp<"\xb7\xa1":
+        return "e"
+    if _str_temp<"\xb8\xc0":
+        return "f"
+    if _str_temp<"\xb9\xfd":
+        return "g"
+    if _str_temp<"\xbb\xf6":
+        return "h"
+    if _str_temp<"\xbf\xa5":
+        return "j"
+    if _str_temp<"\xc0\xab":
+        return "k"
+    if _str_temp<"\xc2\xe7":
+        return "l"
+    if _str_temp<"\xc4\xc2":
+        return "m"
+    if _str_temp<"\xc5\xb5":
+        return "n"
+    if _str_temp<"\xc5\xbd":
+        return "o"
+    if _str_temp<"\xc6\xd9":
+        return "p"
+    if _str_temp<"\xc8\xba":
+        return "q"
+    if _str_temp<"\xc8\xf5":
+        return "r"
+    if _str_temp<"\xcb\xf9":
+        return "s"
+    if _str_temp<"\xcd\xd9":
+        return "t"
+    if _str_temp<"\xce\xf3":
+        return "w"
+    if _str_temp<"\xd1\x88":
+        return "x"
+    if _str_temp<"\xd4\xd0":
+        return "y"
+    if _str_temp<"\xd7\xf9":
+        return "z"
+    print str_utf8
+    return _str_temp[0]     
+
+#去掉字符串内的html标签
+def delTag(_html):
+    str1 = re.subn('<[^>]*>', '', _html)[0]
+    str2 = re.subn('<.*', '', str1)[0]
+    return str2
+
+#随机函数，均匀返回两个数之间的数
+def r(_min, _max):
+    min_temp = min(_min,_max)
+    max_temp = max(_min,_max)
+    return random.random() * (max_temp - min_temp) + _min  
+
+#计算安投宝模型偏差
+def computeATBDeviation(_last_weeks = 8, strategy = "", summary = "", insertSQL = False):
+    V = "V_view"
+    Y = "total_status"
+    Strategy_list = "Strategy_list"
+    conn_ddpt_test1 = getConn(DDPT_TESTHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_ddpt_test1 = getCursors(conn_ddpt_test1)
+    conn_ddpt_test = getConn(DDPT_DATAHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_ddpt_test = getCursors(conn_ddpt_test)
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    initializeCursors(cur_ddpt_test, cur_db)
+    
+    date_now = time.time()
+    date_list = getDifferentFieldlist(V, cur_ddpt_test, "date")[::-1]
+    this_date = date_list[0]
+    last_weeks_list = date_list[: _last_weeks]
+    
+    bad_platform_name_list = []
+    stringSQL = "SELECT `platform_name` FROM " + Y + " WHERE `status` < '0.89'"
+    cur_db.execute(stringSQL)
+    rows = cur_db.fetchall()
+    for row in rows:
+        bad_platform_name_list.append(row[0])
+    
+    this_date_level_dict = {}.fromkeys(LEVEL_LIST, 0)
+    last_weeks_level_dict = {}
+    for level in LEVEL_LIST:
+        last_weeks_level_dict[level] = [0] * _last_weeks
+    level_ratio_dict = {}
+            
+    stringSQL = "SELECT `platform_name`, `date`, `level` FROM " + V + " WHERE `date` >= '" + str(last_weeks_list[-1]) + "'"
+    cur_ddpt_test.execute(stringSQL)
+    rows = cur_ddpt_test.fetchall()
+    for row in rows:
+        platform_name = row[0]
+        date = row[1]
+        date_index = last_weeks_list.index(date)
+        level = row[2]
+        last_weeks_level_dict[level][date_index] += 1
+        if platform_name in bad_platform_name_list and date == this_date:
+#             if level == "A":
+#                 print platform_name
+            this_date_level_dict[level] += 1
+    deviation = 0.0
+    deviation_dict = {"A++":0.45, "A+":0.3, "A":0.15, "B++":0.04, "B+":0.03, "B":0.02, "C":0.01}
+    standard_dict = {"A++":0, "A+":0, "A":0.01, "B++":0.05, "B+":0.15, "B":0.4, "C":0.8}
+    for level in LEVEL_LIST:
+        level_ratio_dict[level] = this_date_level_dict[level] / (float(sum(last_weeks_level_dict[level])) / _last_weeks)   
+        deviation += deviation_dict[level] * (level_ratio_dict[level] - standard_dict[level])
+    if insertSQL:
+        stringSQL = "INSERT INTO " + Strategy_list + "(`" + "`,`".join(LEVEL_LIST + ["execute_date", "database_date", "summary", "deviation", "strategy"]) + "`) VALUES('" + "','".join([str(level_ratio_dict[level]) for level in LEVEL_LIST] + [str(date_now), str(this_date), str(summary), str(deviation), str(strategy)]) + "')"
+        cur_ddpt_test1.execute(stringSQL)
+        conn_ddpt_test1.commit()
+    closeCursors(cur_db, cur_ddpt_test, cur_ddpt_test1)
+    closeConns(conn_db, conn_ddpt_test, conn_ddpt_test1)
+    
+    return level_ratio_dict, deviation
+    
+#将若干个数分组，使得每组的和尽量均匀
+def divideNumberForEven(_dict, _division_number):
+    key_list = []
+    value_list = []
+    for i in range(_division_number):
+        key_list.append([])
+        value_list.append([])
+    key_list_sorted = sortDictByValue(_dict)[0]
+    #1. 将总标数按照从大到小排列(10,9,8,7,6,5,4,3,2,1)，采取策略为之字排列[10, 3, 2], [9, 4, 1], [8, 5], [7, 6], 此操作后，每个组内是按照从大到小排列的  
+    dict_number = len(key_list_sorted)
+    for i in range(dict_number):
+        remainder = i % ( 2 * _division_number)
+        if remainder >= _division_number:
+            remainder = 2 * _division_number - 1 - remainder
+        key_list[remainder].append(key_list_sorted[i])
+        value_list[remainder].append(_dict[key_list_sorted[i]])
+#         key_list[0].append(key_list_sorted[i])
+#         value_list[0].append(_dict[key_list_sorted[i]])
+    #2. 调整分组，如果两个组之间可以通过移动一个数字来使得更加均匀，则移动该数字
+    while True:
+        i_ok = 1
+        for i in range(_division_number - 1):
+            for j in range(i, _division_number):
+                sum_i = sum(value_list[i])
+                sum_j = sum(value_list[j])
+                move_out = i
+                if sum_i < sum_j:
+                    move_out = j
+                move_in = i + j - move_out
+                move_out_number = value_list[move_out]
+                move_out_name = key_list[move_out]
+                move_in_number = value_list[move_in]
+                move_in_name = key_list[move_in]
+                move_number_pre = abs(sum_i - sum_j) / 2
+                for k in range(len(move_out_number)): #移动能移动的最大值
+#                 for k in range(len(move_out_number) - 1, len(move_out_number)): #移动能移动的最小值，效果略差
+                    if move_out_number[k] < move_number_pre:
+                        i_ok = 0
+                        move_number = move_out_number[k]
+                        move_name = move_out_name[k]
+                        move_out_number.remove(move_number)
+                        move_out_name.remove(move_name)
+                        for m in range(len(move_in_number)):
+                            if move_in_number[m] < move_number:
+                                move_in_number.insert(m, move_number) 
+                                move_in_name.insert(m, move_name) 
+                                break
+                        else:
+                            move_in_number.append(move_number)
+                            move_in_name.append(move_name)
+                        break
+        if i_ok == 1:
+            break
+    return key_list, value_list    
+
+#从一个大字典中拿出一部分作为一个小字典
+def getDictFromDict(_dict, _second_key):
+    ret_dict = {}
+    for key in _dict:
+        ret_dict[key] =_dict[key][_second_key]
+    return ret_dict
+
+#通过若干个字典值来决定一个列表键的顺序
+def sortListByDicts(_list, _order_list, *_dicts):
+    
+    #定义cmp函数
+    def numeric_compare(x, y):
+        for i in range(dict_number):
+            if _dicts[i][x] in LEVEL_LIST:
+                xx = 0 - LEVEL_LIST.index(_dicts[i][x]) * _order_list[i]
+                yy = 0 - LEVEL_LIST.index(_dicts[i][y]) * _order_list[i]
+            else:
+                xx = _order_list[i] * _dicts[i][x] 
+                yy = _order_list[i] * _dicts[i][y] 
+            if xx == yy:
+                continue
+            else:
+                return 1 if xx > yy else -1
+        return 0
+    
+    dict_number = len(_dicts)
+    if len(_order_list) != dict_number:
+        print "序列列表和字典列表个数不符合！"
+        return None
+    return sorted(_list, cmp = numeric_compare)
+
+#通过一个已经排序的列表将另一个列表排序，只会取两者的交集
+def mergeListAndDictForSort(_list_unsorted, _list_sorted):
+    value_list = []
+    for value in _list_sorted:
+        if value in _list_unsorted:
+            value_list.append(value)
+    return value_list
+
+#project_info清理策略
+annulized_rating_pattern_list = []
+annulized_rating_pattern_list.append(re.compile(r'([\d\.]*)\+([\d\.]*)\Z'))
+annulized_rating_pattern_list.append(re.compile(r'([\d\.]*)\~([\d\.]*)\Z'))
+def cleanProjectInfoPerBid(v):
+    money_error = 0.01 / MONEYUNIT
+    error = ""
+    error_set = set()
+    
+    v["unfull"] = 0
+    v["project_id"] = stringPreTreatment(v["project_id"])
+    v["project_name"] = stringPreTreatment(v["project_name"])
+    v["annulized_rating"] = stringPreTreatment(v["annulized_rating"])
+    #投资人预处理
+    v["investor"] = stringPreTreatment(v["investor"])
+    if v["investor"].startswith("|"):
+        v["investor"] = v["investor"][1:]
+    if v["investor"].endswith("|"):
+        v["investor"] = v["investor"][:-1]
+    #按照“|”划分后长度不是3的倍数（不包括0）
+    investor_list = v["investor"].split("|")
+    if len(investor_list) == 0 or len(investor_list) % 3 != 0:
+        error += "1, "
+        v["investor"] = ""
+    else:    
+        investor_number = len(investor_list) / 3
+        investor_timestamp_list = []
+        investor_money_list = []
+        investor_repeat_dict = {}
+        investor_str_list = [] 
+        for i in range(investor_number):
+            timestamp = investor_list[3 * i]
+            name = investor_list[3 * i + 1]
+            money = investor_list[3 * i + 2].replace(",", "")
+            investor_str = str(timestamp) + str(name) + str(money)
+            if investor_str not in investor_repeat_dict:
+                investor_repeat_dict[investor_str] = 0
+            investor_repeat_dict[investor_str] += 1
+            #投资人金额有误
+            if money.endswith("元"):
+                money = money[0:money.index("元")]
+            try:
+                money = float(money)
+            except:
+                if 2 not in error_set:
+                    error += "2, "
+                    error_set.add(2)
+                money = -1
+            else:
+                if money < 0: #<= money_error:
+                    if 2 not in error_set:
+                        error += "2, "
+                        error_set.add(2)
+                    money = -1
+            investor_money_list.append(money)    
+            #投资人时间戳有误
+            try:
+                timestamp = int(timestamp)
+            except:
+                if 3 not in error_set:
+                    error += "3, "
+                    error_set.add(3)
+                timestamp = -1
+            else:
+                if timestamp <= 0:
+                    if 3 not in error_set:
+                        error += "3, "
+                        error_set.add(3)
+                    timestamp = -1
+            investor_timestamp_list.append(timestamp)
+            
+            investor_str_list.append(str(timestamp) + "|" + str(name) + "|" + str(money))
+        #投资人重复
+        if calculateAve(investor_repeat_dict.values()) >=3:
+            error += "4, "
+        v["investor"] = "|".join(investor_str_list)
+        if error == "":
+            v["invested_amount"] = sum(investor_money_list)
+            v["first_time"] = min(investor_timestamp_list)
+            v["last_time"] = max(investor_timestamp_list)
+            v["date"] = getDateTimestamp(v["last_time"]) + SECONDSPERWEEK
+    #借款金额处理：
+    try:
+        v["borrowing_amount"] = float(v["borrowing_amount"])
+    except:
+        error += "5, "
+        v["borrowing_amount"] = -1
+    else:
+        if v["borrowing_amount"] <= money_error:
+            error += "5, "
+            v["borrowing_amount"] = -1
+            
+    if error == "":
+        v["percentage"] = v["invested_amount"] / v["borrowing_amount"]
+        #没有满标
+        if v["percentage"] < FULLBIDPERCENT:
+            v["unfull"] = 1
+            
+        #过于满标
+        if v["percentage"] > (2 - FULLBIDPERCENT):
+            error += "10, "
+        
+    #处理借款人
+    v["borrower"] = stringPreTreatment(v["borrower"])
+    if v["borrower"] == "":
+        error += "6, "
+        
+    #处理借款方式
+    v["payment_method"] = changePaymentMethod(v["payment_method"].strip())
+    if v["payment_method"] in neglect_payment_method_list:
+        error += "7, "
+        v["payment_method"] = -1
+    else:
+        try:
+            v["payment_method"] = PAYMENTMETHODDICT[payment_method_dict[v["payment_method"]]]
+        except:
+            error += "7, "
+            v["payment_method"] = -1
+    
+    #处理还款期限
+    try: 
+        v["loan_period"] = int(v["loan_period"])
+    except:
+        error += "8, "
+        v["loan_period"] = -1
+    else:
+        if v["loan_period"] < 0:
+            error += "8, "
+            v["loan_period"] = -1
+            
+    #处理利率
+    for annulized_rating_pattern in annulized_rating_pattern_list:
+        pattern = annulized_rating_pattern.match(v["annulized_rating"])
+        if pattern:
+            v["annulized_rating"] = sum(getFloat(pattern.groups()))
+            if v["annulized_rating"] <= 1E-6 or v["annulized_rating"] > 100:
+                error += "9, "
+                v["annulized_rating"] = -1
+            break
+    else:
+        try:
+            v["annulized_rating"] = float(v["annulized_rating"])
+        except:
+            error += "9, "
+            v["annulized_rating"] = -1
+        else:
+            if v["annulized_rating"] <= 1E-6 or v["annulized_rating"] > 100:
+                error += "9, "
+                v["annulized_rating"] = -1
+#     pattern_1 = annulized_rating_pattern_1.match(v["annulized_rating"])
+#     pattern_2 = annulized_rating_pattern_2.match(v["annulized_rating"])
+#     if pattern_1:
+#         v["annulized_rating"] = sum(getFloat(pattern_1.groups()))
+#     else:
+#         try:
+#             v["annulized_rating"] = float(v["annulized_rating"])
+#         except:
+#             error += "9, "
+#             v["annulized_rating"] = -1
+#         else:
+#             if v["annulized_rating"] <= 1E-6 or v["annulized_rating"] > 100:
+#                 error += "9, "
+#                 v["annulized_rating"] = -1
+    #处理放标时间：
+    try:
+        v["release_time"] = int(v["release_time"])
+    except:
+        v["release_time"] = -1
+    else:
+        if v["release_time"] <= 0:
+            v["release_time"] = -1
+    
+    #处理满标时间：
+    try:
+        v["end_time"] = int(v["end_time"])
+    except:
+        v["end_time"] = -1
+    else:
+        if v["end_time"] <= 0:
+            v["end_time"] = -1
+            
+    v["error"] = error[:-2]
+    return v
+                  
+if __name__ == '__main__':
+
+    table_E1 = "platform_quantitative_data_E1"
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    conn_dev = getConn(DEVHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_dev = getCursors(conn_dev)
+    initializeCursors(cur_db, cur_dev)
+    
+    print getInterestDate(12345, 123, 345, "1426568427|np****xf|2,000.00|1426568432|wu****hz|1,288.71|1426568444|xu****09|72.51|")
+    print getInterestDate(12345, 123, 123, "1426568427|np****xf|2,000.00|1426568432|wu****hz|1,288.DAYSPERWEEK1|1426568444|xu****09|72.51|")
+    l1 = [1, 2, 3, 4, 5, 6]
+    print insertTopQueue(l1, 4, 10)
+    print insertTopQueue(l1, 4, 10)
+    print insertTopQueue(l1, 4, 10)
+    print insertTopQueue(l1, 4, 10)
+    print insertTopQueue(l1, 4, 10)
+    print insertTopQueue(l1, 4, 10)
+    print getHHI([1, 1, 1, 1])
+    print getColumnSum({1:[1, 2, 3], 2:[3, 4, 5]})
+    print getColumnSum({1:[1, 2, 3], 2:[3, 4, 5]}, 1)
+    print getColumnSum({1:1, 2:2})
+    print getColumnSum({1:[1], 2:[2]})
+    a = None
+    a = replaceNullData(a)
+    print a
+    b = None
+    c = ""
+    a = "123"
+    (a, b, c) = replaceNullData(a,b, c)
+    print a,b, c
+    z = get2DEmptyArray(10)
+    print get2DEmptyArray(10)
+    print id(z[1])
+    print id(z[2])
+    a = [[], [], []]
+    insertTopQueue(a[1], 4, 10)
+    insertTopQueue(a[1], 4, 10)
+    insertTopQueue(a[1], 4, 10)
+    insertTopQueue(a[1], 4, 10)
+    insertTopQueue(a[1], 4, 10)
+    print a
+    a = "10.0"
+    b = "abc"
+    print replaceNullData(a, b)
+    a = {}.fromkeys(["abc", "def"], get2DEmptyArray(20))
+    a["abc"][1] = 2
+    print a
+    print getRandomTimestamp("20130301")
+    print sortDictByValue({"a":[1,10],"b":[2,9],"c":[3,8],"d":[4,7]},0)
+    print sortDictByValue({"a":[1,10],"b":[2,9],"c":[3,8],"d":[4,7]},1)
+    print getVectorInnerProduct([1,2,3],[4,5,6])
+    a=return2para()[0]
+    print a
+    a=[53.86089, 66.39954, 46.347649999999994, 46.2, 0.0, 61.88869, 31.60232, 0.0, 70.65647, 93.66763, 14.913390000000001, 24.788690000000003, 31.6, 100.0, 83.33188, 20.0, 40.0, 30.0, 61.813590000000005, 45.718399999999995, 52.73217, 53.07657, 40.0, 45.79289, 100.0, 60.0, 52.864779999999996, 51.94557, 55.07320000000001, 89.42003, 75.0, 80.66015999999999, 48.99999999999999, 54.605959999999996, 78.19618, 0.0, 0.0, 18.0, 0.0, 0.0]
+    b=[0.05, 0.064735, 0.0635625, 0.059325, 0.057975, 0.04638, 0.04239, 0.041195, 0.033912, 0.02825, 0.025434, 0.025434, 0.025425, 0.0253825, 0.02373, 0.023, 0.023, 0.0226, 0.0226, 0.0211875, 0.01908, 0.01908, 0.0184, 0.01656, 0.0142, 0.0136675, 0.01272, 0.01272, 0.01177, 0.011595, 0.01065, 0.0098875, 0.0092, 0.008478, 0.0059325, 0.005652, 0.00355, 0.00355, 0.00184, 0.0, 0, 0]
+    print getVectorInnerProduct(a,b)
+    print getNormalization([1,2,3])
+    print getCenterSum([1,2,3])
+    print getQueryTime()
+    print checkThresholdValue(1,2,3)
+    print checkThresholdValue(2,1,3)
+    print checkThresholdValue(100,1,None)
+    print checkThresholdValue(100,101,None)
+    print checkThresholdValue(100,1,105)
+    print checkThresholdValue(100,None,None)
+    print checkThresholdValue(100,None,105)
+    print checkThresholdValue(10000.0,100.0,27610.0)
+    print getDictByTxt("borrower_list.txt")
+    mergeTxt("borrower_list.txt", "platform_id_list_sorted.txt", "id_sorted.txt")
+    print getDateTimestamp(1357401600)
+    print getDateTimestamp(1357401600 + 1)
+    print calculateLinearValue(2,[9177120, 9324460,0,9873890],1,3)
+    print calculateGrowth(cur_db, table_E1, "weekly_new_investor", "15贷", 1417881600, 4,1,0)
+    print getNoneZeroListByPeriod(cur_db, table_E1, ["top5_ratio_loan", "weekly_total_investor"], "15贷", 1416067200, 4, 0)
+    print checkValid(["1", "2","3","4"], [1,1,0,0], ["1"], 2)
+    print checkValid(["1", "2","3","4","5"], [1,1,0,0,0], ["1"], 2)
+    print checkValid(["1", "2","3","4","5"], [1,1,0,0,0], ["3"], 2)
+    print getValueByPeriod(cur_db, table_E1, "top5_ratio_loan", "15贷", 1416067200, 4)
+    print getValueListByPeriod(cur_db, table_E1, ["top5_ratio_loan", "top10_ratio_loan"], "15贷", 1416067200, 4)
+    #insertField(conn_dev, cur_dev, "index_weekly_report", "top5_ratio_loan1111", "DOUBLE DEFAULT NULL")
+    a = {}
+    for index in [1,2]:
+        a[index] = []
+    a[1].append(2)
+    print a
+    #print tianyidiv(0.3,1,0.1,None,2.0)
+    print xiebodiv(0.3,None,None,None,None)
+    print getLastMonthString("2015-12")
+    print getLastMonthString("2015-01")
+    a = "1416539379|c*arychen|74100|1416539284|w*iye137|200000|1416539011|林*梅L|1000|1416538723|林*梅L|500|1416538711|h*zd22|1186001416538552|w*mm|15000|1416538205|A*8A|50000|1416538073|h*jin518|3000|1416537749|l*cancan838|20000|1416537634|a*ines|1000001416537354|z*ongyingxing|10000|1416537341|l*lu_lyt|2000|1416537203|M*imeiok@163.com|20000|1416537170|z*ongyingxing|2100|1416537075|x*xb1128zx|10001416536953|3*7017350@qq.com|2000|1416536813|j*angruifen|130000|1416535340|L*JM|10000|1416535175|z*ao4609|40700|1416534665|A*8A|500001416534607|a*traw|2000|1416534564|红*君|1000|1416534511|w*izeair|10000|1416534254|L*no|200000|1416534233|x*kxj|400001416533900|J*hn.Tse|6000|1416533538|a*traw|5500|1416533356|b*ue815|10000|1416533338|z*zamo|2000|1416533256|z*engmingze|100001416532912|z*engmingze|10000|1416532792|s*wht|900|1416532720|y*y567|94000|1416532129|a*ang513|10000|1416532077|h*ndsomelin|141001416532050|z*zz22|1000|1416531818|o*ange张嘉惠|100|1416531591|z*engmingze|10000|1416531178|l*h15819019876|5000|1416531105|x*zyq@126.com|100001416529877|j*n871|100|1416499789|a*tpower|6000|1416498117|w*nxp|10000|1416497792|w*nxp|10100|1416497329|w*vb204|20001416496332|招*进步5577|400000|1416495861|s*ndyfu|5000|1416495145|x*j1984|3000|1416494675|l*p6982848|6000|1416492115|p*09091008|150001416491366|S*ar,Lin|1100|1416490785|P*terPoon|15100|1416489016|h*zd22|35000|1416486891|c*enjp3|1000|1416486012|3*9600707|150001416484003|e*ithbb|20000|1416483907|h*remc|10000|1416482031|f*artasd|34000|1416479975|f*yanasdf|10200|1416479519|M*imeiok@163.com|100001416479004|T*mato|70000|1416478320|z*dge|100|1416475128|S*ar,Lin|1000|1416473839|甜*410|10000|1416472970|h*jin518|30001416472011|s*ffee|15700"
+    print getInterestDate(0, 0, 0, a)[0]
+    #resetMarketShareGrowth(cur_db, conn_db, "platform_quantitative_data_E1")
+    print getCnFirstLetter("圈".decode("utf-8"))
+    print getCnFirstLetter("Abc".decode("utf-8"))
+    print getCnFirstLetter("安".decode("utf-8"))
+    print getCnFirstLetter("bbb".decode("utf-8"))
+    print getCnFirstLetter("鑫脉财富".decode("utf-8"))
+    print getCnFirstLetter("1ab".decode("utf-8"))
+    test = PinYin()
+    test.load_word()
+    print test.hanzi2pinyin("鑫")[0][0]
+    string = "808你好808"
+    print "in: %s" % string
+    print "out: %s" % str(test.hanzi2pinyin(string=string))
+    print "out: %s" % test.hanzi2pinyin_split(string=string, split="-")
+    string = "卡"
+    print str(test.hanzi2pinyin(string=string))
+    print delTag("<!-- 投>资查看更多</a></div></div></div><!-- 投资")
+    for i in range(20):
+        print r(0.8, 1.2)
+    print [r(0.8, 1.2) for x in range(10)]
+#     print computeATBDeviation(insertSQL = False)
+    investor = "1440432000|138****8620|28000.00|1440432000|137****2053|1000.00|1440432000|157****2335|100.00|1440432000|134****0094|10000.00|1440432000|139****1385|50000.00|1440432000|186****4182|10000.00|1440432000|150****3982|2028.85|1440432000|183****0765|500.00|1440432000|137****6484|4500.00|1440432000|138****9136|5000.00|1440432000|138****9960|250000.00|1440432000|139****8496|10000.00|1440432000|132****0853|100.00|1440432000|159****2869|20.00|1440432000|186****0830|500.00|1440432000|139****0782|50000.00|1440432000|135****1312|290.00|1440432000|150****3776|5000.00|1440432000|151****3308|50000.00|1440432000|186****9925|400000.00|1440432000|189****0705|1.00|1440432000|159****0041|3000.00|1440432000|132****7104|100.00|1440432000|158****8165|50000.00|1440432000|189****2225|4000.00|1440432000|159****8399|50000.00|1440432000|130****3342|5000.00|1440432000|137****2552|1000.00|1440432000|151****8805|10000.00|1440432000|150****1695|500.00|1440432000|137****0534|10000.00|1440432000|185****1491|100.00|1440432000|136****0916|200.00|1440432000|159****1831|10000.00|1440432000|158****3494|200000.00|1440432000|138****5639|100.00|1440432000|151****6288|3000.00|1440432000|139****2390|50000.00|1440432000|182****3890|100000.00|1440432000|189****9652|8.88|1440432000|137****6634|20000.00|1440432000|183****9193|6.00|1440432000|135****1162|500.00|1440432000|180****8228|500.00|1440432000|136****2106|50000.00|1440432000|138****0497|100000.00|1440432000|150****6560|30000.00|1440432000|182****0493|10.00|1440432000|135****8896|50.10|1440432000|135****5599|5008.47|1440432000|138****0458|5000.00|1440432000|138****9950|50000.00|1440432000|133****5815|300.00|1440432000|184****4787|100.00|1440432000|131****8830|25000.00|1440432000|136****3264|2000.00|1440432000|139****1109|6000.00|1440432000|185****0525|12000.00|1440432000|150****0601|5000.00|1440432000|170****0778|10000.00|1440432000|158****5012|5000.00|1440432000|131****0922|40003.92|1440432000|158****6408|20000.00|1440432000|186****5275|200000.00|1440432000|153****3436|5.00|1440432000|138****1599|25000.00|1440432000|139****2044|50.00|1440432000|189****9627|300.00|1440432000|153****7621|30000.00|1440432000|138****8875|6000.00|1440432000|180****7377|10.00|1440432000|186****7165|81600.00|1440432000|130****1888|1000.00|1440432000|130****6125|101.00|1440432000|136****9444|20000.00|1440432000|180****3306|30000.00|1440432000|131****4234|300000.00|1440432000|132****9288|5000.00|1440432000|186****6567|50000.00|1440432000|188****8070|2.00|1440432000|139****0632|50000.00|1440432000|137****7387|1000.00|1440432000|188****0768|2000.00|1440432000|150****7521|1000.00|1440432000|159****1565|200000.00|1440432000|159****7578|1000.00|1440432000|185****7525|5.00|1440432000|151****7910|1.00|1440432000|138****6997|40000.00|1440432000|158****0571|100000.00|1440432000|158****0571|100000.00|1440432000|159****1699|600.00|1440432000|139****1368|10000.00|1440432000|158****7758|2000.00|1440432000|186****2098|1.00|1440432000|186****2872|1125.46|1440432000|150****1839|5000.00|1440432000|135****7519|50000.00|1440432000|132****5270|6000.00|1440432000|185****1974|1.00|1440432000|133****1829|5000.00|1440432000|138****8980|24000.00|1440432000|153****0711|1000.00|1440432000|187****3868|2000.00|1440432000|188****0816|50000.00|1440432000|135****9782|3000.00|1440432000|136****1069|10000.00|1440432000|150****0861|50000.00|1440432000|139****1368|9.18|1440432000|138****6997|60000.00|1440432000|150****3009|1000.00|1440432000|157****9920|30000.00|1440432000|186****7102|100.00|1440432000|130****4278|90000.00|1440432000|152****1360|6000.00|1440432000|183****1783|100.00|1440432000|157****9920|20000.00|1440432000|187****2255|30000.00|1440432000|156****9213|20000.00|1440432000|151****5337|150.00|1440432000|139****3192|5000.00|1440432000|138****9474|5000.00|1440432000|150****6861|1000.00|1440432000|150****8861|3000.00|1440432000|152****2977|3000.00|1440432000|138****8299|10000.00|1440432000|139****7840|201.57|1440432000|137****5327|5000.00|1440432000|132****6634|11.26|1440432000|135****0614|76.00|1440432000|138****9842|755.00|1440432000|138****9636|5000.00|1440432000|134****7319|77470.00|1440432000|138****4249|20000.00|1440432000|189****9627|10000.00|1440432000|134****7650|200.00|1440432000|138****7803|50000.00|1440432000|135****6352|10000.00|1440432000|131****9286|10000.00|1440432000|138****8063|10000.00|1440432000|188****8667|1.00|1440432000|150****1679|6000.00|1440432000|137****0175|5.00|1440432000|131****3038|50000.00|1440432000|139****0077|10000.00|1440432000|152****2550|1000.00|1440432000|138****6546|100.00|1440432000|135****6851|5000.00|1440432000|188****9316|58000.00|1440432000|150****1398|8000.00|1440432000|188****0094|31035.29|1440432000|134****8642|5000.00|1440432000|133****3718|70000.00|1440432000|134****7650|100000.00|1440432000|187****7701|300.00|1440432000|156****0680|2589.19|1440432000|139****6896|20000.00|1440432000|153****6065|3000.00|1440432000|187****5275|1000.00|1440432000|158****5539|10.00|1440432000|150****7521|10058.00|1440432000|135****2281|10000.00|1440432000|155****0195|1000.00|1440432000|136****0709|10.00|1440432000|153****9921|10000.00|1440432000|137****1901|20000.00|1440432000|158****0716|1006.24|1440432000|150****9123|5000.00|1440432000|151****0766|10062.41|1440432000|136****4151|79000.00|1440432000|139****8833|5000.00|1440432000|139****0159|100139.47|1440432000|138****8496|10000.00|1440432000|135****6806|3000.00|1440432000|138****6635|1.00|1440432000|159****2721|10.00|1440432000|132****8678|1000.00|1440432000|158****9084|100.00|1440432000|153****1733|50000.00|1440432000|186****2563|50000.00|1440432000|150****0385|5000.00|1440432000|158****6408|57057.88|1440432000|137****1998|30000.00|1440432000|156****4566|10000.00|1440432000|156****3793|2000.00|1440432000|183****3255|4242.00|1440432000|135****9827|1000.00|1440432000|134****8464|10.00|1440432000|136****3320|50000.00|1440432000|158****2404|50000.00|1440432000|135****0348|5000.00|1440432000|185****3752|1.00|1440432000|139****6419|10000.00|1440432000|138****6328|200000.00|1440432000|138****3618|10.00|1440432000|135****2223|5000.00|1440432000|139****0576|300000.00|1440432000|187****6828|5000.00|1440432000|159****6616|5000.00|1440432000|183****5002|1.00|1440432000|186****8487|10000.00|1440432000|139****6419|20000.00|1440432000|139****5302|5000.00|1440432000|139****6189|19300.00|1440432000|136****6858|5000.00|1440432000|136****4954|200000.00|1440432000|186****5451|85000.00|1440432000|150****2063|5000.00|1440432000|137****6994|500.00|1440432000|156****2941|1000.00|1440432000|139****4918|20000.00|1440432000|150****2063|5000.00|1440432000|139****6419|100000.00|1440432000|138****1275|300000.00|1440432000|138****8746|70000.00|1440432000|177****0884|10000.00|1440432000|133****3153|10000.00|1440432000|135****0011|50000.00|1440432000|182****8555|30505.00|1440432000|155****1820|2601.78|1440432000|137****4370|2000.00|1440432000|182****9420|500.15|1440432000|189****1183|50000.00|1440432000|137****5538|300.00|1440432000|158****0299|4528.08|1440432000|189****5201|5000.00|1440432000|151****1195|90.00|1440432000|136****9382|90000.00|1440432000|138****8862|100100.00|1440432000|156****0148|500.00|1440432000|139****1161|20000.00|1440432000|133****8466|1000.00|1440432000|159****5738|1000.00|1440432000|185****1936|10000.00|1440432000|189****6553|47211.00|1440432000|189****2796|3904.00|1440432000|157****1716|10000.00|1440432000|139****1161|30000.00|1440432000|186****0171|200.00|1440432000|136****2960|1000.00|1440432000|158****8589|50000.00|1440432000|136****0497|20000.00|1440432000|183****9117|5000.00|1440432000|135****0535|10000.00|1440432000|152****2245|10000.13|1440432000|181****7288|1000.00|1440432000|132****0909|500.00|1440432000|132****9188|10000.00|1440432000|159****8387|1.00|1440432000|151****6045|10009.55|1440432000|151****6045|10009.55|1440432000|159****0761|45000.00|1440432000|151****5256|300.00|1440432000|180****3112|5000.00|1440432000|138****2106|100.00|1440432000|136****3854|50000.00|1440432000|186****7688|3000.00|1440432000|137****9964|50100.00|1440432000|158****7950|1000.00|1440432000|134****8006|50000.00|1440432000|152****8585|700.00|1440432000|180****6663|1000.00|1440432000|156****6125|10000.00|1440432000|151****3028|5000.00|1440432000|139****0151|3000.00|1440432000|137****5538|1000.00|1440432000|156****6691|100000.19|1440432000|185****6506|141.50|1440432000|131****6602|50000.00|1440432000|186****9908|99999.00|1440432000|158****5240|10.00|1440432000|130****8618|10000.00|1440432000|189****6869|100000.00|1440432000|187****3728|10000.00|1440432000|182****5290|10000.00|1440432000|177****5638|10073.00|1440432000|187****3728|10000.00|1440432000|156****2796|20000.00|1440432000|137****0718|20000.00|1440432000|187****3728|20000.00|1440432000|181****6880|30000.00|1440432000|136****3301|3000.00|1440432000|187****3728|10000.00|1440432000|159****7951|96.81|1440432000|159****0588|10000.00|1440432000|136****4471|4000.00|1440432000|187****8657|10.00|1440432000|138****7188|700.00|1440432000|189****2397|450000.00|1440432000|186****5968|30000.00|1440432000|152****6952|100.00|1440432000|151****8292|1000.00|1440432000|135****6806|110.00|1440432000|189****6656|100.00|1440432000|189****6155|2000.00|1440432000|185****9458|100000.00|1440432000|133****7927|50000.00|1440432000|136****0566|30000.00|1440432000|159****6768|10.00|1440432000|187****2687|18000.00|1440432000|155****0564|1.00|1440432000|158****6234|700.00|1440432000|135****9387|2000.00|1440432000|150****0062|1000.00|1440432000|134****0555|1000.00|1440432000|138****6220|100000.00|1440432000|139****6037|3700.00|1440432000|151****2278|500.00|1440432000|133****6992|2606.84|1440432000|131****6999|40000.00|1440432000|158****2287|1.00|1440432000|137****7260|2000.00|1440432000|137****6936|290000.00|1440432000|159****5482|5000.00|1440432000|156****0581|10000.00|1440432000|135****2895|2070.00|1440432000|150****3236|3100.00|1440432000|158****7299|40000.00|1440432000|151****8511|1000.00|1440432000|158****0833|20000.00|1440432000|138****3678|100000.00|1440432000|187****0835|100000.00|1440432000|135****7821|50000.00|1440432000|151****7781|100.00|1440432000|186****7522|1000.00|1440432000|136****1612|1000.00|1440432000|135****6661|10000.00|1440432000|183****5323|1000.00|1440432000|138****4960|300000.00|1440432000|138****2008|50000.00|1440432000|186****7522|1000.00|1440432000|155****5722|20000.00|1440432000|158****9190|10000.00|1440432000|158****3787|50000.00|1440432000|189****9627|3000.00|1440432000|150****2853|30000.00|1440432000|139****8777|100.00|1440432000|139****5739|1500.00|1440432000|155****2013|1000.00|1440432000|186****8877|100000.00|1440432000|137****3857|50.00|1440432000|181****1777|30000.00|1440432000|139****6474|100000.00|1440432000|183****6777|1000000.00|1440432000|159****0093|200000.00|1440432000|137****4105|10000.00|1440432000|132****5918|20000.00|1440432000|135****2279|20000.27|1440432000|186****1845|1000.00|1440432000|150****1184|5000.00|1440432000|138****0908|10000.00|1440432000|137****9997|1.00|1440432000|138****0908|20000.00|1440432000|159****0696|35000.00|1440432000|138****9029|10000.00|1440432000|138****0908|20000.00|1440432000|135****9362|10300.00|1440432000|139****4968|3000.00|1440432000|153****3725|2000.00|1440432000|137****3144|10000.00|1440432000|138****6057|10000.00|1440432000|158****0366|100.00|1440432000|136****2049|100000.00|1440432000|138****1653|50000.00|1440432000|139****8860|8000.00|1440432000|187****2131|5000.00|1440432000|185****6201|1.00|1440432000|137****5016|200000.00|1440432000|183****1226|2000.00|1440432000|180****1857|1002.00|1440432000|139****8880|100.00|1440432000|135****9166|20000.00|1440432000|137****2774|100.00|1440432000|138****4431|4000.00|1440432000|138****2248|50000.00|1440432000|189****8055|50000.00|1440432000|151****3077|10000.00|1440432000|187****4860|10000.00|1440432000|139****0350|10000.00|1440432000|158****5888|1500.00|1440432000|135****9284|5000.00|1440432000|189****0393|20000.00|1440432000|137****1660|50000.00|1440432000|137****5023|30000.00|1440432000|136****1706|10000.00|1440432000|152****3222|100000.00|1440432000|180****2615|100.00|1440432000|138****0812|500.00|1440432000|147****3465|20000.00|1440432000|136****0679|19000.00|1440432000|187****8558|10000.00|1440432000|187****0065|50000.00|1440432000|186****9186|2000.00|1440432000|189****1891|20000.00|1440432000|188****1802|5000.00|1440432000|158****1656|50000.00|1440432000|150****1332|2049.62|1440432000|156****1977|70000.00|1440432000|139****6805|10000.00|1440432000|183****5521|1000.00|1440432000|138****0214|10000.00|1440432000|187****8558|10000.00|1440432000|134****6676|8000.00|1440432000|135****4414|10000.00|1440432000|137****7690|50000.00|1440432000|138****9383|2000.00|1440432000|150****8599|5000.00|1440432000|189****9985|10.00|1440432000|131****8776|1000.00|1440432000|153****5160|10000.00|1440432000|138****5328|60000.00|1440432000|130****6604|32500.00|1440432000|137****9268|50000.00|1440432000|137****0096|7900.00|1440432000|180****0161|10000.00|1440432000|135****9550|10000.00|1440432000|138****6635|2.00|1440432000|133****6075|100000.00|1440432000|137****1980|130000.00|1440432000|135****0379|10000.00|1440432000|133****6886|1000.00|1440432000|156****2410|1000.00|1440432000|136****6717|10000.00|1440432000|150****7536|3000.00|1440432000|186****9191|1.00|1440432000|152****5423|3000.00|1440432000|186****9478|200.00|1440432000|186****5717|5000.00|1440432000|137****0995|10702.94|1440432000|152****4553|5.00|1440432000|138****8564|5.00|1440432000|139****2209|50000.00|1440432000|133****6199|10.00|1440432000|136****6917|10000.00|1440432000|137****0498|20000.00|1440432000|137****1201|10.00|1440432000|139****9819|4000.00|1440432000|131****5068|20000.00|1440432000|150****1060|10000.00|1440432000|137****7820|1000.00|1440432000|136****6003|50.00|1440432000|139****1052|1000.00|1440432000|188****6678|10000.00|1440432000|188****7776|3000.00|1440432000|135****5953|2000.00|1440432000|150****2667|20000.00|1440432000|135****4476|1000.00|1440432000|189****7513|500.00|1440432000|185****0881|2000.00|1440432000|139****2311|20000.00|1440432000|182****3223|1314.20|1440432000|150****6687|2000.00|1440432000|138****5245|100643.12|1440432000|189****4716|85000.00|1440432000|188****4067|5000.00|1440432000|159****9296|300000.00|1440432000|183****7027|10000.00|1440432000|157****6828|9000.00|1440432000|134****6676|5000.00|1440432000|189****4582|5000.00|1440432000|188****6678|50000.00|1440432000|186****6311|55500.00|1440432000|130****3399|300000.00|1440432000|158****1282|1000.04|1440432000|188****8758|10000.00|1440432000|185****2220|10000.00|1440432000|150****5189|60000.00|1440432000|151****4096|50000.00|1440432000|153****1065|70000.00|1440432000|137****7082|1.00|1440432000|138****4732|50000.00|1440432000|139****5945|300.00|1440432000|135****8708|1000.00|1440432000|138****0359|21503.12|1440432000|188****2826|10000.00|1440432000|138****7996|2300.00|1440432000|187****1728|10000.00|1440432000|186****5539|50000.00|1440432000|151****9721|2.47|1440432000|189****1876|1000.00|1440432000|182****7666|20000.00|1440432000|135****1155|1000.00|1440432000|188****0391|500000.00|1440432000|139****2344|10.00|1440432000|187****6070|2000.00|1440432000|138****9069|20304.00|1440432000|138****6488|510.00|1440432000|187****6070|45.00|1440432000|158****9225|1000.00|1440432000|150****8458|30000.00|1440432000|159****2687|10000.00|1440432000|132****4784|1000.00|1440432000|159****7377|50.00|1440432000|138****6016|11371.82|1440432000|153****4879|100.00|1440432000|134****2837|20.00|1440432000|186****3455|100.00|1440432000|186****7066|4000.00|1440432000|136****1536|20000.00|1440432000|189****3638|1.00|1440432000|135****3637|20000.00|1440432000|159****5196|20.00|1440432000|131****1503|10.00|1440432000|159****6182|5000.00|1440432000|136****6711|2700.00|1440432000|136****8418|5000.02|1440432000|133****2002|30000.00|1440432000|138****0999|2000.00|1440432000|186****8787|120000.00|1440432000|130****2745|130000.00|1440432000|136****6520|20000.00|1440432000|189****2876|50000.00|1440432000|138****7229|10000.00|1440432000|135****0398|400000.00|1440432000|151****6080|200000.00|1440432000|150****9828|45000.00|1440432000|134****0302|100.00|1440432000|137****2298|10000.00|1440432000|151****2757|1000.00|1440432000|135****0352|30000.00|1440432000|131****1333|5.00|1440432000|133****8410|30000.00|1440432000|135****5669|100000.00|1440432000|139****8679|50000.00|1440432000|137****7132|100.00|1440432000|156****7853|1000.00|1440432000|138****8863|300000.00|1440432000|188****6251|2000.00|1440432000|182****1612|3000.00|1440432000|187****8536|2000.00|1440432000|135****5321|1000.00|1440432000|153****4765|1.00|1440432000|156****8119|20000.00|1440432000|150****7747|3001.00|1440432000|181****8282|10000.00|1440432000|159****0420|1.00|1440432000|177****1228|50000.00|1440432000|139****3341|6000.00|1440432000|151****5981|30160.00|1440432000|139****0036|10000.00|1440432000|159****7215|1.00|1440432000|137****9012|100.00|1440432000|133****7027|100.00|1440432000|150****0155|10000.00|1440432000|182****0346|50.00|1440432000|150****9535|10000.00|1440432000|189****4587|1101.80|1440432000|135****7934|50000.00|1440432000|133****2919|10000.00|1440432000|138****0999|10000.00|1440432000|151****0710|8000.00|1440432000|159****2808|103.41|1440432000|189****9885|66.00|1440432000|150****0338|5026.71|1440432000|133****3788|30000.00|1440432000|158****2368|900.00|1440432000|158****0811|9000.00|1440432000|138****9502|20000.00|1440432000|150****9338|1000.00|1440432000|133****3911|10000.00|1440432000|139****8931|10063.00|1440432000|159****0785|20154.03|1440432000|134****7874|500.00|1440432000|139****3910|5000.00|1440432000|151****7424|2.00|1440432000|131****2595|50000.00|1440432000|189****2056|5000.00|1440432000|159****5374|2000.00|1440432000|188****7328|9000.00|1440432000|189****4708|200.00|1440432000|139****6220|5.00|1440432000|181****9531|400.00|1440432000|152****9375|2000.00|1440432000|158****3507|4000.00|1440432000|150****8559|20000.00|1440432000|139****3093|100000.00|1440432000|138****9041|2000.00|1440432000|189****1935|5000.00|1440432000|137****0333|1000.00|1440432000|139****0279|10000.00|1440432000|189****6268|20000.00|1440432000|139****5397|50000.00|1440432000|139****5397|50000.00|1440432000|139****8764|20.00|1440432000|139****5397|50000.00|1440432000|158****9950|20000.00|1440432000|136****5491|90000.00|1440432000|159****3099|3500.00|1440432000|135****8536|1000.00|1440432000|159****9951|2000.00|1440432000|159****9952|30000.00|1440432000|131****9566|500.00|1440432000|189****3292|66350.97|1440432000|186****1252|20000.00|1440432000|150****1060|20000.00|1440432000|130****0882|5000.00|1440432000|183****7671|127000.00|1440432000|158****4139|1000.00|1440432000|170****7535|2000.00|1440432000|131****3678|16500.00|1440432000|136****5191|60000.00|1440432000|150****5541|3000.00|1440432000|151****3335|1.00|1440432000|189****7683|2200.00|1440432000|186****8498|20000.00|1440432000|157****6028|500.00|1440432000|135****4977|50000.00|1440432000|139****3317|100000.00|1440432000|133****6518|50000.00|1440432000|155****0040|60000.00|1440432000|139****2197|200000.00|1440432000|136****2277|8115.29|1440432000|139****7205|1.00|1440432000|139****4722|20000.00|1440432000|158****1198|500.00|1440432000|186****4776|20000.00|1440432000|138****7390|5000.00|1440432000|138****1269|30000.00|1440432000|186****3037|5000.00|1440432000|158****4673|50000.00|1440432000|137****9294|40712.00|1440432000|139****9329|100.00|1440432000|159****6376|4000.00|1440432000|187****2255|100000.00|1440432000|139****9315|30400.00|1440432000|136****9875|32000.00|1440432000|187****4074|10000.00|1440432000|135****1671|50000.00|1440432000|186****9908|1.00|1440432000|138****1875|6000.00|1440432000|186****1252|20000.00|1440432000|138****7528|100.00|1440432000|158****2550|16000.00|1440432000|137****2383|5000.00|1440432000|134****1288|100.00|1440432000|159****2314|1.00|1440432000|135****3393|5044.00|1440432000|136****3747|10000.00|1440432000|188****4386|5000.00|1440432000|139****3706|10000.00|1440432000|135****1313|10000.00|1440432000|150****0118|20.00|1440432000|138****4800|10100.43|1440432000|136****6767|50000.00|1440432000|135****6383|10000.00|1440432000|156****7776|1.00|1440432000|186****8528|50.00|1440432000|156****4998|50087.00|1440432000|150****0118|2000.00|1440432000|150****9561|2000.00|1440432000|158****3775|200.00|1440432000|139****5166|1.00|1440432000|157****1209|2000.00|1440432000|131****6176|50000.00|1440432000|139****4343|70000.00|1440432000|150****9916|270000.00|1440432000|186****5626|9000.00|1440432000|139****3341|2300.00|1440432000|139****1962|11000.00|1440432000|159****0756|90000.00|1440432000|138****0965|20000.00|1440432000|151****4589|5000.00|1440432000|181****9531|100.00|1440432000|186****8629|10008.00|1440432000|153****2228|1000.00|1440432000|182****6227|20000.00|1440432000|135****1345|150000.00|1440432000|188****3763|10000.00|1440432000|186****5780|5000.00|1440432000|158****5290|1500.00|1440432000|136****8540|10020.00|1440432000|182****6979|312.05|1440432000|152****5633|2000.00|1440432000|180****5770|100.00|1440432000|137****5940|10000.00|1440432000|186****8130|50000.00|1440432000|188****0127|50000.00|1440432000|155****4860|50000.00|1440432000|156****4590|30000.00|1440432000|150****5739|5000.00|1440432000|150****1792|50000.00|1440432000|151****1281|20000.00|1440432000|138****5800|20000.00|1440432000|136****6416|10031.21|1440432000|133****2465|100000.61|1440432000|186****6071|100000.00|1440432000|139****4006|3100.00|1440432000|157****8781|50000.00|1440432000|135****3805|5000.00|1440432000|134****0087|50000.00|1440432000|139****5428|500.00|1440432000|136****5619|10.00|1440432000|136****3184|2000.00|1440432000|135****3683|10000.00|1440432000|135****1738|20000.00|1440432000|131****6917|20.00|1440432000|158****1227|12000.00|1440432000|138****6522|20000.00|1440432000|183****4624|2000.00|1440432000|159****3090|1000.00|1440432000|135****5368|10000.00|1440432000|139****8452|20000.00|1440432000|138****0750|100.00|1440432000|138****5360|100.00|1440432000|135****3652|55000.00|1440432000|139****2854|10000.00|1440432000|151****7998|10000.00|1440432000|134****2966|200000.00|1440432000|130****2888|10000.00|1440432000|138****0940|24000.00|1440432000|158****2032|1000.00|1440432000|158****7468|50000.00|1440432000|152****0359|13000.00|1440432000|158****2866|30000.00|1440432000|139****1705|10000.00|1440432000|139****0645|1000.00|1440432000|135****2214|50000.00|1440432000|136****2041|15062.41|1440432000|136****2660|200.00|1440432000|133****7738|3100.00|1440432000|189****5491|1000.00|1440432000|184****1185|500.00|1440432000|156****4297|30000.00|1440432000|158****7468|100000.00|1440432000|189****7260|40000.00|1440432000|132****8608|10.00|1440432000|150****9561|2000.00|1440432000|180****6333|50.00|1440432000|137****0245|50000.00|1440432000|139****8772|100000.00|1440432000|186****6290|605.00|1440432000|156****0992|20000.00|1440432000|158****2393|50000.00|1440432000|150****0118|10021.60|1440432000|130****4633|20000.00|1440432000|131****0509|3000.00|1440432000|158****8167|10000.00|1440432000|188****5723|10000.00|1440432000|137****9111|200000.00|1440432000|150****2063|6000.00|1440432000|150****8683|500.00|1440432000|138****1456|10000.00|1440432000|187****2844|5000.00|1440432000|180****5529|50004.67|1440432000|159****5242|10000.00|1440432000|135****8030|40000.00|1440432000|152****8196|1.00|1440432000|139****8609|21880.00|1440432000|181****5892|5000.00|1440432000|136****3747|10000.00|1440432000|138****8846|10000.00|1440432000|151****4204|20000.00|1440432000|131****9269|50000.00|1440432000|136****4696|31600.00|1440432000|131****2878|100000.00|1440432000|132****2541|1000.00|1440432000|158****7787|100.00|1440432000|133****8160|1.00|1440432000|138****0546|30000.00|1440432000|131****7115|20124.00|1440432000|132****2299|60000.00|1440432000|158****2859|12000.00|1440432000|130****6219|1500.00|1440432000|188****2027|10.00|1440432000|180****9068|1.00|1440432000|135****9882|32000.00|1440432000|138****9922|1005873.97|1440432000|135****9372|4000.00|1440432000|158****0941|20139.98|1440432000|139****6035|100.00|1440432000|133****8298|1001.00|1440432000|139****9474|5000.00|1440432000|138****8671|300000.00|1440432000|152****0500|20000.00|1440432000|158****3571|10000.00|1440432000|151****9891|11199.00|1440432000|131****1758|50000.00|1440432000|133****9493|15000.00|1440432000|186****7125|100000.00|1440432000|186****0410|44686.55|"
+    print 1111111,countGross(investor,3)
+    _list = [1,2,3,4]
+    _order_list = [1, -1]
+    dict_1 = {1:3,2:1,3:1,4:5}
+    dict_2 = {1:2,2:2,3:2,4:2}
+    print sortListByDicts(_list, [1,-1], dict_1, dict_2)
+    print delTag()

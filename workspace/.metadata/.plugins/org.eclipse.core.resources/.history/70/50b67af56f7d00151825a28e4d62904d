@@ -1,0 +1,229 @@
+#!/use/bin/python
+#coding=utf-8
+
+from atbtools.mysqlTools import *
+from atbtools.header import *
+from atbtools.computeTools import *
+import hashlib
+
+#返回windows文字
+def getWinWord(_str):
+    return _str.decode("UTF-8").encode("GB2312")
+    return _str
+
+#谢博，通过降级策略字符串获得最低等级的降级
+def getLowestDegrade(_str):
+    if _str == None or len(_str) == 0:
+        return None
+    degrade_list = _str.split("##")
+    if len(degrade_list) == 0:
+        return None
+    degrade_set = set()
+    for degrade_info in degrade_list:
+        degrade_set.add(degrade_info.split(": ")[0].replace("#", ""))
+    lowest_grade_index = 0
+    for degrade in degrade_set:
+        index_number = LEVEL_LIST.index(degrade)
+        if index_number > lowest_grade_index:
+            lowest_grade_index = index_number
+    return lowest_grade_index
+if __name__ == "__main__":
+    
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    conn_ddpt_data = getConn(DDPT_DATAHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_ddpt_data = getCursors(conn_ddpt_data)
+    conn_server = getConn(SERVERHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_server = getCursors(conn_server)
+    conn_dev = getConn(DEVHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_dev = getCursors(conn_dev)
+    conn_ddpt_test = getConn(DDPT_TESTHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_ddpt_test = getCursors(conn_ddpt_test)
+    initializeCursors(cur_db, cur_dev, cur_ddpt_test, cur_ddpt_data)
+
+    F = "platform_qualitative_F"
+    Y = "total_status"
+    P = "project_info_clean_whole"
+    view_mobile = "view_mobile"
+    V = "V_view"
+    T = "T_rank"
+    view_cache = "view_cache"
+    
+    
+    print getWinWord("1. 检查在project_info_clean_whole中但不在F表中的site_id...")
+    site_id_list_P = getDifferentFieldlist(P, cur_db, "site_id")
+    site_id_list_F = getDifferentFieldlist(F, cur_db, "platform_id")
+    site_id_list_lack = []
+    for site_id in site_id_list_P:
+        if site_id not in site_id_list_F:
+            site_id_list_lack.append(site_id)
+    site_id_number_lack = len(site_id_list_lack)
+    if site_id_number_lack == 0:
+        print getWinWord("恭喜恭喜")
+    else:
+        print getWinWord("共有" + str(site_id_number_lack) + "个site_id缺失，分别为：")
+        for site_id in site_id_list_lack:
+            print getWinWord(site_id)
+    print 
+    
+    print getWinWord("2. 检查在F表但不在total_status中的platform_name...")
+    platform_name_list_Y = getDifferentFieldlist(Y, cur_db, "platform_name")
+    platform_name_list_F = getDifferentFieldlist(F, cur_db, "platform_name")
+    platform_name_list_lack = []
+    for platform_name in platform_name_list_F:
+        if platform_name not in platform_name_list_Y:
+            platform_name_list_lack.append(platform_name)
+    platform_name_number_lack = len(platform_name_list_lack)
+    if platform_name_number_lack == 0:
+        print getWinWord("恭喜恭喜")
+    else:
+        print getWinWord("共有" + str(platform_name_number_lack) + "个platform_name缺失，分别为：")
+        for platform_name in platform_name_list_lack:
+            print getWinWord(platform_name)
+    print
+    
+    print getWinWord("3. 检查F表中platform_id和website的不一致...")
+    stringSQL = "SELECT `platform_id`, `website` FROM platform_qualitative_F WHERE `website` NOT LIKE CONCAT('%', `platform_id` ,'%')"
+    ret = cur_db.execute(stringSQL)
+    if ret == 0:
+        print getWinWord("恭喜恭喜")
+    else:
+        print getWinWord("共有" + str(ret) + "个platform_name不合格，分别为：")
+        for platform_id, website in cur_db.fetchall():
+            print getWinWord(platform_id + ":  " + website)
+    print
+    
+            
+    print getWinWord("4. 检查F表中的platform_name中文名是否有回车...")
+    stringSQL = "SELECT `platform_name` FROM " + F + ' WHERE `platform_name` like "%\\n%"'
+    ret = cur_db.execute(stringSQL)
+    if ret == 0:
+        print getWinWord("恭喜恭喜")
+    else:
+        print getWinWord("共有" + str(ret) + "个platform_name不合格，分别为：")
+        for platform_name in cur_db.fetchall():
+            print getWinWord(platform_name[0])
+    print
+            
+    print getWinWord("5. 检查total_status表中的platform_name中文名是否有回车...")
+    stringSQL = "SELECT `platform_name` FROM " + Y + ' WHERE `platform_name` like "%\\n%"'
+    ret = cur_db.execute(stringSQL)
+    if ret == 0:
+        print getWinWord("恭喜恭喜")
+    else:
+        print getWinWord("共有" + str(ret) + "个platform_name不合格，分别为：")
+        for platform_name in cur_db.fetchall():
+            print getWinWord(platform_name[0])
+    print
+            
+    print getWinWord("6. 检查total_status表中的platform_name和platform_id是否一致...")
+    stringSQL = "SELECT `platform_name`, `platform_id` FROM " + Y
+    ret = cur_db.execute(stringSQL)
+    platform_id_list_error = []
+    for platform_name, platform_id in cur_db.fetchall():
+        if platform_id != hashlib.md5(platform_name).hexdigest()[0:10]:
+            platform_id_list_error.append(platform_name)
+    platform_id_number_error = len(platform_id_list_error)
+    if platform_id_number_error == 0:
+        print getWinWord("恭喜恭喜")
+    else:
+        print getWinWord("共有" + str(platform_id_number_error) + "个platform_id出错，分别为：")
+        for platform_name in platform_id_list_error:
+            print getWinWord(platform_name)
+    print
+    
+    
+    print getWinWord("7. 检查view_mobile和view_cache中的level是否一致...")
+    stringSQL = "SELECT A.platform_name, A.`level`, B.`level` FROM " + view_mobile + " AS A,(SELECT platform_name, `level` FROM " + view_cache + ") AS B WHERE A.platform_name = B.platform_name AND A.`level` != B.`level`"
+    ret = cur_server.execute(stringSQL)
+    if ret == 0:
+        print getWinWord("恭喜恭喜")
+    else:
+        print getWinWord("共有" + str(ret) + "个platform_name不合格，分别为：")
+        for platform_name, view_mobile_level, view_cache_level in cur_server.fetchall():
+            print getWinWord(platform_name + "在" + view_mobile + "中是" + view_mobile_level + ", 但在" + view_cache + "中是" + view_cache_level)
+    print
+    
+    print getWinWord("8. 检查total_status中status<0.89但目前仍有数据的站...")
+    this_date = max(getDifferentFieldlist(view_mobile, cur_dev, "date"))
+    stringSQL = "SELECT DISTINCT `platform_name` FROM " + view_mobile + " WHERE `date` = '" + str(this_date) + "' AND `old_date` IS NULL AND `score` < '-400'"
+    ret = cur_dev.execute(stringSQL)
+    if ret == 0:
+        print getWinWord("恭喜恭喜")
+    else:
+        print getWinWord("共有" + str(ret) + "个platform_name，分别为：")
+        for platform_name in cur_dev.fetchall():
+            print getWinWord(platform_name[0] + "在贷出去网站中有本周数据，但在total_status中标记为坏站.")
+    print
+    
+    print getWinWord("9. 检查V_view中是否降级策略都正确")
+    this_date = max(getDifferentFieldlist(V, cur_ddpt_data, "date"))
+    stringSQL = "SELECT `platform_name`, `downgrading_info`, `level_after_degrade` FROM " + V + " WHERE `date` = '" + str(this_date) + "'"
+    ret = cur_ddpt_data.execute(stringSQL)
+    if ret == 0:
+        print getWinWord("恭喜恭喜")
+    else:
+        count = 0
+        for platform_name, downgrading_info, level_after_degrade in cur_ddpt_data.fetchall():
+            level_after_1 = LEVEL_LIST.index(level_after_degrade) - 1
+            level_after_2 = getLowestDegrade(downgrading_info)
+            if level_after_2 != None and level_after_1 != level_after_2:
+                count += 1
+                print getWinWord(platform_name + "的降级策略有误，降级策略为" + downgrading_info + ", 但是最终级别为" +  level_after_degrade + ".")
+                print platform_name + "的降级策略有误，降级策略为" + downgrading_info + ", 但是最终级别为" +  level_after_degrade + "."
+        if count == 0:
+            print getWinWord("恭喜恭喜")
+    print
+    
+    print getWinWord("10. 检查V_view中的排名和等级是否一致")
+    this_date = max(getDifferentFieldlist(V, cur_ddpt_data, "date"))
+    stringSQL = "SELECT `level`, `score`, `rank_score` FROM " + V + " WHERE `date` = '" + str(this_date) + "' ORDER BY `rank_score` ASC"
+    cur_ddpt_data.execute(stringSQL)
+    level_score_rank_list = []
+    for level, score, rank_score in cur_ddpt_data.fetchall():
+        level_score_rank_list.append([level, score, rank_score])
+    level_score_rank_list_number = len(level_score_rank_list)
+    count = 0
+    for i in range(1, level_score_rank_list_number):
+        level_this = LEVEL_LIST.index(level_score_rank_list[i][0])
+        level_last = LEVEL_LIST.index(level_score_rank_list[i - 1][0])
+        score_this = level_score_rank_list[i][1]
+        score_last = level_score_rank_list[i - 1][1]
+        rank_this = level_score_rank_list[i][2]
+        rank_last = level_score_rank_list[i - 1][2]
+        if level_this > level_last or score_this <= score_last or rank_this >= rank_last:
+            count += 1
+            print level_this, level_last, score_this, score_last, rank_this, rank_last
+            print getWinWord(V + "表的排名和等级不符合，请务必检查.")
+    if count == 0:
+        print getWinWord("恭喜恭喜")
+    print
+    
+    print getWinWord("11. 检查view_mobile中的排名和等级是否一致")
+    stringSQL = "SELECT `level`, `score`, `rank_score` FROM " + view_mobile + " ORDER BY `rank_score` ASC"
+    cur_dev.execute(stringSQL)
+    level_score_rank_list = []
+    for level, score, rank_score in cur_dev.fetchall():
+        level_score_rank_list.append([level, score, rank_score])
+    level_score_rank_list_number = len(level_score_rank_list)
+    count = 0
+    for i in range(1, level_score_rank_list_number):
+        level_this = LEVEL_LIST.index(level_score_rank_list[i][0])
+        level_last = LEVEL_LIST.index(level_score_rank_list[i - 1][0])
+        score_this = level_score_rank_list[i][1]
+        score_last = level_score_rank_list[i - 1][1]
+        rank_this = level_score_rank_list[i][2]
+        rank_last = level_score_rank_list[i - 1][2]
+        if level_this > level_last or score_this <= score_last or rank_this >= rank_last:
+            count += 1
+            print getWinWord(view_mobile + "表的排名和等级不符合，请务必检查.")
+    if count == 0:
+        print getWinWord("恭喜恭喜")
+    print
+    
+    closeCursors(cur_db, cur_dev, cur_ddpt_test, cur_ddpt_data, cur_server)
+    closeConns(conn_db, conn_dev, conn_ddpt_test, conn_ddpt_data, conn_server)
+    
+    content = raw_input(getWinWord("按任回车键退出..."))
+    if (content != ""):
+        exit(0)

@@ -1,0 +1,141 @@
+#!/usr/bin/python
+#encoding=utf-8
+
+import time
+import random
+import hashlib
+import sys
+import MySQLdb
+import json
+import os
+import redis
+import json
+#import CPlatform
+#import CStatis
+import numpy as np
+from math import log
+from utils import *
+
+#数据库配置
+PORT=3306
+USERNAME="chengxu"
+PASSWORD="chengxu.gbh"
+DBNAME="antoubao"
+
+# #数据源配置
+# DSHOST="db-x1.antoubao.cn"
+# DSCONN=MySQLdb.connect(host=DSHOST, user=USERNAME, passwd=PASSWORD, db=DBNAME, port=PORT)
+# DSCUR=DSCONN.cursor()
+# DSCUR.execute("SET NAMES 'UTF8'")
+# DSCUR.execute("SET CHARACTER SET UTF8")
+# DSCUR.execute("SET CHARACTER_SET_RESULTS=UTF8")
+# DSCUR.execute("SET CHARACTER_SET_CONNECTION=UTF8")
+
+#分析库配置
+DATAHOST="ddpt-test.antoubao.cn"
+DATACONN=MySQLdb.connect(host=DATAHOST, user=USERNAME, passwd=PASSWORD, db=DBNAME, port=PORT)
+DATACUR=DATACONN.cursor()
+DATACUR.execute("SET NAMES 'UTF8'")
+DATACUR.execute("SET CHARACTER SET UTF8")
+DATACUR.execute("SET CHARACTER_SET_RESULTS=UTF8")
+DATACUR.execute("SET CHARACTER_SET_CONNECTION=UTF8")
+
+# #分析库配置
+# DEVHOST="dev-x1.antoubao.cn"
+# DEVCONN=MySQLdb.connect(host=DEVHOST, user=USERNAME, passwd=PASSWORD, db=DBNAME, port=PORT)
+# DEVCUR=DEVCONN.cursor()
+# DEVCUR.execute("SET NAMES 'UTF8'")
+# DEVCUR.execute("SET CHARACTER SET UTF8")
+# DEVCUR.execute("SET CHARACTER_SET_RESULTS=UTF8")
+# DEVCUR.execute("SET CHARACTER_SET_CONNECTION=UTF8")
+
+#分析库配置
+TYPES = {"1SIG": "I_statis_1sigma", \
+        "2SIG": "J_statis_2sigma", \
+        "3SIG": "K_statis_3sigma", \
+        "MIN": "L_statis_MIN", \
+        "MAX": "M_statis_MAX", \
+        "AVE": "N_statis_AVE", \
+        "VAR": "O_statis_VAR", \
+        "TOP20": "N1_statis_TOP20AVE"}
+
+'''
+#测试库配置
+TESTHOST="ddpt-test.antoubao.cn"
+TESTPWD="4njMOzOjli"
+TESTCONN=MySQLdb.connect(host=TESTHOST, user=USERNAME, passwd=TESTPWD, db=DBNAME, port=PORT)
+TESTCUR=TESTCONN.cursor()
+TESTCUR.execute("SET NAMES 'UTF8'")
+TESTCUR.execute("SET CHARACTER SET UTF8")
+TESTCUR.execute("SET CHARACTER_SET_RESULTS=UTF8")
+TESTCUR.execute("SET CHARACTER_SET_CONNECTION=UTF8")
+'''
+
+#Redis配置
+REDISHOST="127.0.0.1"
+REDISPORT=6379
+REDISPWD="HpH5S6mZet"
+#定量表
+dbQUANTI=0
+#定性表
+dbQUALIT=1
+#状态表
+dbSTATUS=2
+#统计表
+dbSTATIS=3
+#定量分数表
+dbQUASCO=4
+#分数表
+dbSCORED=5
+#惩罚表
+dbPUNISH=6
+#平滑表
+dbSMOOTH=7
+#降级表
+dbRAKPUN=8
+#汇总表
+dbRESULT=9
+#报告表
+dbREPORT=10
+rQUANTI = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbQUANTI)
+rQUALIT = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbQUALIT)
+rSTATUS = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbSTATUS)
+rSTATIS = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbSTATIS)
+rQUASCO = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbQUASCO)
+rSCORED = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbSCORED)
+rPUNISH = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbPUNISH)
+rSMOOTH = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbSMOOTH)
+rRAKPUN = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbRAKPUN)
+rRESULT = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbRESULT)
+rREPORT = redis.Redis(host=REDISHOST, port=REDISPORT, db=dbREPORT)
+TABLE = {dbQUANTI: "0_E2_quantitative_data", \
+        dbQUALIT: "1_platform_qualitative_F", \
+        dbSTATUS: "2_total_status", \
+        dbQUASCO: "4_E3_quantitative_score", \
+        dbSCORED: "5_H_score", \
+        dbPUNISH: "6_P_punishment", \
+        dbSMOOTH: "7_S_smooth", \
+        dbRAKPUN: "8_T_rank", \
+        dbRESULT: "9_V_view", \
+        dbREPORT: "E2_quantitative_data_report"}
+
+#数据起始日期
+STARTDATE=1422720000
+#分数起始日期
+SCOREDATE=STARTDATE+(4*7*24*3600)
+#级别汇总及高低定义
+LEVEL_LIST = ["A++", "A+", "A", "B++", "B+", "B", "C"]
+#惩罚系数
+W = 0.844
+
+#字段过滤项
+INVALID_TITLE = ["platform_id", "platform_name", "black", "date", "in_and_out", "status", "source", "score_initial", "level", "level_initial", "punishment_info", "punishment", "hehepunishment", "score_after_punishment", "level_after_punishment", "smooth_info", "score_after_smooth", "level_after_smooth", "downgrading_info", "score_after_degrade", "level_after_degrade", "degrade_smooth_info", "level_lock", "none_downgrading_info"]
+QUALIT_TITLE = ['customer_service', 'third_assurance', 'technical_security', 'debt_transfer', 'third_entrust', 'overdue_transparency', 'financial_transparency', 'borrower_transparency', 'PR_transparency2', 'real_name']
+
+#呵呵惩罚系数，负数为加分。红岭创投、爱投资、e租宝
+#hehePunish = {'898b7ab68e':7, '9191dff111':2.5, 'c38f13eb81':5.55, '05f75f9e85':16.5, '860caca812':8, 'f75d96fcde':-6.5, '4de3888a61':-5.5, 'f9a34d4237':5, '988e0d4d9d':4.5}
+hehePunish = {'898b7ab68e':7, '9191dff111':2.5, 'c38f13eb81':5.55, '05f75f9e85':16.5, '860caca812':8, 'f75d96fcde':-6.5, '4de3888a61':-5.5, '988e0d4d9d':4.5}
+#呵呵黑名单，米牛网、658金融城、金联储、金融工场、小企业e家
+BLACKLIST = ['209c2758e2', 'fad64286c7', '5041ece6c3', 'ce9a5d5ff6', 'b6a08f5df6']
+#各个级别的百分比
+LEVEL_PERCENTAGE_DICT = {"A++":98, "A+":81.3, "A":55, "B++":46.5, "B+":20.1987, "B":5.9}

@@ -1,0 +1,80 @@
+-- VERSION_4
+-- START DISKCACHE_2
+C:\Java\workspace\.metadata\.plugins\org.eclipse.core.resources\.projects\index\com.python.pydev.analysis\v2_indexcache
+calculateHistoryIndex|1441615857210166000|C:\Java\workspace\index\src\calculateHistoryIndex.py
+filtrateList|1443604301135915000|C:\Java\workspace\index\src\filtrateList.py
+f_LinearInsert|1441615872852061000|C:\Java\workspace\index\src\f_LinearInsert.py
+getWaitingList|1446189971669399000|C:\Java\workspace\index\src\getWaitingList.py
+drawPictures|1441615867095732000|C:\Java\workspace\index\src\drawPictures.py
+calculateIndex|1443604025707161000|C:\Java\workspace\index\src\calculateIndex.py
+-- END DISKCACHE
+-- START DICTIONARY
+6
+3=calculateHistoryIndex
+5=filtrateList
+1=f_LinearInsert
+4=getWaitingList
+6=drawPictures
+2=calculateIndex
+-- END DICTIONARY
+-- START TREE 1
+55
+_da|5|_date!11@_date!19@_date!27@_date_fake!35@_date!35@
+_di|1|_dict!19@
+_en|6|_end_time!43@_end_time!51@_end_time!11@_end_time!35@_end_time!19@_end_time!27@
+_fi|7|_field_list!19@_field_list!43@_field_list_additive!19@_fields_number_add!43@_fields_number!43@_field_list_nonadditive!19@_fields_list_add!43@
+_nu|2|_number!35@_number!43@
+_st|6|_start_time!11@_start_time!19@_start_time!35@_start_time!27@_start_time!51@_start_time!43@
+_ti|1|_title!51@
+_va|1|_value!43@
+a_3|1|A_300!19@
+a_l|2|A_level_dict!19@A_level_dict_test!19@
+a_w|1|A_weekly_outstanding_loan!19@
+alp|2|alpha!19@alpha_list!19@
+ave|1|average_interest_rate_level_list!27@
+b_3|2|B_300!19@B_300!27@
+b_b|2|B_bad_list!27@B_bad!19@
+bad|15|bad_platform_number_history!43@bad_platform_nothavingdata_number!43@bad_platform_dict_nothavingdata!43@bad_platform_dict_havingdata!43@bad_platform_list_new!43@bad_platform_list!43@bad_platform_number!35@bad_platform_number!43@bad_platform_list!35@bad_platform_havingdata_number!43@bad_number_data!19@bad_number_nondata!19@bad_platform_havingdata_list!43@bad_platform_list_history!43@bad_platform_nothavingdata_list!43@
+bb_|2|BB_weekly_outstanding_loan!19@BB_level_dict!19@
+bet|1|beta!19@
+bw_|3|BW_level_dict!19@BW_weekly_outstanding_loan!19@BW_level_dict_test!19@
+con|8|conn_dev!43@conn_db!43@conn_dev!19@conn_dev!35@conn_dev!11@conn_db!35@conn_dev!27@conn_dev!51@
+cur|7|cur_dev!51@cur_db!35@cur_dev!19@cur_dev!43@cur_dev!27@cur_dev!11@cur_dev!35@
+dat|22|data_index_max!11@date_real_list!11@date_min!11@date_list!51@date_number!11@date_max!11@date_list!19@data_index_min!11@date_real_number!11@date_list!27@date_list!35@date_list_E1!43@date_number!19@date_list_E1!35@date_number!51@date_list!11@date_number!43@date_waiting!43@date_list_waiting!43@date_number!35@date_number!27@date_list_fake!35@
+del|1|del_list!11@
+end|1|end_date!27@
+fie|15|fields_list!43@field_number!11@field2!27@field_number!19@field_index_dict!19@field_name_dict!19@field_dict!51@field_list_temp!11@field_list!35@field_list!51@field_index_dict!11@field_list!11@field_number!51@field_index_list!19@field1!27@
+goo|8|good_platform_dict!35@good_platform_sorted_list!43@good_number!19@good_platform_list_del!35@good_platform_weeks_dict!43@good_data_number!19@good_platform_list!35@good_platform_list_sorted!35@
+ign|2|ignore_list!11@ignore_list_index!11@
+int|1|interest_rate_level_list!27@
+isr|3|isreset!19@isreset!43@isreset!35@
+isv|1|isValid!43@
+k|2|k!27@k!19@
+k_l|1|k_list!19@
+key|2|key_value_list!43@key_value_str!27@
+kv|2|kv!27@kv!19@
+las|1|last_weeks!43@
+lev|5|level_dict!19@level!19@level_list!27@level_number_dict!19@level_list!19@
+max|2|max_date_E1!35@max_date_E1_fake!35@
+min|2|min_date_E1_fake!35@min_date_E1!35@
+mon|1|money_loss_ratio_history_origin!27@
+not|4|notvalid_normal_platform_list!43@notvalid_normal_platform_number!43@notvalid_best_platform_number!43@notvalid_best_platform_list!43@
+pic|1|picture_name!51@
+pla|7|platform_id!43@platform_list!35@platform_name_list_good!43@platform_name!43@platform_score_dict!43@platform_name_list_havingdata!43@platform_id!35@
+ran|5|rank_score!43@rank_score!19@rank!35@rank_value!19@rank!43@
+res|1|result!43@
+ret|3|rets!11@rets!19@ret!43@
+sou|3|source!35@source!19@source!43@
+src|14|SRCDB_Y!35@SRCDB_INDEX!27@SRCDB_E1!35@SRCDB_INDEX_TARGET!19@SRCDB_INDEX!11@SRCDB_E1!43@SRCDB_INDEX!19@SRCDB_INDEX_WAITING!35@SRCDB_INDEX!51@SRCDB_INDEX_TARGET!27@SRCDB_INDEX_WAITING!43@SRCDB_T!43@SRCDB_INDEX_TARGET!43@SRCDB_Y!43@
+sta|5|start!35@start!43@start!19@status!19@status!43@
+str|6|stringSQL!19@stringSQL!43@stringSQL!51@stringSQL!11@stringSQL!27@stringSQL!35@
+tot|3|total_value_list!19@total_value_dict!19@total_level_dict!19@
+v_l|1|v_list!19@
+val|11|value_list!35@value_dict!19@value_list!19@value_new!43@value_format!35@value_list!11@value_format!19@value_format!43@value_format!11@value!43@value_list!43@
+wai|1|waiting_list_number!43@
+wee|1|weekly_lending_300!19@
+wei|1|weight!19@
+-- END TREE
+-- START TREE 2
+0
+-- END TREE

@@ -1,0 +1,618 @@
+#!/usr/bin/python
+#encoding=utf-8
+
+from math import log
+from header import *
+import  xml.dom.minidom
+
+#找到节点的子节点
+def findChildrenNodes(_node):
+    children_nodes = []
+    for child in _node.childNodes:
+        if "#text" != child.nodeName:
+            children_nodes.append(child)
+    return children_nodes
+
+#找到节点的兄弟节点
+def findSiblingNodes(_node):
+    Sibling_nodes = []
+    parent_node = _node.parentNode
+    for child in parent_node.childNodes:
+        if "#text" != child.nodeName and child != _node:
+            Sibling_nodes.append(child)
+    return Sibling_nodes
+
+# 返回一个字典内所有value的值的和（如果值是一个列表的话，则应该指定所求元素的位置）
+def getColumnSum(tempDiction, columnIndex=0):
+    values = tempDiction.values()
+    firstvalue = values[0]
+    if type(firstvalue) in [int, float]:
+        return sum(tempDiction.values())
+    total = 0 
+    for value in values:
+        total += value[columnIndex]
+    return total
+
+#检查一个字典的值和是否为1
+def checkGradeIndex(grade_dict_initial):
+    total = getColumnSum(grade_dict_initial, 0)
+    if abs(total - 1.0) > 1e-10:
+        print str(total) + "(!= 1): something wrong with the first_level_node."
+        return False
+    return True
+
+#将1、2级的指标组装为完整的初始权重字典
+def assembledGradeSmall(total_grade_list,first_grade_list):
+    weight_dict = {}
+    for weight in first_grade_list:
+        first_ratio = first_grade_list[weight][1]
+        zero_ratio = total_grade_list[first_grade_list[weight][0]][1]
+        weight_dict[weight] = first_ratio * zero_ratio
+    return weight_dict
+
+#房璜标准化
+def score_transfer(_dict, q):
+    dict_result = {}
+    for (key,_List) in _dict.items():
+        if key == "platform_id":
+            continue
+        quantile = np.percentile(_List,q)
+        maxvalue = None
+        minvalue = 100
+        for i in range(len(_List)):
+            if _List[i] >= quantile:
+                maxvalue = max(maxvalue,_List[i])
+                minvalue = min(minvalue,_List[i])
+        for i in range(len(_List)):
+            if(_List[i] <= maxvalue and _List[i] > minvalue):
+                _List[i] = (_List[i]-minvalue+0.0)/(maxvalue-minvalue)*75
+            elif(_List[i] <= minvalue):
+                _List[i] = 0.5 + random.random()
+        dict_result[key] = _List
+    return(dict_result)
+
+#从MySQL读取所有数据，按照字段名存入词典，再放入数组。
+def fromMySQLToArray(cur, tablename, condition=""):
+    #获取表所有字段名
+    arrKeys = []
+    stringSQL = "SHOW FULL COLUMNS FROM "+tablename
+    cur.execute(stringSQL)
+    for col in cur.fetchall():
+        if col[0] != "id":
+            arrKeys.append(col[0])
+    #将表的内容更新到Redis中
+    d = []
+    stringSQL = "SELECT `"+"`,`".join(arrKeys)+"` FROM "+tablename+" "+condition
+    cur.execute(stringSQL)
+    for _list in cur.fetchall():
+        v = {}
+        for i in range(0, len(_list)):
+            v[arrKeys[i]] = _list[i]
+        d.append(v)
+    return d
+
+def fromHashToMySQL(cur, conn, table, d):
+    k = []
+    v = []
+    for key,value in d.items():
+        if type(key) is unicode:
+            k.append(key.encode('utf-8'))
+        else:
+            k.append(key)
+        if type(value) is unicode:
+            v.append(value.encode('utf-8'))
+        else:
+            v.append(str(value))
+    stringSQL = "INSERT INTO "+table+"(`"+"`,`".join(k)+"`) VALUES('"+"','".join(v)+"')"
+    cur.execute(stringSQL)
+    conn.commit()
+
+#将词典写入Redis
+def fromDictToRedis(obj, key, value):
+    obj.set(key, json.dumps(value))
+    return obj.exists(key)
+
+#将哈希表写入Redis
+def fromHashToRedis(obj, jsonDict, key, field, values=""):
+    tmp = {}
+    if values != "":
+        if '|' in values:
+            for k in values.split('|'):
+                tmp[k] = jsonDict[k]
+        else:
+            tmp = jsonDict[values]
+    else:
+        tmp = jsonDict
+    obj.hset(jsonDict[key], jsonDict[field], json.dumps(tmp))
+    return obj.hexists(jsonDict[key], jsonDict[field])
+
+def setTop20Ave(r, scoreRange, quanti, INVALID_TITLE):
+    #计算分数top20的定量平均值
+    scoreDict = {}
+    for timestamp in scoreRange.keys():
+        #找出指定日期下的分数前20网站的ID
+        scoreDict[timestamp] = []
+        for k in sorted(scoreRange[timestamp].keys(), reverse=True):
+            scoreDict[timestamp].append(scoreRange[timestamp][k])
+            if len(scoreDict[timestamp]) == 20:
+                break
+    d = {}
+    d['type'] = 'TOP20'
+    top20ave = {}
+    top20value = {}
+    for timestamp in scoreDict.keys():
+        d['date'] = timestamp
+        #计算指定日期下指定20个网站的所有属性之和
+        for platid in scoreDict[timestamp]:
+            for key in quanti[platid][timestamp].keys():
+                if key in INVALID_TITLE:
+                    continue
+                if key not in top20value.keys():
+                    top20value[key] = []
+                if quanti[platid][timestamp][key] is None:
+                    continue
+                top20value[key].append(quanti[platid][timestamp][key])
+        #计算指定日期下所有属性的平均值
+        for key in top20value.keys():
+            top20ave[key] = np.mean(top20value[key])
+        d['value'] = top20ave
+        fromHashToRedis(r, d, 'type', 'date', 'value')
+
+#统计表读取
+def readStatis(obj, date=None):
+    statis = {}
+    if date is None:
+        for t in obj.keys():
+            for timestamp in obj.hkeys(t):
+                if timestamp not in statis.keys():
+                    statis[timestamp] = {}
+                statis[timestamp][t] = json.loads(obj.hget(t, timestamp))
+    else:
+        for t in obj.keys():
+            if obj.hexists(t, date) != 0:
+                statis[t] = json.loads(obj.hget(t, date))
+    return statis
+
+#状态表读取
+def readStatus(obj, date=None):
+    status = {}
+    for platid in obj.keys():
+        if platid not in status.keys():
+            status[platid] = {}
+        for timestamp in sorted(obj.hkeys(platid)):
+            if date is None:
+                status[platid][timestamp] = obj.hget(platid, timestamp)
+            else:
+                if timestamp < date:
+                    continue
+                status[platid] = obj.hget(platid, timestamp)
+                break
+    return status
+
+#定量数值表读取
+def readQuanti(obj, date=None):
+    quanti = {}
+    for platid in obj.keys():
+        if platid not in quanti.keys():
+            quanti[platid] = {}
+        if date is None:
+            for timestamp in obj.hkeys(platid):
+                quanti[platid][timestamp] = json.loads(obj.hget(platid, timestamp))
+        else:
+            quanti[platid] = json.loads(obj.hget(platid, date))
+    return quanti
+
+#定量分数表读取
+def readQuasco(obj, date=None):
+    quasco = {}
+    for platid in obj.keys():
+        if platid not in quasco.keys():
+            quasco[platid] = {}
+        if date is None:
+            for timestamp in obj.hkeys(platid):
+                quasco[platid][timestamp] = json.loads(obj.hget(platid, timestamp))
+        else:
+            quasco[platid] = json.loads(obj.hget(platid, date))
+    return quasco
+
+#定性表读取
+def readQualit(obj):
+    qualit = {}
+    for platid in obj.keys():
+        qualit[platid] = json.loads(obj.get(platid))
+    return qualit
+
+#总分读取
+def readScored(obj, date=None):
+    scored = {}
+    scoreRange = {}
+    for platid in obj.keys():
+        if platid not in scored.keys():
+            scored[platid] = {}
+        for timestamp in obj.hkeys(platid):
+            jsonDict = json.loads(obj.hget(platid, timestamp))
+            if timestamp not in scoreRange.keys():
+                scoreRange[timestamp] = {}
+            scoreRange[timestamp][jsonDict['score']] = platid
+            if date is None:
+                scored[platid][timestamp] = jsonDict
+            else:
+                if timestamp == date:
+                    scored[platid] = jsonDict
+    if date is None:
+        return scored, scoreRange
+    else:
+        return scored, scoreRange[date]
+
+#级别读取
+def readRank(obj, date=None):
+    rank = {}
+    for platid in obj.keys():
+        if platid not in rank.keys():
+            rank[platid] = {}
+        if date is None:
+            for timestamp in obj.hkeys(platid):
+                rank[platid][timestamp] = json.loads(obj.hget(platid, timestamp))
+        else:
+            rank[platid] = json.loads(obj.hget(platid, date))
+    return rank
+
+def punishment(scored, scope, w, info):
+    scored['capital_adequacy_ratio'] -= scope/w
+    scored['activeness_credibility'] -= scope/w
+    scored['distribution'] -= scope/w
+    scored['mobility'] -= scope/w
+    scored['security'] -= scope/w
+    scored['punishment'] += scope
+    scored['punishment_info'] += info
+    return scored
+
+def simplePunish(quanti, qualit, scored, top20ave, w):
+    if 'punishment' not in scored.keys():
+        scored['punishment'] = 0
+    if 'punishment_info' not in scored.keys():
+        scored['punishment_info'] = ""
+    #定量数据惩罚
+    if quanti['weekly_total_investor'] < 100:
+        scored = punishment(scored, 2, w, '#PU011#')
+    if quanti['ave_annualized_return'] > 23.45:
+        scored = punishment(scored, 5, w, '#PU021#')
+    elif quanti['ave_annualized_return'] > 18.5:
+        scored = punishment(scored, 2, w, '#PU022#')
+    if quanti['top5_ratio_loan'] > 0.5:
+        scored = punishment(scored, 5, w, '#PU031#')
+    elif quanti['top5_ratio_loan'] > 0.3:
+        scored = punishment(scored, 2, w, '#PU032#')
+    if quanti['top10_ratio_loan'] > 0.5:
+        scored = punishment(scored, 2, w, '#PU041#')
+    if quanti['not_returned_yet'] < 0.667:
+        scored = punishment(scored, 5, w, '#PU051#')
+    elif quanti['not_returned_yet'] < 1:
+        scored = punishment(scored, 3, w, '#PU052#')
+    if quanti['weekly_ratio_new_old'] > 5:
+        scored = punishment(scored, 5, w, '#PU061#')
+    elif quanti['weekly_ratio_new_old'] > 1:
+        scored = punishment(scored, 2, w, '#PU062#')
+    #TOP20均值比较惩罚
+    if quanti['weekly_ratio_new_old'] > top20ave['weekly_ratio_new_old']*10:
+        scored = punishment(scored, 5, w, '#TOP011#')
+    elif quanti['weekly_ratio_new_old'] > top20ave['weekly_ratio_new_old']*3:
+        scored = punishment(scored, 2, w, '#TOP012#')
+    if quanti['weekly_ave_lending_per_borrower'] > top20ave['weekly_ave_lending_per_borrower']*45:
+        scored = punishment(scored, 10, w, '#TOP021#')
+    elif quanti['weekly_ave_lending_per_borrower'] > top20ave['weekly_ave_lending_per_borrower']*18:
+        scored = punishment(scored, 2, w, '#TOP022#')
+    if quanti['weekly_ave_investment'] > top20ave['weekly_ave_investment']*20:
+        scored = punishment(scored, 5, w, '#TOP031#')
+    elif quanti['weekly_ave_investment'] > top20ave['weekly_ave_investment']*7:
+        scored = punishment(scored, 2, w, '#TOP032#')
+    #定性数据惩罚
+    if qualit['third_entrust'] < 0.51 and qualit['third_entrust'] > 0.49:
+        scored['punishment_info'] += '#PU091#'
+    elif qualit['third_entrust'] == 0:
+        scored['punishment_info'] += '#PU092#'
+    if qualit['real_name'] < 0.7:
+        scored['distribution'] -= 2/w
+        scored['mobility'] -= 2/w
+        scored['security'] -= 2/w
+        scored['punishment'] += 2
+        scored['punishment_info'] += '#PU101#'
+    if qualit['compensation'] < 0.5:
+        scored = punishment(scored, 5, w, '#PU111#')
+    elif qualit['compensation'] < 0.8:
+        scored = punishment(scored, 2, w, '#PU112#')
+    return scored
+
+#这是什么鬼
+def cal_change(v1,v2):
+    if v2 == 0:
+        return None
+    else:
+        return (v1-v2+0.0)/v2
+
+def cal_change_list(_list):
+    tmp = []
+    for i in range(len(_list)-1):
+        tmp.append(cal_change(_list[i],_list[i+1]))
+    _sum = 0.0
+    n = 0
+    for i in range(len(tmp)):
+        if tmp[i] == None:
+            continue
+        else:
+            _sum += tmp[i]
+            n = n+1
+    if n==0:
+        return None
+    else:
+        return _sum/n
+
+#纵向惩罚
+def linePunish(scored, quanti, platid, timestamp, w, INVALID_TITLE):
+    quantiList = {}
+    for t in sorted(quanti[platid].keys(), reverse=True):
+        if t >= timestamp:
+            continue
+        for key in quanti[platid][t].keys():
+            if key in INVALID_TITLE:
+                continue
+            if key not in quantiList.keys():
+                quantiList[key] = []
+            quantiList[key].append(quanti[platid][t][key])
+        if len(quantiList[quantiList.keys()[0]]) >= 4:
+            break
+    if len(quantiList.keys()) == 0:
+        return scored
+
+    if np.sum(quantiList['cash_flow_in']) < -1:
+        scored = punishment(scored, 5, w, '#PU121#')
+    elif np.sum(quantiList['cash_flow_in']) < -0.5:
+        scored = punishment(scored, 2, w, '#PU122#')
+    nry_change = cal_change_list(quantiList['not_returned_yet'])
+    if nry_change != None and nry_change < 0 and quanti[platid][timestamp]['not_returned_yet'] < 1:
+        scored = punishment(scored, 10, w, '#PU131#')
+    return scored
+
+def foo1(_min, _val, _max):
+    _min = _min*0.999
+    _max = _max*1.001
+    if (_val == 0):
+        return 0
+    _min = (_min <= 0 and 1) or _min
+    _max = (_max <= 0 and 1) or _max
+    _val = (_val < _min and _min) or _val
+    _val = (_val > _max and _max) or _val
+    if (_val <= 0) or ((_max == 1) and (_min == 1)):
+        return 0
+    return (log(_val)-log(_min))/(log(_max)-log(_min))*100
+
+def foo2(_min, _val, _max):
+    _min = _min*0.999
+    _max = _max*1.001
+    if (_val == 0):
+        return 0
+    _min = (_min <= 0 and 1) or _min
+    _max = (_max <= 0 and 1) or _max
+    _val = (_val < _min and _min) or _val
+    _val = (_val > _max and _max) or _val
+    _val = (_val == 0 and _max) or _val
+    if (_max == 1) and (_min == 1):
+        return 0
+    return abs((log(_max)-log(_val))/(log(_max)-log(_min)))*100
+
+def foo3(_min, _val, _max, _avg):
+    _min = _min*0.999
+    _max = _max*1.001
+    _val = (_val < _min and _min) or _val
+    _val = (_val > _max and _max) or _val
+    _min = (_min <= 0 and 1) or _min
+    _max = (_max <= 0 and 1) or _max
+    _avg = (_avg <= 0 and 1) or _avg
+    _val = (_val < _min and _min) or _val
+    _val = (_val > _max and _max) or _val
+    if _avg == _min or _avg == _max or _val == 0:
+        return 0
+    if _val < _avg:
+        _val = abs((log(_min)-log(_val))/(log(_min)-log(_avg)))
+    else:
+        _val = abs((log(_val)-log(_max))/(log(_avg)-log(_max)))
+    return _val*100
+
+def fourWeekAve(scored, timestamp, INVALID_TITLE):
+    ratios = []
+    result = {}
+    result[timestamp] = {}
+    timestamps = sorted(scored.keys(), reverse=True)
+    pos = timestamps.index(timestamp)
+    count = len(timestamps)-pos
+    if count == 1:
+        ratios = [1]
+    elif count == 2:
+        ratios = [0.7, 0.3]
+    elif count == 3:
+        ratios = [0.6, 0.2, 0.2]
+    else:
+        ratios = [0.4, 0.3, 0.2, 0.1]
+    i = 0
+    for ratio in ratios:
+        for key in scored[timestamps[pos+i]].keys():
+            if key in INVALID_TITLE:
+                if "punishment" not in key:
+                    result[timestamp][key] = scored[timestamp][key]
+                continue
+            if key not in result[timestamp].keys():
+                result[timestamp][key] = 0
+            if scored[timestamps[pos+i]][key] is None:
+                continue
+            result[timestamp][key] += scored[timestamps[pos+i]][key]*ratio
+        i += 1
+    return result[timestamp]
+
+#BlackBox1，返回平台的所有定量分数
+def computeQuantitativeScore(pinfo, qualit, sinfo):
+    if pinfo == '{}' or pinfo is None or qualit == '{}' or qualit is None or sinfo == '{}' or sinfo is None:
+        return '{}'
+    if type(pinfo) == str:
+        pinfo = json.loads(pinfo)
+    if type(qualit) == str:
+        qualit = json.loads(qualit)
+    if type(sinfo) == str:
+        sinfo = json.loads(json.dumps(sinfo))
+    statis = {}
+    statis['3SIG'] = sinfo['3SIG']
+    statis['2SIG'] = sinfo['2SIG']
+    statis['AVE'] = sinfo['AVE']
+    v = {}
+    v['date'] = pinfo['date']
+    v['platform_id'] = pinfo['platform_id']
+    v['platform_name'] = pinfo['platform_name'] 
+    v['cap_background'] = pinfo['cap_background']*100
+    v['source'] = pinfo['source']
+    #foo1
+    v['registered_cap'] = foo1(statis['3SIG']['registered_cap_l'], pinfo['registered_cap'], statis['3SIG']['registered_cap_h'])
+    v['vc_cap_usd'] = foo1(statis['3SIG']['vc_cap_usd_l'], pinfo['vc_cap_usd'], statis['3SIG']['vc_cap_usd_h'])
+    v['turnover_registered'] = foo1(statis['3SIG']['turnover_registered_l'], pinfo['turnover_registered'], statis['3SIG']['turnover_registered_h'])
+    v['weekly_new_investor'] = foo1(statis['3SIG']['weekly_new_investor_l'], pinfo['weekly_new_investor'], statis['3SIG']['weekly_new_investor_h'])
+    v['weekly_total_investor'] = foo1(statis['3SIG']['weekly_total_investor_l'], pinfo['weekly_total_investor'], statis['3SIG']['weekly_total_investor_h'])
+    v['weekly_lending'] = foo1(statis['3SIG']['weekly_lending_l'], pinfo['weekly_lending'], statis['3SIG']['weekly_lending_h'])
+    v['weekly_total_borrower'] = foo1(statis['3SIG']['weekly_total_borrower_l'], pinfo['weekly_total_borrower'], statis['3SIG']['weekly_total_borrower_h'])
+    v['not_returned_yet'] = foo1(statis['3SIG']['not_returned_yet_l'], pinfo['not_returned_yet'], statis['3SIG']['not_returned_yet_h'])
+    v['outstanding_loan'] = foo1(statis['3SIG']['outstanding_loan_l'], pinfo['outstanding_loan'], statis['3SIG']['outstanding_loan_h'])
+    v['provision_of_risk'] = foo1(statis['3SIG']['provision_of_risk_l'], pinfo['provision_of_risk'], statis['3SIG']['provision_of_risk_h'])
+    v['PR_transparency1'] = foo1(statis['3SIG']['PR_transparency1_l'], pinfo['PR_transparency1'], statis['3SIG']['PR_transparency1_h'])
+    v['PR_transparency2'] = pinfo['PR_transparency2']
+    v['money_growth'] = foo1(statis['2SIG']['money_growth_l'], pinfo['money_growth'], statis['2SIG']['money_growth_h'])
+    v['borrower_growth'] = foo1(statis['3SIG']['borrower_growth_l'], pinfo['borrower_growth'], statis['3SIG']['borrower_growth_h'])
+    v['investor_growth'] = foo1(statis['3SIG']['investor_growth_l'], pinfo['investor_growth'], statis['3SIG']['investor_growth_h'])
+    v['market_share_growth'] = foo1(statis['3SIG']['market_share_growth_l'], pinfo['market_share_growth'], statis['3SIG']['market_share_growth_h'])
+    v['turnover_period'] = foo1(statis['3SIG']['turnover_period_l'], pinfo['turnover_period'], statis['3SIG']['turnover_period_h'])
+    v['cash_flow_in'] = foo1(statis['3SIG']['cash_flow_in_l'], pinfo['cash_flow_in'], statis['3SIG']['cash_flow_in_h'])
+    #foo2
+    v['investor_HHI'] = foo2(statis['3SIG']['investor_HHI_l'], pinfo['investor_HHI'], statis['3SIG']['investor_HHI_h'])
+    v['borrower_HHI'] = foo2(statis['3SIG']['borrower_HHI_l'], pinfo['borrower_HHI'], statis['3SIG']['borrower_HHI_h'])
+    v['top10_ratio_loan'] = foo2(statis['3SIG']['top10_ratio_loan_l'], pinfo['top10_ratio_loan'], statis['3SIG']['top10_ratio_loan_h'])
+    v['top5_ratio_loan'] = foo2(statis['3SIG']['top5_ratio_loan_l'], pinfo['top5_ratio_loan'], statis['3SIG']['top5_ratio_loan_h'])
+    v['top5_ratio_investment'] = foo2(statis['3SIG']['top5_ratio_investment_l'], pinfo['top5_ratio_investment'], statis['3SIG']['top5_ratio_investment_h'])
+    v['top10_ratio_investment'] = foo2(statis['3SIG']['top10_ratio_investment_l'], pinfo['top10_ratio_investment'], statis['3SIG']['top10_ratio_investment_h'])
+    v['short_term_debt_ratio'] = foo2(statis['3SIG']['short_term_debt_ratio_l'], pinfo['short_term_debt_ratio'], statis['3SIG']['short_term_debt_ratio_h']);
+    #foo3
+    v['weekly_ave_investment'] = foo3(statis['3SIG']['weekly_ave_investment_l'], pinfo['weekly_ave_investment'], statis['3SIG']['weekly_ave_investment_h'], statis['AVE']['weekly_ave_investment'])
+    v['weekly_ave_investment_old'] = foo3(statis['3SIG']['weekly_ave_investment_old_l'], pinfo['weekly_ave_investment_old'], statis['3SIG']['weekly_ave_investment_old_h'], statis['AVE']['weekly_ave_investment_old'])
+    v['weekly_ave_investment_per_bid'] = foo3(statis['3SIG']['weekly_ave_investment_per_bid_l'], pinfo['weekly_ave_investment_per_bid'], statis['3SIG']['weekly_ave_investment_per_bid_h'], statis['AVE']['weekly_ave_investment_per_bid'])
+    v['weekly_ave_bid_close_time'] = foo3(statis['3SIG']['weekly_ave_bid_close_time_l'], pinfo['weekly_ave_bid_close_time'], statis['3SIG']['weekly_ave_bid_close_time_h'], statis['AVE']['weekly_ave_bid_close_time'])
+    v['weekly_ratio_new_old'] = foo3(statis['3SIG']['weekly_ratio_new_old_l'], pinfo['weekly_ratio_new_old'], statis['3SIG']['weekly_ratio_new_old_h'], statis['AVE']['weekly_ratio_new_old'])
+    v['weekly_ave_lending_per_borrower'] = foo3(statis['3SIG']['weekly_ave_lending_per_borrower_l'], pinfo['weekly_ave_lending_per_borrower'], statis['3SIG']['weekly_ave_lending_per_borrower_h'], statis['AVE']['weekly_ave_lending_per_borrower'])
+    v['weekly_ave_lending_per_bid'] = foo3(statis['3SIG']['weekly_ave_lending_per_bid_l'], pinfo['weekly_ave_lending_per_bid'], statis['3SIG']['weekly_ave_lending_per_bid_h'], statis['AVE']['weekly_ave_lending_per_bid'])
+    v['weekly_loan_period'] = foo3(statis['3SIG']['weekly_loan_period_l'], pinfo['weekly_loan_period'], statis['3SIG']['weekly_loan_period_h'], statis['AVE']['weekly_loan_period'])
+    #定性
+    if (pinfo['ave_annualized_return'] >= 22):
+        v['ave_annualized_return'] = 1
+    elif (pinfo['ave_annualized_return'] >= 18.5):
+        v['ave_annualized_return'] = 30
+    elif (pinfo['ave_annualized_return'] >= 15.4):
+        v['ave_annualized_return'] = 55
+    elif (pinfo['ave_annualized_return'] >= 12.5):
+        v['ave_annualized_return'] = 85
+    else:
+        v['ave_annualized_return'] = 100
+    v['compensation'] = qualit['compensation']*100
+    v['third_entrust'] = qualit['third_entrust']*100
+    v['third_assurance'] = qualit['third_assurance']*100
+    v['real_name'] = qualit['real_name']*100
+    v['debt_transfer'] = qualit['debt_transfer']*100
+    v['technical_security'] = qualit['technical_security']*20
+    v['financial_transparency'] = qualit['financial_transparency']*20
+    v['overdue_transparency'] = qualit['overdue_transparency']*20
+    v['borrower_transparency'] = qualit['borrower_transparency']*20
+    v['customer_service'] = qualit['customer_service']*20
+    return v
+
+#BlackBox2，返回平台的高维度分数及总分
+def computeScore(pinfo):
+    score = {}
+    if pinfo == '{}' or pinfo is None:
+        return score
+    scoreDict = json.loads(json.dumps(pinfo))
+    #根据最终的权重值配置文件，汇总所有的二级指标权重、一级指标权重
+    dom = xml.dom.minidom.parse('atbmodel_grade_final.xml')
+    
+    score_node = dom.documentElement
+    first_level_field_dict = {}
+    first_weight_dict = {}
+    for first_level_node in findChildrenNodes(score_node):
+        first_name = first_level_node.nodeName
+        first_level_field_dict[first_name] = float(first_level_node.getAttribute("weight"))
+        second_level_field_dict = {}
+        third_level_field_dict = {}
+        for second_level_node in findChildrenNodes(first_level_node):
+            second_name = second_level_node.nodeName
+            second_level_field_dict[second_name] = [first_name, float(second_level_node.getAttribute("weight"))]
+            third_level_field_list = findChildrenNodes(second_level_node)
+            if len(third_level_field_list) == 0:
+                third_level_field_dict[second_name] = [second_name, 1.0]
+            else:
+                for third_level_node in third_level_field_list:
+                    third_name = third_level_node.nodeName
+                    third_level_field_dict[third_name] = [second_name, float(third_level_node.getAttribute("weight"))]
+        first_weight_dict[first_name] = assembledGradeSmall(second_level_field_dict, third_level_field_dict)
+        if not checkGradeIndex(first_weight_dict[first_name]):
+            print first_name
+            print "三级指标权重加和有误，请务必修正。"
+            exit(1)
+    score["score"] = 0.0
+    for first_level_field in first_weight_dict:
+        score_temp = 0.0
+        for third_level_field in first_weight_dict[first_level_field]:
+            score_temp += scoreDict[third_level_field] * first_weight_dict[first_level_field][third_level_field]
+        score[first_level_field] = score_temp
+        score["score"] += score_temp * first_level_field_dict[first_level_field]      
+    
+#     score = {}
+#     #2级指标
+#     score['investor'] = scoreDict['weekly_new_investor']*0.3+scoreDict['weekly_total_investor']*0.7
+#     score['weekly_ave_turnover'] = scoreDict['weekly_ave_investment']*0.7+scoreDict['weekly_ave_investment_old']*0.3
+#     score['weekly_ave_lending_per_borrower'] = scoreDict['weekly_ave_lending_per_borrower']*0.8+scoreDict['weekly_ave_lending_per_bid']*0.2
+#     score['borrow_concentration'] = scoreDict['top10_ratio_loan']*0.45+scoreDict['top5_ratio_loan']*0.45+scoreDict['borrower_HHI']*0.1
+#     score['technical_index'] = scoreDict['third_entrust']*0.65+scoreDict['technical_security']*0.35
+#     score['PR_transparency'] = scoreDict['PR_transparency1']*0.9+scoreDict['PR_transparency2']*0.1
+#     score['client_growth'] = scoreDict['borrower_growth']*0.5+scoreDict['investor_growth']*0.5
+#     score['investor_concentration'] = scoreDict['top5_ratio_investment']*0.5+scoreDict['top10_ratio_investment']*0.5
+#     #1级指标
+#     score['capital_adequacy_ratio'] = scoreDict['registered_cap']*0.15+scoreDict['vc_cap_usd']*0.4+scoreDict['turnover_registered']*0.45
+#     score['activeness_credibility'] = score['investor']*0.375+scoreDict['weekly_lending']*0.094+score['weekly_ave_turnover']*0.038+scoreDict['weekly_ave_bid_close_time']*0.05+scoreDict['investor_HHI']*0+scoreDict['weekly_ratio_new_old']*0.063+scoreDict['ave_annualized_return']*0+scoreDict['turnover_period']*0.28+score['investor_concentration']*0.1
+#     score['distribution'] = score['weekly_ave_lending_per_borrower']*0.05+scoreDict['weekly_total_borrower']*0.35+score['borrow_concentration']*0.6
+#     score['mobility'] = scoreDict['not_returned_yet']*0.35+scoreDict['weekly_loan_period']*0.05+scoreDict['outstanding_loan']*0.1+scoreDict['short_term_debt_ratio']*0.25+scoreDict['provision_of_risk']*0.1+scoreDict['cash_flow_in']*0.15
+#     score['security'] = scoreDict['compensation']*0.2+score['technical_index']*0.55+scoreDict['third_assurance']*0.15+scoreDict['real_name']*0.05+scoreDict['debt_transfer']*0.05
+#     score['pellucidity'] = scoreDict['financial_transparency']*0.2+scoreDict['overdue_transparency']*0.25+scoreDict['borrower_transparency']*0.25+score['PR_transparency']*0.2+scoreDict['customer_service']*0.1
+#     score['growth'] = scoreDict['money_growth']*0.3+score['client_growth']*0.4+scoreDict['market_share_growth']*0.3
+#     #总分
+#     score['score'] = score['capital_adequacy_ratio']*0.098+score['activeness_credibility']*0.241+score['distribution']*0.161+score['mobility']*0.247+score['security']*0.074+score['pellucidity']*0.098+score['growth']*0.08
+
+    return score
+if __name__ == '__main__':
+    dom = xml.dom.minidom.parse('atbmodel_punish.xml')
+    punish_node = dom.getElementsByTagName("punish")[0]
+    for punishment in findChildrenNodes(score_node)
+    first_level_field_dict = {}
+    first_weight_dict = {}
+    for first_level_node in findChildrenNodes(score_node):
+        first_name = first_level_node.nodeName
+        first_level_field_dict[first_name] = float(first_level_node.getAttribute("weight"))
+        second_level_field_dict = {}
+        third_level_field_dict = {}
+        for second_level_node in findChildrenNodes(first_level_node):
+            second_name = second_level_node.nodeName
+            second_level_field_dict[second_name] = [first_name, float(second_level_node.getAttribute("weight"))]
+            third_level_field_list = findChildrenNodes(second_level_node)
+            if len(third_level_field_list) == 0:
+                third_level_field_dict[second_name] = [second_name, 1.0]
+            else:
+                for third_level_node in third_level_field_list:
+                    third_name = third_level_node.nodeName
+                    third_level_field_dict[third_name] = [second_name, float(third_level_node.getAttribute("weight"))]
+        first_weight_dict[first_name] = assembledGradeSmall(second_level_field_dict, third_level_field_dict)
+        if not checkGradeIndex(first_weight_dict[first_name]):
+            print first_name
+            print "三级指标权重加和有误，请务必修正。"
+            exit(1)
+    print first_weight_dict

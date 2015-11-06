@@ -1,0 +1,15 @@
+MODULES_MANAGER_V2
+computeE2initial|C:\Java\workspace_1\spider\src\computeE2initial.py
+computeE2weekly|C:\Java\workspace_1\spider\src\computeE2weekly.py
+computePhotoPath|C:\Java\workspace_1\spider\src\computePhotoPath.py
+computeScoreinitial|C:\Java\workspace_1\spider\src\computeScoreinitial.py
+computeScoreweekly|C:\Java\workspace_1\spider\src\computeScoreweekly.py
+computeTotalStatus|C:\Java\workspace_1\spider\src\computeTotalStatus.py
+network_programm|C:\Java\workspace_1\spider\src\network_programm.py
+order|C:\Java\workspace_1\spider\src\order.py
+spider_dcq_pp|C:\Java\workspace_1\spider\src\spider_dcq_pp.py
+spider_dcq_word|C:\Java\workspace_1\spider\src\spider_dcq_word.py
+test|C:\Java\workspace_1\spider\src\test.py
+test_fanyi|C:\Java\workspace_1\spider\src\test_fanyi.py
+test_mm|C:\Java\workspace_1\spider\src\test_mm.py
+test_re|C:\Java\workspace_1\spider\src\test_re.py

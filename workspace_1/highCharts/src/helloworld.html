@@ -1,0 +1,47 @@
+<html>
+<head>
+   <script type="text/javascript" src="jquery-2.1.4.js"></script>
+   <script type="text/javascript" src="Highcharts-4.1.7/js/highcharts.js"></script>
+
+   <script>
+	 $(function () { 
+	    $('#container').highcharts({
+	        chart: {
+	            type: 'column'
+	        },
+	        title: {
+	            text: 'My first Highcharts chart'
+	        },
+	        xAxis: {
+	            categories: ['my', 'first', 'chart']
+	        },
+	        yAxis: {
+	            title: {
+	                text: 'something'
+	            }
+	        },
+	        series: [{
+	            name: 'Jane',
+	            data: [1, 0, 4]
+	        }, {
+	            name: 'John',
+	            data: [5, 7, 3]
+	        }, {
+    data: [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6,148.5,
+    {
+      y: 216.4, 
+      marker: { 
+          fillColor: '#BF0B23',
+          radius: 100
+      }
+    }, 194.1, 95.6, 54.4]
+}]
+	    });
+	});
+   </script>
+</head>
+	
+<body>
+   <div id="container" style="min-width:800px;height:400px;"></div>
+</body>
+</html>

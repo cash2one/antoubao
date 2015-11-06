@@ -1,0 +1,298 @@
+#!/usr/bin/python
+#coding=UTF-8
+
+from atbtools.header import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+import random
+import os
+import json
+import time
+
+if __name__ == "__main__":
+    startTime = time.time()
+    #获得连接        
+    conn_db = getConn(DBHOST, USERNAME, PASSWORD, DB, PORT)
+    cur_db  = getCursors(conn_db)
+    initializeCursors(cur_db)
+    content = getHtml("http://hcyy365.daichuqu.com/")
+    print len(content)
+    exit(0)
+    
+    res_data = os.popen('curl "http://my089.daichuqu.com/Map/map_loaninfo?cid=4" -H "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36" --compressed')
+    res_dict = json.loads(res_data.read())
+    print '新借款' in res_dict["data"].encode("UTF-8")
+    exit(0)
+    platform_id_dict_str = res_dict["data"]["comlist"]
+    platform_str_list = res_dict["data"]["comlist"].split("</tr><tr>")
+    #黑名单(暂时停用)
+    #platform_id_list_black = getListByTxt('../conf/dcqBlack.conf')
+    #白名单
+    platform_id_list_white = getListByTxt('../conf/dcqWhite.conf')
+
+    field_dict = {}
+    json_url_dict = {}
+    config_file = open('../conf/dcq.conf', 'r')
+    for lines in config_file:
+        if lines[0] in ["#", "0", "2"]:
+            continue
+        line = lines.split('$$')
+        if lines[0] == "!":
+            vip_field = line[1] #优先抓得指标，决定其他指标是否抓取
+            vip_field_url = line[2]
+            vip_field_str_list = [x.replace("\n","") for x in line[3:]]
+        else:    
+            field = line[1]
+            json_url_dict[field] = line[2]
+            field_dict[field] = [x.replace("\n","") for x in line[3:]]
+    list_dict = {}
+    fpDcqList = open('../conf/dcqList.conf', 'r')
+    for lines in fpDcqList.readlines():
+        line = lines.split()
+        date = line[0]
+        platid = line[1]
+        platnum = int(line[2])
+        field = line[3]
+        if date not in list_dict:
+            list_dict[date] = {}
+        if platid not in list_dict[date]:
+            list_dict[date][platid] = []
+        list_dict[date][platid].append(field)
+
+    for timestamp in list_dict:
+        contents = {}
+#         缓存策略（暂时停用）
+#         if os.path.exists('../data/'+timestamp) == False:
+#             os.mkdir('../data/'+timestamp)
+#         else:
+#             for parent, dirnames, filenames in os.walk('../data/'+timestamp):
+#                 for filename in filenames:
+#                     if len(filename) == 0:
+#                         break
+#                     fpData = open(parent+'/'+filename, 'r')
+#                     contents[filename] = fpData.read()
+#                     fpData.close()
+#         date = time.strftime("%m-%d", time.localtime(float(timestamp)))
+        for platid in list_dict[timestamp]:
+            #优先抓weekly_lending，抓不到的直接略过
+            url = "http://" + platid + ".daichuqu.com/Map/" + vip_field_url + "?cid=" + str(platnum)
+            url_whole = addUserAgents(url)
+            print url_whole
+            res_data = os.popen('curl ' + url_whole)
+            
+#             filename = '../data/'+timestamp+'/'+platid
+            invalid = False
+            if platid not in contents:
+                url = "http://"+platid+".daichuqu.com/"
+                print url
+                contents[platid] = getHtml(url)
+                print contents
+                if contents[platid] == None:
+                    time.sleep(3)
+                    continue
+                time.sleep(3)
+                print platid+" "+str(len(contents[platid]))
+                if (len(contents[platid]) < 130000 or '无数据' in contents[platid]):
+                    print "No data "+platid+"["+str(len(contents[platid]))+"]"
+                    continue
+                #缓存策略（暂时停用）
+#                 if platid not in platform_id_list_white and (len(contents[platid]) < 130000 or '无数据' in contents[platid]):
+#                     if platid not in platform_id_list_black:
+#                         fpBlack = open('../conf/platform_id_list_black.conf', 'a')
+#                         platform_id_list_black.append(platid)
+#                         fpBlack.write(platid+'\r\n')
+#                         fpBlack.close()
+#                     print "No data "+platid+"["+str(len(contents[platid]))+"]"
+#                     continue
+#                 fpData = open(filename, 'w')
+#                 fpData.write(contents[platid])
+#                 fpData.close()
+            stringSQL="SELECT * FROM platform_quantitative_dcq_weekly_B WHERE platform_id = '"+platid+"' AND date = '"+str(timestamp)+"'"
+            ret = cur_db.execute(stringSQL)
+            if ret == 0:
+                #先插入平台id和时间戳
+                stringSQL="INSERT INTO `platform_quantitative_dcq_weekly_B` (`platform_id`, `date`) VALUES('"+platid+"', '"+str(timestamp)+"')"
+                print stringSQL
+                cur_db.execute(stringSQL)
+                conn_db.commit()
+            for field in list_dict[timestamp][platid]:
+                if len(field_dict[field]) == 8:
+                    #先获得时间戳
+                    dates, tmp = extractor(contents[platid], field_dict[field][:4])
+                    if dates == None:
+                        continue
+                    #在获得数据
+                    datas, tmp = extractor(contents[platid], field_dict[field][4:])
+                    if datas == None:
+                        continue
+                    dateArr = dates.split(',')
+                    if field == 'weekly_outstanding_loan':
+                        date = time.strftime("%m-%d", time.localtime(float(timestamp)+(24*3600)))
+                    else:
+                        date = time.strftime("%m-%d", time.localtime(float(timestamp)))
+                    for i in range(0, len(dateArr)):
+                        if date in dateArr[i]:
+                            pos = i
+                            break
+                    else:
+                        print dateArr
+                        print "No found "+platid+" "+field+" "+date
+                        invalid = True
+                        continue
+                    dataArr = datas.split(',')
+                    if len(dataArr) <= pos:
+                        print ",".join(dataArr)+"["+str(pos)+"] is null"
+                        continue
+                    value = dataArr[pos].strip()
+                    if value.replace('.', '').isdigit():
+                        data = value
+                    else:
+                        continue
+                elif field == 'future4week_maturity':
+                    dates, tmp = extractor(contents[platid], ["\"未来16周待收","xAxis","[","]"])
+                    if dates == None:
+                        continue
+                    dateArr = dates.split(',')
+                    for i in range(0, len(dateArr)):
+                        if "\u672c\u5468" in dateArr[i]: #"本周"的unicode码
+                            pos = i
+                            break
+                    else:
+                        print dateArr
+                        print "No found "+platid+" "+field+" "+date
+                        invalid = True
+                        continue
+                    #再获得数据
+                    datas, tmp = extractor(contents[platid], field_dict[field])
+                    if datas == None:
+                        continue
+                    dataArr = datas.split(',')
+                    if dataArr[0] == '':
+                        print "No found "+platid+" future4week_maturity"
+                        invalid = True
+                        continue
+                    data = 0
+                    future_list = []
+                    for i in range(len(dataArr)):
+                        value = dataArr[i].strip()
+                        if value.replace('.', '').isdigit():
+                            future_list.append(float(value))
+                        else:
+                            break
+                    _num = len(future_list)
+                    _num_4 = min(pos + 5, _num)
+                    if _num <= pos:
+                        print ",".join(dataArr)+"["+str(pos)+"] is null"
+                        continue
+                    data = sum(future_list[pos + 1:_num_4])
+                elif field == 'weekly_top10_lending':
+                    datas, tmp = extractor(contents[platid], field_dict[field])
+                    if datas == None:
+                        continue
+                    dataArr = datas.split(',')
+                    if dataArr[0] == '':
+                        print "No found "+platid+" weekly_top10_lending"
+                        invalid = True
+                        continue
+                    _num = 0
+                    for _arr in dataArr:
+                        if _arr.strip().replace('.', '').isdigit():
+                            _num += 1
+                        else:
+                            break
+                    data = 0
+                    _num_5 = min(5, _num) - 1
+                    _num_10 = min(10, _num)
+                    for i in range(0, _num_10):
+                        value = dataArr[i].strip()
+                        data += float(value)
+                        if i == _num_5:
+                            stringSQL="UPDATE `platform_quantitative_dcq_weekly_B` SET `weekly_top5_lending` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+#                             print stringSQL
+                            cur_db.execute(stringSQL)
+                elif field == 'weekly_top10_investment':
+                    datas, tmp = extractor(contents[platid], field_dict[field])
+                    if datas == None:
+                        continue
+                    dataArr = datas.split(',')
+                    if dataArr[0] == '':
+                        print "No found "+platid+" weekly_top10_investment"
+                        invalid = True
+                        continue
+                    _num = 0
+                    for _arr in dataArr:
+                        if _arr.strip().replace('.', '').isdigit():
+                            _num += 1
+                        else:
+                            break
+                    data = 0
+                    _num_5 = min(5, _num) - 1
+                    _num_10 = min(10, _num)
+                    for i in range(0, _num_10):
+                        value = dataArr[i].strip()
+                        data += float(value)
+                        if i == _num_5:    
+                            stringSQL="UPDATE `platform_quantitative_dcq_weekly_B` SET `weekly_top5_investment` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+#                             print stringSQL
+                            cur_db.execute(stringSQL)
+                elif field == 'top10_ratio_lending':
+                    datas, tmp = extractor(contents[platid], field_dict[field])
+                    if datas == None:
+                        continue
+                    datas = datas.replace("name", "'name'").replace("y", "'y'").replace("color:", "'color':").replace("Highcharts", "'Highcharts").replace("]", "]'").replace("'", "\"").replace("\r", "").replace("\n", "").replace("\t", "")
+                    if '名' not in datas:
+                        print "No found "+platid+" top10_ratio_lending"
+                        invalid = True
+                        continue
+                    try:
+                        dataArr = json.loads("["+datas+"]")
+                    except:
+                        continue
+                    data = 0
+                    _num = len(dataArr)
+                    _num_5 = min(5, _num) - 1
+                    _num_10 = min(10, _num)
+                    for i in range(0, _num_10):
+                        data += float(dataArr[i]['y'])
+                        if i == _num_5:
+                            stringSQL = "UPDATE `platform_quantitative_dcq_weekly_B` SET `top5_ratio_lending` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                            cur_db.execute(stringSQL)
+                elif field == 'top10_ratio_investment':
+                    datas, tmp = extractor(contents[platid], field_dict[field])
+                    if datas == None:
+                        continue
+                    datas = datas.replace("name", "'name'").replace("y", "'y'").replace("color:", "'color':").replace("Highcharts", "'Highcharts").replace("]", "]'").replace("'", "\"").replace("\r", "").replace("\n", "").replace("\t", "")
+                    if '名' not in datas:
+                        print "No found "+platid+" top10_ratio_investment"
+                        invalid = True
+                        continue
+                    try:
+                        dataArr = json.loads("["+datas+"]")
+                    except:
+                        continue
+                    data = 0
+                    _num = len(dataArr)
+                    _num_5 = min(5, _num) - 1
+                    _num_10 = min(10, _num)
+                    for i in range(0, _num_10):
+                        data += float(dataArr[i]['y'])
+                        if i == _num_5:
+                            stringSQL = "UPDATE `platform_quantitative_dcq_weekly_B` SET `top5_ratio_investment` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                            print stringSQL
+                            exit(0)
+                            cur_db.execute(stringSQL)
+                elif field == 'platform_name':
+                    data, tmp = extractor(contents[platid], field_dict[field])
+                stringSQL="UPDATE `platform_quantitative_dcq_weekly_B` SET `"+field+"` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+#                 print stringSQL
+                cur_db.execute(stringSQL)
+#             if invalid == True:
+#                 os.remove(filename)
+            conn_db.commit()
+#     fpBlack.close()
+    closeCursors(cur_db)
+    closeConns(conn_db) 
+    print ""
+    print "finished"
+    endTime = time.time()
+    print "The whole program costs " + str(endTime - startTime) + " seconds."

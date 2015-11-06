@@ -1,0 +1,31 @@
+#!/usr/bin/python
+#coding=utf-8
+
+from header import *
+import random
+USER_AGENTS = ['Windows IE 7', 'Linux Konqueror']
+_USER_AGENTS = ['Mac Safari', "Linux Firefox", "Mac FireFox", 'Windows IE 6']
+_USER_AGENTS = ['Linux Mozilla',"Mac Mozilla"]
+
+def openURL(url):
+    request = urllib2.Request(url)
+    _header = random.choice(USER_AGENTS)
+    print _header
+    request.add_header("User-Agent", _header)
+    try:
+        response = urllib2.urlopen(request)
+    except urllib2.URLError, e:
+        if hasattr(e,"code"):
+            print e.code
+        if hasattr(e,"reason"):
+            print e.reason
+    else:
+        print "OK"
+    html = response.read()
+    return html
+
+if __name__ == "__main__":
+    url = "http://shuju.wangdaizhijia.com/archives-60.html"
+#     print url
+#     datas = urllib.urlopen(url).read()
+    print "土豪" in openURL(url)

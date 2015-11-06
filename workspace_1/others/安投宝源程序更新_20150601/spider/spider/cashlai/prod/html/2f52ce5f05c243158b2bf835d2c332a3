@@ -1,0 +1,1504 @@
+
+
+
+
+
+ 
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="keywords" content="投资理财, 互联网金融, 网络投融资平台, 网络理财, 互联网理财, 固定收益, 100% 本息保障, 钱来网, cashlai.com"/>
+<meta name="description" content="钱来网 cashlai.com- 提供安全、精准、高效的网络投融资服务。钱来网有严格的风险控制,保障资金安全。"/>
+<meta name="author" content="深圳钱来网金融信息服务有限公司" />
+<title>项目详情 - 钱来网 </title>
+<link href="/css/gobal.css" rel="stylesheet" type="text/css" />
+<link href="/css/layout.css?timestamp=20150506" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="/js/jquery-1.7.2.js"></script>
+<script type="text/javascript" src="/js/index.js"></script>
+<script type="text/javascript" src="/js/scroll.js"></script>
+<script>
+fn_shrink();
+
+function print2doc(value){
+	var evalue = eval(value);
+	document.write(evalue);
+}
+
+function changeRadio(){
+	$("#changeRadioo").removeAttr("disabled","");
+}
+</script>
+<script type="text/javascript">
+
+function redpacket(url,ts,type){
+       		   clearTimeout(ts);
+          		timer = setTimeout(function(){
+     					var investAmount = $(".alp_poi_ip").val();
+     					var projectType = $(type).val();
+     					$.ajax({
+     						url : url,
+     						type : "post",
+     						async : false,
+     						data : {'amount' : investAmount,'type':projectType},
+         					dataType:'json',
+         					success: function(json){
+         						$("#redpakcet").html("<div id=\"redpakcet\"></div>");
+         						var index=1;
+         						for (var i=0,l=json.length;i<l;i++) {
+         							var packetName = null;
+         							var packetId = null;
+         							var denomination = 0;
+         							var lowLimit = 0;
+         							var rewardType = null;
+         							var singleLimit = null;
+         							var singleLimitRate = null;
+         							var useMoney = 0;
+         							var optional=null;
+									for(var key in json[i]){
+										if(key == 'id'){packetId = json[i][key]};
+										if(key == 'name'){packetName = json[i][key]};
+										if(key == 'rewardType'){rewardType = json[i][key]};
+										if(key == 'denomination'){denomination = json[i][key]};
+										if(key == 'singleLimit'){singleLimit = json[i][key]};
+										if(key == 'singleLimitRate'){singleLimitRate = json[i][key]};
+										if(key == 'lowLimit'){lowLimit = json[i][key]};
+										if(key == 'optional'){optional = json[i][key]}
+									}
+									if(rewardType == 0){
+										useMoney = denomination;
+									}else if(rewardType == 1){
+										useMoney = singleLimitRate * investAmount * 0.01;
+										if(useMoney > singleLimit){
+											useMoney = singleLimit;
+										}
+									}else if(rewardType == 2){
+										useMoney = singleLimitRate * investAmount * 0.01;
+									}
+									useMoney = useMoney.toFixed(2);
+									
+									$("#redpakcet").append(function(){
+									var str;
+									if(optional=='yes'){
+										if(url=="redPacketToUse.do"&&index=="1"){ 
+											 str = "<p class=\"poeijsbx_02\"><input type=\"radio\" id=\"redPacketRadio\" checked  name=\"redPacketRadio\" value=\""
+											+ packetId + "," + useMoney + "\"></input>可使用"+packetName+ "<span class=\"c_ED7A55\">,返"
+											+ useMoney + "</span>元";
+											index="2";
+										}else
+										 str = "<p class=\"poeijsbx_02\"><input type=\"radio\" id=\"redPacketRadio\"  name=\"redPacketRadio\" value=\""
+											+ packetId + "," + useMoney + "\"></input>可使用"+packetName+ "<span class=\"c_ED7A55\">,返"
+											+ useMoney + "</span>元";
+									}else{
+										 str = "<p class=\"poeijsbx_02\"><input type=\"radio\" id=\"redPacketRadio\" disabled name=\"redPacketRadio\" value=\""
+										+ packetId + "," + useMoney + "\"></input>可使用"+packetName+ "<span class=\"c_ED7A55\">,返"
+										+ useMoney + "</span>元";
+									}
+									
+										
+										if(singleLimit != null && singleLimit != -1){
+											str += "(最高<span class=\"c_ED7A55\">" + singleLimit + "</span>元)";
+										}
+										if(lowLimit != 0){
+											str += "(使用门槛<span class=\"c_ED7A55\">￥" + lowLimit + "</span>)";
+										}
+										str += "</p>";
+										return str;
+								});
+									
+									// 项目详情
+									var left_hei_03 = $(".project_list_left ").height();
+									var right_hei_03 = $(".project_list_right").height();
+									var pieo_rgiht_box=$(".pieo_rgiht_box").height();
+									
+										$(".project_list_right").height(left_hei_03);
+									var proj_ri_next=$(".project_list_right").height()-pieo_rgiht_box-14
+										$(".proj_ri_next").height(proj_ri_next)
+								
+							}
+       					}
+   					}); 
+   				},500);
+	}
+
+
+			redpacket("queryRedPacket.do","timer","#borrowersType");
+       		 $(document).ready(function(){
+       		 var timer;
+       			 
+       		 
+          	$(".alp_poi_ip").keyup(function(){
+         			var val=($(".ui_je").val())*'12.0'*0.01 /12.00; 
+         			var rate = val.toFixed(2)*'3';
+         			var tureRete = rate.toFixed(2);
+         			$(".ui_yq").text("￥"+tureRete); 
+          	});
+          	$(".alp_poi_ip").keyup(function(){
+          	// var timer;
+          	redpacket("redPacketToUse.do",timer,"#borrowersType");
+          	/*clearTimeout(timer);
+          		timer = setTimeout(function(){
+     					var investAmount = $(".alp_poi_ip").val();
+     					var projectType = $("#projectType").val();
+     					$.ajax({
+     						url : "redPacketToUse.do",
+     						type : "post",
+     						async : false,
+     						data : {'amount' : investAmount,'type':projectType},
+         					dataType:'json',
+         					success: function(json){
+         						$("#redpakcet").html("<div id=\"redpakcet\"></div>");
+         						for (var i=0,l=json.length;i<l;i++) {
+         							var packetName = null;
+         							var packetId = null;
+         							var denomination = 0;
+         							var lowLimit = 0;
+         							var rewardType = null;
+         							var singleLimit = null;
+         							var singleLimitRate = null;
+         							var useMoney = 0;
+									for(var key in json[i]){
+										if(key == 'id'){packetId = json[i][key]};
+										if(key == 'name'){packetName = json[i][key]};
+										if(key == 'rewardType'){rewardType = json[i][key]};
+										if(key == 'denomination'){denomination = json[i][key]};
+										if(key == 'singleLimit'){singleLimit = json[i][key]};
+										if(key == 'singleLimitRate'){singleLimitRate = json[i][key]};
+										if(key == 'lowLimit'){lowLimit = json[i][key]};
+									}
+									if(rewardType == 0){
+										useMoney = denomination;
+									}else if(rewardType == 1){
+										useMoney = singleLimitRate * investAmount * 0.01;
+										if(useMoney > singleLimit){
+											useMoney = singleLimit;
+										}
+									}else if(rewardType == 2){
+										useMoney = singleLimitRate * investAmount * 0.01;
+									}
+									useMoney = useMoney.toFixed(2);
+									$("#redpakcet").append(function(){
+									var str = "<p class=\"poeijsbx_02\"><input type=\"radio\" id=\"redPacketRadio\" name=\"redPacketRadio\" value=\""
+										+ packetId + "," + useMoney + "\"></input>可使用"+packetName+ "<span class=\"c_ED7A55\">,返"
+										+ useMoney + "</span>元";
+										if(singleLimit != null && singleLimit != -1){
+											str += "(最高<span class=\"c_ED7A55\">" + singleLimit + "</span>元)";
+										}
+										if(lowLimit != 0){
+											str += "(使用门槛<span class=\"c_ED7A55\">￥" + lowLimit + "</span>)";
+										}
+										str += "</p>";
+										return str;
+								});
+							}
+       					}
+   					}); 
+   				},500);*/
+          	}); 
+          });
+       		 
+         //function  investbid(){
+         $(function(){$("#toinvest").click(function(){
+       		//$("#toinvest").attr("onclick","");
+         	var param = {};
+         	var investMoenys = $("#investMoneys").val();
+         	var userBalance = '';
+         	var m_val=investMoenys%10;	
+         	var idValue = $("input[name='redPacketRadio']:checked").val();
+         	if(idValue != null && idValue != ""){
+         		$("#idAndValue").val(idValue);
+         	}
+         	if(investMoenys == "投资金额必须为10的倍数"){
+        			$("#error_tip001").show().html("请输入投资金额");
+        			//$("#toinvest").attr("onclick","investbid()");
+        			return false;
+        		}
+         	if(m_val != 0){
+           		$("#error_tip001").show().html("投资金额必须为10的倍数");
+         		
+         		$("#toinvest").attr("onclick","investbid()");
+         		return false;
+          		}
+         	$("#error_tip001").hide().html("");
+         	if($("#protocol").is(":checked") == false){
+           	
+           		$("#error_xy").show().html("投资之前必须同意《借款协议》");
+           		//$("#toinvest").attr("onclick","investbid()");
+           		return false;
+           	}
+         	if(investMoenys*10000 > userBalance*10000){
+         		window.location.href= "/go_gopayPayment.do";
+         		return false;
+         	}
+         	$(".error_tip00").hide().html("");
+         	var investMoeny = investMoenys*100;
+         	var minValue = $("#minValue").val()*100;
+           	var maxValue = $("#maxValue").val()*100;
+           	if(minValue == 0 || minValue == ''){
+         		if(investMoeny < 1000 || investMoeny == ''){
+         			alert("起投金额不能低于10元");
+         			//$("#toinvest").attr("onclick","investbid()");
+         			return false;
+         		}
+         	}
+           	
+           	else{
+         		var decimalLentg = investMoenys.replace(/(\d*\.?)/,"").length;
+         		if(decimalLentg > 2){
+         			alert("起投金额最多精确至小数点后2位!");
+         			//$("#toinvest").attr("onclick","investbid()");
+         			return false;
+         		}
+         		
+         		if(minValue < 1000){
+         			if(investMoeny < minValue){
+          			alert("起投金额不能低于10元");
+          			//$("#toinvest").attr("onclick","investbid()");
+          			return false;
+          		}
+         		}else{
+         			if(investMoeny < minValue){
+          			alert("起投金额不能低于" + minValue/100.00);
+          			//$("#toinvest").attr("onclick","investbid()");
+          			return false;
+          		}
+         		}
+         	}
+           	if(maxValue != 0 && maxValue != ''){
+           		if(investMoeny > maxValue){
+           			alert("起投金额不能高于" + maxValue/100.00);
+           			//$("#toinvest").attr("onclick","investbid()");
+          			return false;
+           		}
+           	}
+           	
+         	//$("#inve_form").submit();
+         //}
+         })})
+</script>
+<!-- 百度分析统计开始 --><script type="text/javascript">var _hmt = _hmt || [];(function() {var hm = document.createElement("script");hm.src = "//hm.baidu.com/hm.js?9d7dba4e9530ad7cc99db73abaca80ad";var s = document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm, s);})();</script>
+</head>
+
+<body onkeydown="boxObj.keyLogin1(event);">
+<div class="wrapperbox">
+    <!-----heaberBox------->
+               
+
+
+
+
+ 
+
+
+<div class="backTop">返回<br/>顶部</div>
+<div class="online-service hidden-phone">
+  <a class="online-service-title" href="tencent://message/?Menu=yes&amp;amp;uin=938024251&amp;amp;Service=58&amp;amp;SigT=A7F6FEA02730C9883B90828F8BB209E660274825AC90AC733E3A3AE6AE0A4DC581BD302601346FB77B9011D4D84CDBB4BA0AF1DF79B9E7A0E90114D0A45866201BA4B027BC97B962B869EB6189A9A9CF1C4BAECBB7499FCC8B90540042BD9F040240913A673A63EEDE4A8228DA20355C55D5DDBCE74C39C1">
+      <div class="social-qq-pure"><span></span></div>
+      <h4 style="">在线客服</h4>
+  </a>
+</div>
+	<div class="heaberBox">
+		<!---------headerBox_top------------------>
+		<div class="headerBox_top">
+			<div class="hea_top_con">
+				<div class="hea_top_hotline">
+					<span class="paoe_bg">客服热线：400-9223-999</span> <span>服务时间：9:00
+						- 21:00</span>
+				</div>
+				<div class="hea_top_QQ">
+					<a class="goue_qq">
+						 <div class="qq_box">
+                        	<div class="qq_con">
+                            	<p>钱来网用户交流群：</p>
+								<p>群1：348869139</p>
+								<p>群2：422327280</p>
+                            </div>
+                        </div>
+					</a>
+					<a  href="http://weibo.com/u/5149358091" target="_blank" class="aina_a"></a> 
+					<a class="microchannel_a btn_c00"></a>
+				</div>
+				<div class="landed_box">
+					
+					
+						
+							<div>
+								<a href="https://www.cashlai.com/ucenter/new_login.jsp">登录</a>|<a href="https://www.cashlai.com/ucenter/new_register.jsp" style="margin-right:0">注册</a>
+							</div>
+						
+						
+					
+					<span class="app_ll">手机钱来网
+						<div class="app_box">
+							<div class="and_app fl">
+								<img src="https://www.cashlai.com/images/at_app.jpg" width="140px" height="140px" />
+								<a href="http://www.cashlai.com/download/CashLaiPro.apk"><img src="https://www.cashlai.com/images/downapp1.jpg" width="156" height="45" /></A>
+							</div>
+							<div class="and_app fr">
+								<img src="https://www.cashlai.com/images/it_app.jpg" width="140px" height="140px" />
+								<A href="https://itunes.apple.com/cn/app/qian-lai-wang/id890753549?mt=8" target="_blank"><img src="https://www.cashlai.com/images/downapp2.jpg" width="156" height="45" /></A>
+							</div>								
+						</div>
+					</span>
+				</div>
+			</div>
+		</div>
+		<!---------headerBox_top   [end]------------------>
+		<!---------headerBox_logo------------------>
+		<div class=" headerBox_logo">
+			<div class="logo">
+				<a href="http://www.cashlai.com"><img data-tag="logo" src="https://www.cashlai.com/images/logo.png" /></a>
+			</div>
+		</div>
+		<!---------headerBox_logo  [end]------------------>
+		<!---------headerBox_navBox------------------>
+		<div class="headerBox_navBox">
+			<ul>
+				<li><a href="http://www.cashlai.com/index.jsp">首页</a></li>
+				<li><a href="http://www.cashlai.com/queryBiddingList.do">我要投资<i class="icon"></i></a>
+					<dl class="nav_child">
+						<div class="arrow2"><em></em><span></span></div>
+						<dd><a href="http://www.cashlai.com:80//queryBiddingList.do">投资项目</a></dd>
+						<dd><a href="http://www.cashlai.com:80//querydebtlist.do">债权转让</a></dd>
+						<dd class="last"><a href="http://www.cashlai.com:80//querytrustlist.do">委托计划</a></dd>
+					</dl>
+				</li>
+				<li><a href="http://www.cashlai.com:80//borrow/index.do">我要借款</a></li>
+				<li><a href="http://www.cashlai.com/Advertisement/bz_jg.jsp">安全保障</a></li>
+				<li><a href="http://www.cashlai.com/accountInfo.do">我的账户</a></li>
+				
+			</ul>
+		</div>
+		<!---------headerBox_navBox  [end]------------------>
+	</div>
+    <!-----heaberBox  [end]--------------------->
+    <!------msg_box--------------------->
+    <div class="msg_box">
+    	
+    		
+    		
+    			<a href="http://www.cashlai.com/index.jsp" />首页</a> > <a href="http://www.cashlai.com/queryBiddingList.do" />投资列表</a> > <a href="http://www.cashlai.com/queryBiddingList.do?programType=2" />房稳赢</a> > <span>FWA150522006-2</span>
+    		
+    	
+    </div>
+    <!------msg_box  [end]--------------------->
+	<!-----conner_box--------------------->
+   <div class="conner_box wrap_clearfloat" style="overflow:visible;">
+   <input type="hidden" id="isAddBankcard" value="0">
+   <input type="hidden" id="borrowersType" value="2"/>
+   		<!-----project_list_left左边-------------->
+        <div class="project_list_left ">
+        	<div class="poi_li_le_top">
+            	<div class="pto_li_title">
+                	<font>
+                        房稳赢
+                        
+                        -FWA150522006-2</font>
+                    <span>
+                    	
+	                    
+	                    
+	                    <a class="bg_83b14e">回款中</a>
+	                    
+	                    
+                        <a class="bg_80b349" style="">
+                        
+                        房稳赢
+                        
+                        
+                        
+                        </a>
+                    </span>
+                </div>
+              <div class="pro_li_con">
+                	<ul class="pro_con_ul">
+                    	<li class="pro_one_li">
+                        	<p>融资金额</p>
+                            <p class="podid">￥
+                            	240000.0
+                            </p><span style=" font-size:16px;"></span></p>
+                        </li>
+                        <li class="pro_one_li1">
+                        	<p>年化利率</p>
+                            <p class="podid">
+                            	<!--<font class="fl"><span style=" font-size:16px;">12.0%</span></font> -->
+                               	
+                               	
+                                
+                                <font class="fl">12.0<span style="">%</span></font>
+                                
+                                
+                                
+                            </p>
+                        </li>
+                        <li style="border:none;" class="pro_one_li2">
+                        	<p>融资期限</p>
+                            <p class="podid"><i style="float:left; font-style:normal;">3</i><span style=" font-size:18px; float:left; padding-top:10px;">个月</span></p>
+                        </li>
+                    </ul>
+                    <div class="udijs_box">
+                      
+                    	
+                    	<div class="poie_p fl">成功融资 ￥240000.0</div>
+                    	
+                    	 
+                      
+                        <div class="psoe_isj fr">
+                                         按月付息，到期还本
+	                                      
+	                                      
+                        </div>
+                    </div>
+                    <ul class="poid_ul_box">
+                    	<li>
+                        	
+                        	
+                        		<span class="fl" style="margin:10px 8px 0 24px;">
+                        			<font class="bg_83b14e" style=" width:100.00%;  display:inline-block; height:9px; "></font>
+                        		</span>
+                        		<font  style="display:inline-block;" class="fl">100.00%</font>
+                        	
+                        	
+                        	
+                        	
+                        </li>
+                        <li>
+                        	<font id="times">
+                        	
+	                        	
+                        		
+							
+							
+								下次回款: 2015-06-24
+							
+							
+							
+                            </font>
+                        </li>
+                        <li style="border:none; width:199px;">
+                        
+	                        
+	                        	<i class="fl" style="font-style:normal;padding-left:32px;">起息日:2015-05-24</i>
+	                        
+	                        
+                        
+                        
+                        </li>
+                    </ul>
+                    <ul class="poid_ul_box">
+                    	<li class="bg_fr01">
+                        	 <font class="c_0078b6">100%本息保障</font>
+                        </li >
+                        <li class="bg_fr03"><font class="c_0078b6">银行资金监管</font></li>
+                        
+                        <li class="bg_fr02" style="border:none; width:199px;"><font class="c_0078b6">实物抵押保障</font></li>
+                        
+                    </ul>
+ 
+                </div>
+            </div>
+            <!-- 开始 -->
+            
+            	<div class="pro_list_tatle">
+            	<div class="pto_li_title">
+                	<font>项目介绍</font> 
+                </div>
+                <div class="prio_ma_box">
+                	<!---项目情况--------------->
+                	<div class="pei_ma_list">
+                    	<p class="poid_pbdw bo_bottom">项目情况</p>
+                        <div class="poie_txt">
+                        	<span class="po_span_txt">
+                        	
+                            	借款人为满足其他资金需求，申请以自有住宅房产为抵押借款， 经钱来网风险控制管理委员会审核评估，借款人资信优良、还款能力充足，项目借款抵押担保足值有效，资金用途真实合法，满足平台风险管控条件，同意发布借款申请融资，根据钱来网政策，将严格落实抵押担保手续，保障投资者资金安全
+                            
+                        	</span>
+                           </div>
+                    </div>
+                    <!---项目情况  [end]--------------->
+                    <!---资金用途--------------->
+                	<div class="pei_ma_list">
+                    	<p class="poid_pbdw bo_bottom">资金用途</p>
+                        <div class="poie_txt">
+                        
+                        <script type="text/javascript">
+                            		print2doc('["其他"]');
+                        </script></div>
+                    </div>
+                    <!---资金用途  [end]--------------->
+                    <!---还款来源--------------->
+                	<div class="pei_ma_list">
+                    	<p class="poid_pbdw bo_bottom">还款来源</p>
+                        <div class="poie_txt">
+                        
+                        <script type="text/javascript">
+                            		print2doc('["经营收入"]');
+                        </script></div>
+                    </div>
+                    <!---还款来源  [end]--------------->
+                    <!---房产信息--------------->
+                	<div class="pei_ma_list">
+                	
+                    	<p class="poid_pbdw bo_bottom">房产信息</p>
+                        <table width="100%" border="0" class="pei_tatle_01">
+                          <tr>
+                            <td width="14%">房产地址</td>
+                            <td width="86%">
+                            	<script type="text/javascript">
+                            		print2doc('["烟台市福山区福海路107号百旺花园"]');
+                            	</script>
+                            </td>
+                          </tr>
+                           <tr>
+                            <td width="14%">房产类型</td>
+                            <td width="86%">
+                            	
+                            		
+                            			普通住宅
+                            		
+                            		
+                            		
+                            	
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>建筑面积</td>
+                            <td> 
+                            	<script type="text/javascript">
+                            		var expectValue = '79.09';
+                            	 	if(expectValue.indexOf(".", 0) < 0)
+                            	 		expectValue = expectValue + ".00";
+                           	 		else if(expectValue.indexOf(".", 0) < 1)
+                            	 		expectValue = expectValue + "0";
+                           	 		else
+                           	 			expectValue = parseFloat(expectValue).toFixed(2);
+                            	 		document.write(expectValue);
+                            	</script>
+                            	平方米
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>房龄</td>
+                            <td><script type="text/javascript">
+                            		print2doc('["11"]');
+                            	</script>
+                            	 年
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>评估价格</td>
+                            <td>
+                            	 <script type="text/javascript">
+                            	 	var expectValue = '480,000';
+                            	 	if(expectValue.indexOf(".", 0) < 0)
+                            	 		expectValue = expectValue + ".00";
+                           	 		else if(expectValue.indexOf(".", 0) < 1)
+                            	 		expectValue = expectValue + "0";
+                           	 		else
+                           	 			expectValue = parseFloat(expectValue).toFixed(2);
+                            	 	document.write(expectValue);
+                            	 </script>
+                            	  元
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>批单情况 </td>
+                            	<td>
+                            		钱来网风险管理委员会已验讫，批单金额
+                            		240000.0元。
+                           		</td>
+                          </tr>
+                       </table>
+					  
+					  
+                    </div>
+                    <!---房产信息  [end]--------------->
+                    <!---还款模型--------------->
+                	<div class="pei_ma_list">
+                    	<p class="poid_pbdw bo_bottom ">还款模型
+                    	  
+                    	</p>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" class="poidu_tatle mt20">
+                          <tr class="dsn_title">
+                            <td width="35%" style=" border-left:1px solid #ccc">预期还款日期</td>
+                            <td width="34%">类型</td>
+                            <td width="31%" style=" border-right:1px solid #ccc">还款金额(￥)</td>
+                          </tr>
+                          
+                          
+                          	
+	                          <tr>
+	                            <td>2015-06-24</td>
+	                            
+	                            	
+	                            		<td>利息</td>
+	                            	
+	                            	
+	                            
+	                            <td>
+	                            	2400.0
+	                            </td>
+	                          </tr>
+                          
+	                          <tr>
+	                            <td>2015-07-24</td>
+	                            
+	                            	
+	                            		<td>利息</td>
+	                            	
+	                            	
+	                            
+	                            <td>
+	                            	2400.0
+	                            </td>
+	                          </tr>
+                          
+	                          <tr>
+	                            <td>2015-08-24</td>
+	                            
+	                            	
+	                            	
+	                            		<td>本息</td>
+	                            	
+	                            
+	                            <td>
+	                            	242400.0
+	                            </td>
+	                          </tr>
+                          
+                          
+                          
+                          
+                      </table>
+
+                    </div>
+                    <!---还款模型  [end]--------------->
+                    <!---投资记录--------------->
+                	<div class="pei_ma_list">
+                    	<p class="poid_pbdw bo_bottom">投资记录</p>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" class="iodu_box_tatle mt20" id="iodu_box_tatle0">
+                          <tr class="poduib_ee">
+                            <td width="24%" style=" border-left:1px solid #ccc;">投资人 </td>
+                            <td width="24%">投资金额(￥)</td>
+                            <td width="16%">状态</td>
+                            <td width="28%" style=" border-right:1px solid #ccc;">投资时间</td>
+                          </tr>
+                          
+                          
+                           
+	                         <tr>
+	                           <td> 190****0061</td>
+	                           <td>140,480.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 22:31:04.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 130****0989</td>
+	                           <td>1,010.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 22:11:29.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 189****6115</td>
+	                           <td>2,500.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 21:54:17.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 159****8765</td>
+	                           <td>10.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 21:50:56.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 138****6953</td>
+	                           <td>20.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 21:09:12.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 158****6951</td>
+	                           <td>20.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 21:07:20.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 158****6951</td>
+	                           <td>110.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 21:07:07.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 188****1497</td>
+	                           <td>20.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 20:59:01.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 188****1497</td>
+	                           <td>110.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 20:58:31.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 184****1916</td>
+	                           <td>20.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 20:45:46.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 184****1916</td>
+	                           <td>110.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 20:45:05.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 186****2150</td>
+	                           <td>100.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 20:39:35.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 138****6953</td>
+	                           <td>110.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 20:28:54.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 156****9890</td>
+	                           <td>90.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 20:23:41.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 138****4076</td>
+	                           <td>100.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 19:34:16.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 188****5858</td>
+	                           <td>10.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 19:19:35.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 159****7975</td>
+	                           <td>1,100.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 16:13:20.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 131****1917</td>
+	                           <td>10,000.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 15:45:48.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 185****6325</td>
+	                           <td>10.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 15:44:59.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 138****6725</td>
+	                           <td>20.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 14:36:34.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 136****1166</td>
+	                           <td>20.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 12:04:06.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 136****1166</td>
+	                           <td>84,000.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 12:03:37.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 186****6921</td>
+	                           <td>10.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 11:12:24.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 136****6655</td>
+	                           <td>10.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 09:13:46.0</td>
+	                         </tr>
+	                        
+	                         <tr>
+	                           <td> 182****3166</td>
+	                           <td>10.00</td> 
+	                           <td><span class="yes_bg">成功</span></td>
+	                           <td>2015-05-23 09:12:19.0</td>
+	                         </tr>
+	                        
+	                      
+                          
+                        
+                       </table>
+						<p class="poie_more"><a class="c_0078b6">显示更多</a></p>
+                    </div>
+                    <!---投资记录  [end]--------------->
+                </div> 
+            </div>
+            
+            
+        	<!-- 结束-->
+        </div>
+        <!-----project_list_left左边  [end]-------------->
+        <!-----project_list_right右边-------------->
+        <div class="project_list_right">
+        	<div class="pieo_rgiht_box">
+        		<input type="hidden" value="10.0" name="minValue" id="minValue"/>
+              	<input type="hidden" value="0.0" name="maxValue" id="maxValue"/>
+            	<input type="hidden" id="redPacketValue" value=""/>
+            	<input type="hidden" id="rewardType" value=""/>
+            	<input type="hidden" id="denomination" value=""/>
+            	<input type="hidden" id="singleLimitRate" value=""/>
+            	<input type="hidden" id="singleLimit" value=""/>
+                <!------可以投资状态--------------->
+                <p class="pri_rgiht_title">
+                		<font>投资金额</font>
+                		
+                </p>
+                
+                
+                
+                	<div class="poei_boxiuss" >
+                    	<p class="poeijsbx uijdb_box poeijsbx01">投标已完成，您还可以关注<a href="/queryBiddingList.do" class="c_0078b6">其他项目</a></p>
+                    	<p class="poqwdu_pis"><a href="javascript:void(0);" class="bg_999">回款中</a></p>
+                	</div>
+                
+                
+                
+                
+                <!------可以投资状态  [end]--------------->
+ 
+            </div>
+            
+            
+            
+            	<div class="proj_ri_next">
+            	<p class="pri_rgiht_title">
+                	<font>认证介绍</font> 
+                </p>
+                <div class="poi_box_next">
+                	<div class="pei_ma_list">
+                    	<p class="poid_pbdw bo_bottom">认证情况</p>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" class="iodu_box_tatle" style=" margin-top:10px;">
+                          
+                          	
+                          	
+	                          <tr>
+	                            <td>身份证明</td>
+	                            <td><span class="yes_bg">认证通过</span></td>
+	                          </tr>
+	                          <tr>
+	                            <td>居住证明</td> 
+	                            <td><span class="yes_bg">认证通过</span></td>
+	                          </tr>
+	                          <tr>
+	                            <td>信用证明</td> 
+	                            <td><span class="yes_bg">认证通过</span></td>
+	                          </tr>
+	                          <tr>
+	                            <td>收入证明</td> 
+	                            <td><span class="yes_bg">认证通过</span></td>
+	                          </tr>
+	                          <tr>
+	                            <td>抵押房产证明</td> 
+	                            <td><span class="yes_bg">认证通过</span></td>
+	                          </tr>
+	                          <tr>
+	                            <td>房屋权属证明</td> 
+	                            <td><span class="yes_bg">认证通过</span></td>
+	                          </tr>
+	                          <tr>
+	                            <td>房屋价值评估报告</td> 
+	                            <td><span class="yes_bg">认证通过</span></td>
+	                          </tr>
+                          	
+                          	
+
+                          
+                       </table>
+                    </div>
+                  <div class="pei_ma_list">
+                   	<p class="poid_pbdw bo_bottom">相关材料</p>
+                       
+                       		
+                       		
+                       		
+                       			<!-- 房稳赢 -->
+		                       	<div class="cailiaobox wrap_clearfloat">
+			                       	<ul>
+			                       	   <li data-type="身份证"><div class="img"><img src="http://www.cashlai.com//LoadImage.lig?pid=d7ff56f27bbe43d992faeabe55452400&fname=QjEtMS5qcGc=" /></div><span>身份证</span></li><li data-type="房产证"><div class="img"><img src="http://www.cashlai.com//LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=SDEtMS5qcGc=" /></div><span>房产证</span></li><li data-type="现场照片"><div class="img"><img src="http://www.cashlai.com//LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=TDEtMS5qcGc=" /></div><span>现场照片</span></li><li data-type="借款合同"><div class="img"><img src="http://www.cashlai.com//LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTEtMS5qcGc=" /></div><span>借款合同</span></li><li data-type="抵押合同"><div class="img"><img src="http://www.cashlai.com//LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTItMS5qcGc=" /></div><span>抵押合同</span></li><li data-type="他项凭证"><div class="img"><img src="http://www.cashlai.com//LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTMtMS5qcGc=" /></div><span>他项凭证</span></li>
+			                        </ul>
+		                        </div>
+		                        
+		                        <div class="tc_bigbox"></div>
+								<div class="box_content">
+								    <div class="box_content_inner">
+								        <ul>
+								        	
+								        		
+								        			<li data-type="身份证">
+								        				<table width="100%" height="100%" class="table">
+								        					<tr>
+								        						<td>								        							
+								        							<div style="overflow:hidden;width:auto;display:inline-block">
+								        								<img src="/LoadImage.lig?pid=d7ff56f27bbe43d992faeabe55452400&fname=QjEtMS5qcGc="/>
+																		<p style="background:url(images/hea_nav_bg.png) repeat;padding:10px 0;line-height:22px;text-align:center;color:#eee;margin-top:4px;">
+																			身份证<br />
+																			上传时间：2015年05月22日 04:43:47
+																		</p>
+																	</div>	
+								        						</td>
+								        					</tr>
+							        					</table>
+								        			</li>
+								        		
+								        	
+								        		
+								        			<li data-type="身份证">
+								        				<table width="100%" height="100%" class="table">
+								        					<tr>
+								        						<td>								        							
+								        							<div style="overflow:hidden;width:auto;display:inline-block">
+								        								<img src="/LoadImage.lig?pid=d7ff56f27bbe43d992faeabe55452400&fname=QjEtMi5qcGc="/>
+																		<p style="background:url(images/hea_nav_bg.png) repeat;padding:10px 0;line-height:22px;text-align:center;color:#eee;margin-top:4px;">
+																			身份证<br />
+																			上传时间：2015年05月22日 04:43:55
+																		</p>
+																	</div>	
+								        						</td>
+								        					</tr>
+							        					</table>
+								        			</li>
+								        		
+								        	
+								        	
+								        		
+								        		<li data-type="房产证">
+								        			<table width="100%" height="100%" class="table">
+							        					<tr>
+							        						<td>								        							
+							        							<div style="overflow:hidden;width:auto;display:inline-block">
+							        								<img src="/LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=SDEtMS5qcGc="/>
+																	<p style="background:url(images/hea_nav_bg.png) repeat;padding:10px 0;line-height:22px;text-align:center;color:#eee;margin-top:4px;">
+																		房产证<br />
+																		上传时间：2015-05-22 16:51:25.0
+																	</p>
+																</div>	
+							        						</td>
+							        					</tr>
+						        					</table>	
+								        			
+								        		</li>
+								        		
+								        		
+								        		
+								        		
+								        		
+								        	
+								        		
+								        		
+								        		<li data-type="现场照片">
+								        			<table width="100%" height="100%" class="table">
+							        					<tr>
+							        						<td>								        							
+							        							<div style="overflow:hidden;width:auto;display:inline-block">
+							        								<img src="/LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=TDEtMS5qcGc="/>
+																	<p style="background:url(images/hea_nav_bg.png) repeat;padding:10px 0;line-height:22px;text-align:center;color:#eee;margin-top:4px;">
+																		现场照片<br />
+																		上传时间：2015-05-22 16:51:28.0
+																	</p>
+																</div>	
+							        						</td>
+							        					</tr>
+						        					</table>	
+								        		</li>
+								        		
+								        		
+								        		
+								        		
+								        	
+								        		
+								        		
+								        		
+								        		<li data-type="借款合同">
+								        			<table width="100%" height="100%" class="table">
+							        					<tr>
+							        						<td>								        							
+							        							<div style="overflow:hidden;width:auto;display:inline-block">
+							        								<img src="/LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTEtMS5qcGc="/>
+																	<p style="background:url(images/hea_nav_bg.png) repeat;padding:10px 0;line-height:22px;text-align:center;color:#eee;margin-top:4px;">
+																		借款合同<br />
+																		上传时间：2015-05-22 16:51:30.0
+																	</p>
+																</div>	
+							        						</td>
+							        					</tr>
+						        					</table>									        			
+								        		</li>
+								        		
+								        		
+								        		
+								        	
+								        		
+								        		
+								        		
+								        		<li data-type="借款合同">
+								        			<table width="100%" height="100%" class="table">
+							        					<tr>
+							        						<td>								        							
+							        							<div style="overflow:hidden;width:auto;display:inline-block">
+							        								<img src="/LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTEtMi5qcGc="/>
+																	<p style="background:url(images/hea_nav_bg.png) repeat;padding:10px 0;line-height:22px;text-align:center;color:#eee;margin-top:4px;">
+																		借款合同<br />
+																		上传时间：2015-05-22 16:51:32.0
+																	</p>
+																</div>	
+							        						</td>
+							        					</tr>
+						        					</table>									        			
+								        		</li>
+								        		
+								        		
+								        		
+								        	
+								        		
+								        		
+								        		
+								        		
+								        		<li data-type="抵押合同">
+								        			<table width="100%" height="100%" class="table">
+							        					<tr>
+							        						<td>								        							
+							        							<div style="overflow:hidden;width:auto;display:inline-block">
+							        								<img src="/LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTItMS5qcGc="/>
+																	<p style="background:url(images/hea_nav_bg.png) repeat;padding:10px 0;line-height:22px;text-align:center;color:#eee;margin-top:4px;">
+																		抵押合同<br />
+																		上传时间：2015-05-22 16:51:35.0
+																	</p>
+																</div>	
+							        						</td>
+							        					</tr>
+						        					</table>		
+								        			
+								        		</li>
+								        		
+								        		
+								        	
+								        		
+								        		
+								        		
+								        		
+								        		
+								        		<li data-type="他项凭证">
+								        			<table width="100%" height="100%" class="table">
+							        					<tr>
+							        						<td>								        							
+							        							<div style="overflow:hidden;width:auto;display:inline-block">
+							        								<img src="/LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTMtMS5qcGc="/>
+																	<p style="background:url(images/hea_nav_bg.png) repeat;padding:10px 0;line-height:22px;text-align:center;color:#eee;margin-top:4px;">
+																		他项凭证<br />
+																		上传时间：2015-05-22 16:51:38.0
+																	</p>
+																</div>	
+							        						</td>
+							        					</tr>
+						        					</table>		
+								        			
+								        		</li>
+								        		
+								        	
+								        </ul>
+								    </div>
+								     <span class="left"></span>
+									 <span href="#" class="right"></span>	
+									 <div class="cls cls00" id="close">x</div>	 					   
+								</div>
+								 
+                       		
+                       		
+                       
+                      
+						 
+                    </div>
+                    <div class="pei_ma_list">
+                   		<p class="poid_pbdw bo_bottom">安全保障</p>	
+                      	<p class="security-pro1">利息如逾期，逾期当天平台垫付</p>
+                      	<p class="security-pro1">本金如逾期，逾期后5天内平台垫付（并支付罚息）</p>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <!-----project_list_rgiht右边  [end]-------------->
+  </div>
+    <!-----conner_box  [end]--------------------->
+    <!-----------footBox------------------------>
+        
+
+
+
+
+ 
+
+
+<div class="footBox">
+   	 
+  <div class="foot-wrap wrap_clearfloat">
+    	<div class="ui_foot wrap_clearfloat">
+        	<Div class="foot01 wrap_clearfloat">
+            	<div class="foot01_a wrap_clearfloat">
+                	<dl class="wrap_clearfloat">
+                    	<dt>协议范本</dt>
+                        <dd><a href="/agreement/agreement_zc.jsp">服务协议</a></dd>
+                        <dd><a href="/agreement/privacy.jsp">隐私协议</a></dd>
+                        <dd><a href="/agreement/agreement_Loan.jsp">借款协议</a></dd>
+                        <dd><a href="/agreement/debtAgreementTemplate.jsp">转让协议</a></dd>
+                    </dl>
+                    <dl class="wrap_clearfloat">
+                    	<dt>安全保障</dt>
+                        <dd><a href="/Advertisement/bz_jg.jsp">机构保障</a></dd>
+                        <dd><a href="/Advertisement/bz_js.jsp"">技术保障</a></dd>
+                        <dd><a href="/Advertisement/bz_fl.jsp"">法律保障</a></dd>
+                        <dd><a href="/Advertisement/bz_sy.jsp"">收益保障</a></dd>
+                        <dd><a href="/Advertisement/bz_zj.jsp"">资金保障</a></dd>
+                    </dl>
+                    <dl class="wrap_clearfloat">
+                    	<dt>帮助中心</dt>
+                        <dd><a href="typeissue.do?uid=a">关于钱来网</a></dd>
+                        <dd><a href="typeissue.do?uid=b">注册与认证</a></dd>
+                        <dd><a href="typeissue.do?uid=d">充值与提现</a></dd>
+                        <dd><a href="typeissue.do?uid=c">投资与回款</a></dd>
+                        <dd><a href="typeissue.do?uid=e">账户与安全</a></dd>
+                        <dd><a href="typeissue.do?uid=f">红包与返利</a></dd>
+                    </dl>
+                    <dl class="wrap_clearfloat">
+                    	<dt>关于我们</dt>
+                        <dd><a href="introduce.do">公司介绍</a></dd>
+                        <dd><a href="team.do">团队介绍</a></dd>
+                        <dd><a href="partner.do">合作伙伴</a></dd>
+                        <dd><a href="expert.do">专家顾问</a></dd>
+                        <dd><a href="employ.do">诚聘英才</a></dd>
+                        <dd><a href="contactus.do">联系我们</a></dd>
+                    </dl>
+                </div>
+                <div class="foot01_b wrap_clearfloat">
+                	<h3>在线客服</h3>
+                    <h4>400-9223-999</h4>
+                    <p>( 工作时间 9:00-21:00 )</p>
+                    <p style="margin-top:20px;">钱来网使用国内领先的博雅小额信贷融资理财风险管理系统</p>
+                    
+                    <div class="f_about">
+						 <span class="fl">关注我们：</span>
+						 <a class="f_weixin btn_c00">微信</a>
+						 <a href="http://weibo.com/u/5149358091" target="_blank" class="f_weibo">微博</a>
+					 </div>
+                </div>
+                <div class="foot01_c wrap_clearfloat">
+                	<!-- <div class="ui_ewm"><img src="/images/ewm.jpg" width="111" height="111" /><span>扫描下载客户端</span></div>
+                	<div class="ui_ewm01">
+                    	<p class="f_android">Android</p>
+                   		<p class="f_apple">iPhone</p>
+                    </div>
+                     -->
+                     <p>
+                     	总公司地址：<br/>
+					 	深圳市福田区新闻路报业大厦12B/24B<br/>
+					 </p>
+					 <p style="margin-top:8px;">
+						 山东分公司地址：<br/>
+						山东省济南市历下区解放路30号东源大厦十层<br/>
+					 </p>
+					 
+					 <p style="margin-top:8px;">
+						 成都分公司地址：<br/>
+						四川省成都市青羊区人民南路一段86号城市之心写字楼21C<br/>
+					 </p>
+					 <p style="margin-top:8px;">
+						 武汉分公司地址：<br/>
+						湖北省武汉市建设大道737号广发银行大厦1506室<br/>
+					 </p>
+					 <p style="margin-top:8px;">
+						 南京分公司地址：<br/>
+						江苏省南京市秦淮区中山东路新世纪广场A座4104室<br/>
+					 </p>
+					 
+					 
+                </div>
+            </Div>
+            <div class="foot02">
+            	<ul class="ui-footer-verification wrap_clearfloat">
+                    <li><a href="http://www.itrust.org.cn/yz/pjwx.asp?wm=108592309X" class="ui-footer-verification-item itrust" target="_blank"></a></li>
+                    <li><a href="https://search.szfw.org/cert/l/CX20140627008261008326" class="ui-footer-verification-item credibility" target="_blank"></a></li>                  
+                    <li><a href="http://webscan.360.cn/index/checkwebsite?url=www.cashlai.com" class="ico360" target="_blank"></a></li>
+                    <li><a href="http://www.sznet110.gov.cn/webrecord/innernet/Welcome.jsp?bano=4403100900652" class="police0" target="_blank"></a></li>                  
+                   	<li><a href="http://www.anquan.org/authenticate/cert/?site=www.cashlai.com&amp;at=business" class="icon-approve" target="_blank" ></a></li>                   
+                </ul>              
+                <p style="clear:both;">钱来网--安全优质的理财平台  Copyright 2014 Cashlai.com, All Rights Reserved&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;深圳钱来网金融信息服务有限公司&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a  target="_blank" style="color:#ccc" href="http://www.miitbeian.gov.cn">粤ICP备14010587号-3</a></p>	
+            </div>
+        </div>
+    </div>
+<div id="pop_box00"></div>
+<!--微信 开始-->
+<div id="weixin_tc" class="pop1 clearfix">
+   <h2 style="color:#666;">关注钱来网官方微信<a class="clo">关闭</a></h2>
+   <div class="weixin_tc0 clearfix">
+   		<div class="img_weixin"><img src="/images/wu_wiwi.jpg" width="258" height="258" /></div>
+     	<p class="bt_weixin">打开微信，点击″发现″，使用″扫一扫″即可关注钱来网官方微信。</p>
+   </div> 	
+</div>
+</div>
+<!--微信 结束-->     
+
+	<!-----------footBox------------------------>
+  	<!--------投资弹出层--------------> 
+ 	<div id="tuo_box" class="tuo_box" style="display:none;" >
+    	<!------投资失败1_手慢---------------->
+        <div id="investFailuer" class="gtuo_kdBox" style="display:none;">
+        	<span class="close"><img src="images/ewwd_s.png"/></span>
+        	<p class="poisn_box">投资失败！手慢一步，被别人抢光了！</p>
+          <p class="pidoj_box" style=" text-align:center;">你可以：<a href="###">投资其他项目</a><a href="###">返回我的账户</a></p>
+      </div>
+        <!------投资失败_手慢  [end]---------------->
+        <!------投资失败1_可投金额不足---------------->
+        <div id="notEnough" class="gtuo_kdBox" style=" display:none;">
+        	<span class="close"><img src="images/ewwd_s.png"/></span>
+        	<p class="poisn_box">投资失败！剩余可投金额不足</p>
+          <p class="pidoj_box" style=" text-align:center;">你可以：<a href="javascript:window.location.reload();">返回重新填写投资金额</a></p>
+      </div>
+        <!------投资失败_可投金额不足  [end]---------------->
+        <!------投资失败1系统繁忙---------------->
+        <div id="systemBusy" class="gtuo_kdBox"  style="display:none;">
+        	<span class="close"><img src="images/ewwd_s.png"/></span>
+        	<p class="poisn_box">系统繁忙，请重试</p>
+          <p class="pidoj_box" style=" text-align:center;">你可以：<a href="/queryBiddingList.do">返回项目页面</a><a href="/accountInfo.do">返回我的账户</a></p>
+      </div>
+        <!------投资失败_系统繁忙  [end]---------------->
+        <!------债权转让_确认购买提示--------------->
+        <div id="confirm" class="gtuo_kdBox" style="display:none;" >
+        	<span class="close"><img src="images/ewwd_s.png"/></span>
+            <p class="bg_iod_title">确认购买提示</p>
+        	<div class="bud_boxse">
+            	<p>购买债权  <span>￥3000</span></p>
+                <p>实付金额  <span class="c_ED7A55">￥2980</span></p>
+            </div>
+          	<p class="jduhe_boxse" style=" margin-top:20px;">
+            	<input name="" type="button" value="确认" class="bg0078b6"/>
+                <input name="" type="button" value="取消" />
+            </p>
+      </div>
+        <!------债权转让_确认购买提示 [end]---------------->
+       
+    </div>
+ 	<!--------投资弹出框  [end]-------------->
+    <!--------图片展示弹出层--------------> 
+ 	<div class="tuo_box_02" style="display:none;" >
+   	  <div class="tuo_banner">
+	       	<div class="tuo_icon">
+	       		 
+			          <img src="LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=SDEtMS5qcGc=" style="display:block;"/>
+	             
+			          <img src="LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=TDEtMS5qcGc=" style="display:none;"/>
+	             
+			          <img src="LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTEtMS5qcGc=" style="display:none;"/>
+	             
+			          <img src="LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTEtMi5qcGc=" style="display:none;"/>
+	             
+			          <img src="LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTItMS5qcGc=" style="display:none;"/>
+	             
+			          <img src="LoadImage.lig?pid=a5b5b5a5571640f095ce82d826887919&fname=UTMtMS5qcGc=" style="display:none;"/>
+	             
+	        </div>
+	        <span class="tuo_left"><img src="/images/icon_le_01.png"/></span>
+	        <span class="tuo_right"><img src="/images/icon_ri_01.png" /></span>
+	        <span class="tuo_close"><img src="/images/icon_close.png" /></span>
+        </div>
+    
+    </div>
+    
+    <!--------图片展示弹出层  [end]--------------> 
+</div>  	
+<div class="foot_ico">
+	<span><i class="ver-green-down"></i>您的投资正获得银行级别的保障 </span>
+	<div class="bg0"></div>
+</div>
+
+<!--项目预告通知 开始-->
+<!-- 插入通知  -->
+<div id="pop_box"></div>
+<div id="xm_tz" class="pop clearfix">
+   <h2 style="color:#666;">上线通知我<a href="#" class="clo">关闭</a></h2>
+   <div class="xm_tz01 clearfix" id="xm_tz01">
+       <ul>
+       	 <li><label>手机</label><input type="text" id="user_phone" name="user_phone" value="" readonly="readonly"/></li>
+         <li>
+         	
+         		
+         			<label>邮箱</label><input type="text" id="user_email" name="user_email" />
+         		
+         		
+         	
+         </li>
+       </ul>
+       
+       <div class="zq_tc01_bottom">
+       	  <a onclick="javascript:submitNoticeForm('1');" class="btn tc_btn">确认</a>
+          <a href="javascript:window.location.reload()" class="btn btn2 tc_btn tc_btn1">取消</a>
+       </div>
+       <p class="tc_line"></p>	
+   </div> 	
+</div>
+
+<!--项目预告通知 结束-->   
+<!--弹出层 错误提示 开始-->
+<div id="rz_error" class="pop clearfix" style="display:none;">
+   <h2>提示<a href="javascript:closePop_box();" class="clo">关闭</a></h2>
+   <div class="rz_error0 clearfix">
+        <p class="txt">您尚未添加银行卡，请先添加银行卡再提现!</p>       
+   </div>
+   <a class="btn btn_rr" href="javascript:closeDiv();">确认</a>
+   <p style="height:10px; border-top:1px solid #F2F2F2; margin-top:10px;"></p> 	
+</div>
+<!--弹出层 错误提示 结束-->
+
+<!--弹出层 投资成功 开始-->
+<div id="pop_box" style="display:none;"></div>
+
+      <div id="zq_tc" class="pop zq_tc_success clearfix" style="display:none;">
+		   <h2 style="color:#666;">投资结果<a href="#" class="clo">关闭</a></h2>
+		   <div class="tz_tc01 clearfix">
+		       <h3>恭喜你，投资成功！</h3>
+		       <p style=" margin:10px 0 8px 0;">您已成功投资 "<font id="">
+                        房稳赢
+                        
+                        -FWA150522006-2</font>"</p>
+		       <p>您的投资金额<strong class="c_ED7A55 inv_mon">￥300.00</strong></p>
+		       <h4>您可以：<a href="javascript:window.location.reload();" class="c_0078b6" style="padding:0 30px 0 34px">继续投资</a><a href="/accountInfo.do" class="c_0078b6">返回我的账户</a></h4>
+		       <a href="javascript:closeSuccess();" class="tc_btn">确认</a>
+		   </div>
+		   <p class="tc_line"></p>	
+	</div>
+<!--弹出层 投资成功  结束-->
+
+<!--弹出层 投资失败  开始-->   
+<div id="zq_tc" class="pop zq_tc_faulier clearfix" style="display:none;">
+   <h2 style="color:#666;">投资结果<a href="#" class="clo">关闭</a></h2>
+   <div class="tz_tc01 tz_tc_false clearfix">
+       <h3>投资失败！</h3>
+       <p style=" margin:10px 0 50px 0;">剩余可投金额不足</p>
+       <p style=" margin:10px 0 50px 0;display:none;">手慢一步，被别人抢光了</p>
+       <p style=" margin:10px 0 50px 0;display:none;">系统繁忙，请重试</p>
+       <h4>您可以：<a class="c_0078b6" style="padding:0 30px 0 34px">继续投资</a><a class="c_0078b6">返回我的账户</a></h4>
+       <a class="tc_btn">确认</a>
+   </div>
+   <p class="tc_line"></p>	
+</div>
+<!--弹出层 投资失败  结束--> 
+<script type="text/javascript">
+
+function submitNoticeForm(handler){
+	if(handler == 0){
+		//用户点击取消按钮；关闭弹出框并清除已经输入的数据
+		$("#xm_tz").css("display","none");
+	}else{
+		var user_phone = $("#user_phone").val();
+		var user_email = $("#user_email").val();
+		if(user_email == '' || user_email == null || typeof(user_email) == 'undefined'){
+			user_email = '';
+		}else{
+			 var regex = /^([0-9A-Za-z\-_\.]+)@([0-9a-z]+\.[a-z]{2,3}(\.[a-z]{2})?)$/g;
+			 if (!regex.test(user_email)){
+			 	alert("请输入正确的电子邮件地址");
+			 	return false;
+			 }
+		}
+		var formData = {'user_phone':user_phone,'user_email':user_email,'borrowers_id':'2f52ce5f05c243158b2bf835d2c332a3'};
+		//提交到后台处理
+		$.ajax({
+  			type: 'POST',
+  			url: '/openNotice.do',
+  			data: formData,
+  			dataType: 'text',
+  			success: function(result){
+  				if(result == 'SUCCESS'){
+  					alert("请求已受理，我们会在标的启投时使用手机短信和/或电子邮件的形式通知你！");
+  				}else{
+  					alert("系统繁忙，请稍后再试！");
+  				}
+  				$("#xm_tz").css("display","none");
+  				$("#pop_box").css("display","none");
+  			}
+		});
+	}
+}
+
+function closePop_box(){
+		document.getElementById('pop_box').style.display='none';
+		document.getElementById('rz_error').style.display='none';
+	} 
+function closeDiv()
+{
+	$("#pop_box").hide();
+	$("#rz_error").hide();
+	window.location.href = "/toRecharge.do?type=0";
+}
+function closeSuccess(){
+	$("#pop_box").hide();
+	$(".zq_tc_success").hide();
+	window.location.reload();
+}
+
+function notice(){
+	if('false' == 'true'){
+		$("#pop_box").show();
+		$("#xm_tz").show();
+		return;
+	}else{
+		window.location.href = "/ucenter/new_login.jsp";
+		return;
+	}
+}
+$(function(){
+	$(".redpakcet_c p").css("border-top","1px solid #ccc");
+	
+})
+</script>
+</body>
+
+</html>

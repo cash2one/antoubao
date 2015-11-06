@@ -1,0 +1,227 @@
+#!/usr/bin/python
+#coding=utf-8
+
+from atbtools.header import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+import random
+import os
+import json
+
+if __name__ == "__main__":
+    
+    #获得连接        
+    conn_db = getConn(DBHOST, USERNAME, PASSWORD, DB, PORT)
+    cur_db  = getCursors(conn_db)
+    initializeCursors(cur_db)
+    
+    dcqDict = {}
+    fpBlack = open('../conf/dcqBlack.conf', 'r')
+    dcqBlack = []
+    for lines in fpBlack:
+        dcqBlack.append(lines.strip())
+    fpBlack.close()
+
+    fpWhite = open('../conf/dcqWhite.conf', 'r')
+    dcqWhite = []
+    for lines in fpWhite:
+        dcqWhite.append(lines.strip())
+    fpWhite.close()
+
+    fpDcq = open('../conf/dcq.conf', 'r')
+    for lines in fpDcq:
+        if lines[0] == '#' or lines[0] == '0':
+            continue
+        line = lines.split('$$')
+        dcqDict[line[1]] = line[2:]
+    
+    dcqListDict = {}
+    fpDcqList = open('../conf/dcqList.conf', 'r')
+    for lines in fpDcqList.readlines():
+        line = lines.split()
+        date = line[0]
+        platid = line[1]
+        prop = line[2]
+        if date not in dcqListDict:
+            dcqListDict[date] = {}
+        if platid not in dcqListDict[date]:
+            dcqListDict[date][platid] = []
+        dcqListDict[date][platid].append(prop)
+
+    for timestamp in dcqListDict:
+        contents = {}
+        if os.path.exists('../data/'+timestamp) == False:
+            os.mkdir('../data/'+timestamp)
+        else:
+            for parent, dirnames, filenames in os.walk('../data/'+timestamp):
+                for filename in filenames:
+                    if len(filename) == 0:
+                        break
+                    fpData = open(parent+'/'+filename, 'r')
+                    contents[filename] = fpData.read()
+                    fpData.close()
+        date = time.strftime("%m-%d", time.localtime(float(timestamp)))
+        for platid in dcqListDict[timestamp]:
+            filename = '../data/'+timestamp+'/'+platid
+            invalid = False
+            if platid not in contents:
+                url = "http://"+platid+".daichuqu.com/"
+                print url
+                contents[platid] = urllib.urlopen(url).read()
+                time.sleep(3)
+                print platid+" "+str(len(contents[platid]))
+                if platid not in dcqWhite and (len(contents[platid]) < 130000 or '无数据' in contents[platid]):
+                    if platid not in dcqBlack:
+                        fpBlack = open('../conf/dcqBlack.conf', 'a')
+                        dcqBlack.append(platid)
+                        fpBlack.write(platid+'\r\n')
+                        fpBlack.close()
+                    print "No data "+platid+"["+str(len(contents[platid]))+"]"
+                    continue
+                fpData = open(filename, 'w')
+                fpData.write(contents[platid])
+                fpData.close()
+            stringSQL="SELECT * FROM platform_quantitative_dcq_weekly_B WHERE platform_id = '"+platid+"' AND date = '"+str(timestamp)+"'"
+            ret = cur_db.execute(stringSQL)
+            if ret == 0:
+                stringSQL="INSERT INTO `platform_quantitative_dcq_weekly_B` (`platform_id`, `date`) VALUES('"+platid+"', '"+str(timestamp)+"')"
+                print stringSQL
+                cur_db.execute(stringSQL)
+                conn_db.commit()
+            for prop in dcqListDict[timestamp][platid]:
+                if len(dcqDict[prop]) == 8:
+                    dates, tmp = extractor(contents[platid], dcqDict[prop][:4])
+                    if dates < 0:
+                        continue
+                    datas, tmp = extractor(contents[platid], dcqDict[prop][4:])
+                    if datas < 0:
+                        continue
+                    pos = -1
+                    dateArr = dates.split(',')
+                    if prop == 'weekly_outstanding_loan':
+                        date = time.strftime("%m-%d", time.localtime(float(timestamp)+(24*3600)))
+                    else:
+                        date = time.strftime("%m-%d", time.localtime(float(timestamp)))
+                    for i in range(0, len(dateArr)):
+                        if date in dateArr[i]:
+                            pos = i
+                            break
+                    if pos == -1:
+                        print dateArr
+                        print "No found "+platid+" "+prop+" "+date
+                        invalid = True
+                        continue
+                    dataArr = datas.split(',')
+                    if len(dataArr)-1 < pos:
+                        print ",".join(dataArr)+"["+str(pos)+"] is null"
+                        continue
+                    value = datas.split(',')[pos].strip()
+                    if value.replace('.', '').isdigit():
+                        data = value
+                    else:
+                        continue
+                elif prop == 'future4week_maturity':
+                    datas, tmp = extractor(contents[platid], dcqDict[prop])
+                    if datas < 0:
+                        continue
+                    dataArr = datas.split(',')
+                    if dataArr[0] == '':
+                        print "No found "+platid+" future4week_maturity"
+                        invalid = True
+                        continue
+                    data = 0
+                    for i in range(1, len(dataArr)):
+                        value = dataArr[i].strip()
+                        if value.replace('.', '').isdigit():
+                            data += float(value)
+                        else:
+                            break
+                        if i == 4:
+                            break
+                elif prop == 'weekly_top10_lending':
+                    datas, tmp = extractor(contents[platid], dcqDict[prop])
+                    if datas < 0:
+                        continue
+                    dataArr = datas.split(',')
+                    if dataArr[0] == '':
+                        print "No found "+platid+" weekly_top10_lending"
+                        invalid = True
+                        continue
+                    data = 0
+                    for i in range(0, len(dataArr)):
+                        value = dataArr[i].strip()
+                        if value.replace('.', '').isdigit():
+                            data += float(value)
+                        else:
+                            break
+                        if i == 4:
+                            stringSQL="UPDATE `platform_quantitative_dcq_weekly_B` SET `weekly_top5_lending` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                            print stringSQL
+                            cur_db.execute(stringSQL)
+                elif prop == 'weekly_top10_investment':
+                    datas, tmp = extractor(contents[platid], dcqDict[prop])
+                    if datas < 0:
+                        continue
+                    dataArr = datas.split(',')
+                    if dataArr[0] == '':
+                        print "No found "+platid+" weekly_top10_investment"
+                        invalid = True
+                        continue
+                    data = 0
+                    for i in range(0, len(dataArr)):
+                        value = dataArr[i].strip()
+                        if value.replace('.', '').isdigit():
+                            data += float(value)
+                        else:
+                            break
+                        if i == 4:    
+                            stringSQL="UPDATE `platform_quantitative_dcq_weekly_B` SET `weekly_top5_investment` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                            cur_db.execute(stringSQL)
+                            print stringSQL
+                elif prop == 'top10_ratio_lending':
+                    datas, tmp = extractor(contents[platid], dcqDict[prop])
+                    if datas < 0:
+                        continue
+                    datas = datas.replace("name", "'name'").replace("y", "'y'").replace("color:", "'color':").replace("Highcharts", "'Highcharts").replace("]", "]'").replace("'", "\"").replace("\r", "").replace("\n", "").replace("\t", "")
+                    if '第10名' not in datas:
+                        print "No found "+platid+" top10_ratio_lending"
+                        invalid = True
+                        continue
+                    dataArr = json.loads("["+datas+"]")
+                    data = 0
+                    for i in range(0, len(dataArr)):
+                        data += float(dataArr[i]['y'])
+                        if i == 4:
+                            stringSQL = "UPDATE `platform_quantitative_dcq_weekly_B` SET `top5_ratio_lending` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                            cur_db.execute(stringSQL)
+                            print stringSQL
+                        if i == 9:
+                            break
+                elif prop == 'top10_ratio_investment':
+                    datas, tmp = extractor(contents[platid], dcqDict[prop])
+                    if datas < 0:
+                        continue
+                    datas = datas.replace("name", "'name'").replace("y", "'y'").replace("color:", "'color':").replace("Highcharts", "'Highcharts").replace("]", "]'").replace("'", "\"").replace("\r", "").replace("\n", "").replace("\t", "")
+                    if '第10名' not in datas:
+                        print "No found "+platid+" top10_ratio_investment"
+                        invalid = True
+                        continue
+                    dataArr = json.loads("["+datas+"]")
+                    data = 0
+                    for i in range(0, len(dataArr)):
+                        data += float(dataArr[i]['y'])
+                        if i == 4:
+                            stringSQL = "UPDATE `platform_quantitative_dcq_weekly_B` SET `top5_ratio_investment` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                            cur_db.execute(stringSQL)
+                            print stringSQL
+                        if i == 9:
+                            break
+                elif prop == 'platform_name':
+                    data, tmp = extractor(contents[platid], dcqDict[prop])
+                stringSQL="UPDATE `platform_quantitative_dcq_weekly_B` SET `"+prop+"` = '"+str(data)+"' WHERE `platform_id` = '"+platid+"' AND `date` = '"+str(timestamp)+"'"
+                print stringSQL
+                cur_db.execute(stringSQL)
+            if invalid == True:
+                os.remove(filename)
+            conn_db.commit()
+    fpBlack.close()

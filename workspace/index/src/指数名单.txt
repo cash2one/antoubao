@@ -1,0 +1,54 @@
+输入：E1表中近12周的5个关键指标的数据。
+
+weekly_lending, weekly_total_investor, weekly_outstanding_loan, weekly_loan_period, ave_annualized_return
+
+000. 有效数据的定义（非递归，执照一次）：寻找最近n周（4或者12）内weekly_lending不为零的周m，如果当周至少有两个指标不为零，且为零的指标在这n-m周内有数据。
+
+00.ALL = Y表中非坏站
+
+0. 进入指数名单有先后顺序
+
+1.寻找满足条件的好站进入指数名单
+1.1 z表中的站和ALL的交集构成A
+1.2 A中周满足n=12的有效数据定义
+
+2. 其他站B（ = ALL - A ）进入指数名单
+2.1 按照value从大到小排序（0.7 * 三个月的weekly_lending的平均值+ 0.3 * 三个月的weekly_total_investor的平均值）
+2.2 按照先后顺序，满足n=4的有效数据定义
+
+3. 在所有指数指标中按进入的先后顺序选取前300名
+
+输出：table_name :index_platform_list(dev) platform_id + platform_name + date + 五个追溯指标，排名（字段order）,source字段（1表示来自A，-1表示来自B）
+
+
+坏站 4周内，index_platform_list(dev) platform_id + platform_name + date + weekly_outstanding_loan，ave_annualized_return，status
+
+如果是好站，
+
+
+souce=1：前50
+source=0，其余好站
+source=-1，有数据的坏站
+source=-2，没有数据的坏站
+
+1.对于E1非当周以前坏的平台，计算value并排名，前50source=1，其余source=0，进入waiting_list。
+
+
+close_time不进入判断指标为零的范围
+
+2.1 source=0:
+当周weekly_lending=0删除；
+本周其他指标为0的个数>2删除；
+然后上溯填充所有指标（上溯4周，上溯不成功指标记为0）；
+填充后，必须满足所有指标均不为零，否则删除。
+
+2.2 source=1:
+上溯填充所有指标进行填充（上溯12周上溯不成功指标记为0）；
+填充后，必须满足所有指标均不为零，否则删除。
+
+2.3 坏站：
+当周weekly_outstanding_loan=0或者为None，记为-2（-2不进一步操作），否则记为-1
+然后上溯-1，填充所有指标进行填充（上溯4周，上溯不成功指标记为0）；
+
+2.4记录score和level的时候，也可以上溯（=1上溯12周，=0上溯4周，上溯不成功记为null，null）,-1的坏站不上溯，没有的话默认为null，C。-2的坏站直接记为null, null
+

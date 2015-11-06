@@ -1,0 +1,235 @@
+#!/usr/bin/python
+# coding=utf-8
+
+import time
+import datetime
+import math
+from atbtools.header import *
+
+# 两个时间戳相差几个整数月
+def getDeltaMonths(start_time, end_time):
+    startStr = time.strftime("%Y%m%d", time.localtime(start_time))
+    endStr = time.strftime("%Y%m%d", time.localtime(end_time))
+    return (int(endStr[0:4]) - int(startStr[0:4])) * MONTHSPERYEAR + (int(endStr[4:6]) - int(startStr[4:6])) + (0 if int(endStr[6:8]) >= int(startStr[6:8]) else -1)
+
+# 两个时间戳相差多少天
+def getDeltaDays(start_time, end_time):
+    return (datetime.datetime.fromtimestamp(end_time) - datetime.datetime.fromtimestamp(start_time)).days
+
+#按季分期
+def quarterly_first_interest(start_time, end_time, loan_period, annulized_rating):
+    month_rating = annulized_rating / MONTHSPERYEAR
+    loan_period_month = int(loan_period / DAYSPERMONTH)
+    delta_month = getDeltaMonths(start_time, end_time)
+    if delta_month < MONTHSPERQUARTOR:
+        return 0
+    else:
+        if delta_month < loan_period_month:
+            return (delta_month//MONTHSPERQUARTOR) * month_rating * MONTHSPERQUARTOR
+        else:
+            return 1 + loan_period_month * month_rating
+
+#按月还息，季还1/4本金
+def monthly_interest_quarter_onefouth_capital(start_time, end_time, loan_period, annulized_rating):
+    month_rating = annulized_rating / MONTHSPERYEAR
+    loan_period_month = int(loan_period / DAYSPERMONTH)
+    delta_month = getDeltaMonths(start_time, end_time)
+    delta_month = min(delta_month, loan_period_month)
+    return delta_month * month_rating + float(delta_month//MONTHSPERQUARTOR)*0.25
+
+# 按天计算的一次性本息，前两个参数是时间戳，第三个参数是项目周期，单位是天，第四个是年利率
+def one_time_principal_by_day(start_time, end_time, loan_period, annulized_rating):
+    day_rating = annulized_rating / DAYSPERYEAR
+    delta_day = getDeltaDays(start_time, end_time)        
+    if delta_day < loan_period:
+        return 0
+    return 1 + loan_period * day_rating
+
+# 按天计算的一次付息，到期还本，前两个参数是时间戳，第三个参数是项目周期，单位是天
+def once_Interest_once_principal_by_day(start_time, end_time, loan_period, annulized_rating):
+    day_rating = annulized_rating / DAYSPERYEAR
+    delta_day = getDeltaDays(start_time, end_time)
+    if delta_day <= 0:
+        return 0
+    else:
+        if delta_day < loan_period:
+            return loan_period * day_rating
+        else:
+            return 1 + loan_period * day_rating
+ 
+# 按月计算的等额分期还款，前两个参数是时间戳，第三个参数是项目周期，单位是月
+def ave_capital_plus_interest(start_time, end_time, loan_period, annulized_rating):
+    month_rating = annulized_rating / MONTHSPERYEAR
+    loan_period_month = int(loan_period / DAYSPERMONTH)
+    delta_month = getDeltaMonths(start_time, end_time)
+    delta_month = min(delta_month, loan_period_month)
+    if delta_month == 0:
+        return 0
+    if 0 == month_rating:
+        return delta_month / loan_period_month
+    return delta_month * math.pow(1 + month_rating, loan_period_month) * month_rating / (math.pow(1 + month_rating, loan_period_month) - 1)
+ 
+# 按季度计算的等额分期还款，前两个参数是时间戳，第三个参数是项目周期，单位是月
+def quarterly_ave_capital_plus_interest(start_time, end_time, loan_period, annulized_rating):
+    quarter_rating = annulized_rating / QUARTORSPERYEAR
+    loan_period_quarter = int(loan_period / DAYSPERMONTH)
+    delta_month = getDeltaMonths(start_time, end_time)
+    if delta_month < MONTHSPERQUARTOR:
+        return 0
+    if 0 == quarter_rating:
+        return delta_month // MONTHSPERQUARTOR / loan_period_quarter
+    return delta_month * math.pow(1 + quarter_rating, loan_period_quarter) * quarter_rating / (math.pow(1 + quarter_rating, loan_period_quarter) - 1)
+
+# 按月计算的先息后本，前两个参数是时间戳，第三个参数是项目周期，单位是天，第四个参数是年利率
+def monthly_first_interest(start_time, end_time, loan_period, annulized_rating):
+    month_rating = annulized_rating / MONTHSPERYEAR
+    delta_month = getDeltaMonths(start_time, end_time)
+    delta_day = getDeltaDays(start_time, end_time) - delta_month * DAYSPERMONTH
+    if delta_day <= 0:
+        delta_day = 0
+    (loan_period_month, loan_period_day) = divmod(loan_period,DAYSPERMONTH)
+    if delta_month <= 0:
+        return 0
+    else:
+        if delta_month < loan_period_month:
+            return delta_month * month_rating
+        elif delta_month == loan_period_month and delta_day < loan_period_day:
+            return delta_month * month_rating
+        else:
+            return 1 + loan_period_month * month_rating + loan_period_day * month_rating / DAYSPERMONTH
+
+#按年付息到期还本
+def yearly_first_interest(start_time, end_time, loan_period, annulized_rating):
+    month_rating = annulized_rating / MONTHSPERYEAR
+    year_rating = annulized_rating
+    loan_period_year = int(loan_period / DAYSPERYEAR)
+    loan_period_month = int(loan_period / DAYSPERMONTH) - loan_period_year * MONTHSPERYEAR
+    delta_year = getDeltaMonths(start_time, end_time) / MONTHSPERYEAR
+    delta_month = getDeltaMonths(start_time, end_time) - delta_year * MONTHSPERYEAR
+    if delta_year <= 0:
+        return 0
+    else:
+        if delta_year < loan_period_year:
+            return delta_year * year_rating
+        elif delta_year == loan_period_year and delta_month < loan_period_month:
+            return delta_year * year_rating
+        else:
+            return 1 + delta_year * year_rating + delta_month * month_rating
+
+# 通过项目时间和还款方式，确定已经得到的还款
+def getPayback(start_time, end_time, loan_period, annulized_rating, payment_method="NONE"):
+    if start_time >= end_time:
+        return 0
+    payment_method_dict = {"按天一次性本息":one_time_principal_by_day,"按月付息,到期还本":monthly_first_interest,"按月等额本息":ave_capital_plus_interest,"按季分期":quarterly_first_interest,"按月还息，季还1/4本金":monthly_interest_quarter_onefouth_capital, "一次付息，到期还本":once_Interest_once_principal_by_day, "按季等额本金":quarterly_ave_capital_plus_interest, "按年付息到期还本":yearly_first_interest}
+    return payment_method_dict[payment_method](start_time, end_time, loan_period, annulized_rating)
+
+#payment的统一化调整
+def getPaymentMethodName():
+    #只要是一次性还款，按天和按月是完全一样的
+    one_time_principal_by_day_Name = ["一次性", "本息到期一次付清", "BEFORE_INTEREST_AFTER_PRINCIPAL", "到期一次还本付息", "月15日还息到期还本", "到期一次性返本付息", "到期全额", "按日计息", "一次本息", "按期付息还本", "一次性还款付息", "还款方式：一次性还本付息", "满标立即还款", "按天到期", "按期付息到期一次性还本", "到期本息", "按天一次性还本付息", "一次结清", "标满即还", "投标即还", "到期一次性还本付息", "到期还本", "一次性还", "到期一次性还本息", "到期一次性", "利随本清", "天标", "每日付息，到期还本", "随存随取，按日计息", "本息", "到期归还本息", "一次性还本息", "到期还本还息", "息随本清", "项目类型", "一次性本息", "到期还本息，按天计息", "一次还本付息", "到期还息", "一次性还本付息", "还本付息", "一次性还清本息", "一次性还款", "到期全额还款", "到期还本付息", "到期还本息", "到期偿还本息", "天到期还本息","到期一次性还款", "按天一次性还款", "按天到期还款", "到期自动还款", "系统自动还款", "按天计息，到期还本息", "按天计息", "当日计息 本息保障 随时变现", "按天计息到期", "秒还", "额满即还","到期还款"]
+    monthly_first_interest_Name = ["担保本息", "按整月还息，到期还本", "按月", "按月付息, 到期还本", "每月付息、到期还本", "还款方式：先息后本", "分月付息，到期还本", "按日计息，按月付息，到期还本", "到期按月付息", "每月付息", "按月还款 / 先息后本", "：按月还款", "：按月还息", "按月付息，到期付款", "每期还息一次还本", "每月付息,到期还本", "每月收息，到期还本", "月还息到期还本(湖)", "每月付息季度付本", "每月利息返还，本金自动循环复投", "每月收益返回，本金循环复投", "按月先息后本", "收益返还，本金复投", "收益返回，本金复投", "每月付息,到期还款", "按月付息 ,到期还本", "到期还本,按月付息", "按月还息，到期还本", "按月付息、到期还本", "本息保障", "按月付息", "每月付息到期还本", "月付息到期还本", "固定日还息，到期还本", "分期付息", "每月还息,按半年还本", "每月还息,按季度还本", "：到期还本/按天计息/按月付息","先息后本", "按月还息", "付息还本", "到期还本按月付息", "按月付息,到期还本", "月息期本", "提前付息到期一次性还本", "按月还款/先息后本", "按月到期", "按月到期还款", "每月还息 到期还本", "按月付息 到期还本", "按月付息到期还本", "每月提前付息", "按月付息，到期还本", "按月还息到期还本", "每月还息到期还本", "每月还息，到期还本", "每月付息，到期还本", "每月提前付息", "月还息到期还本","每月还息,到期一次性还本"]
+    yearly_first_interest_Name = ["按年付息到期还本"]
+    ave_capital_plus_interest_Name = ["等额本金", "按月分期、等额本金", "每月等额本息", "每月还本付息", "按月等额还款", "按月等差分期还款", "按月分期赎回", "每月偿还本息", "按月还款、等额本息", "按月结算收益", "按月还款", "等额本息，按月付款", "按月分期、等额本息", "按月分期", "等本等息", "每月等额本息还款", "按月分期还款", "等额本息", "余额本息", "月等额本息", "每月支付本息", "按月等额本息", "按月等额", "按月还款/等额本息", "按月还款等额本息", "按月等额本息还款"]
+    quarterly_first_interest_Name = ["按季分期", "按季分期还款", "按季付息到期还本", "按季分期付款", "按季付息，到期还本", "每三个月", "按季度付息到期还本", "按季度付息到期还本 ", "按季付息，到期一次还本"]
+    monthly_interest_quarter_onefouth_capital_Name = ["月还息，季还1/4本金", "按月还息，季还1/4本金"]
+    once_Interest_once_principal_by_day_Name = ["一次付息 到期还本", "一次付息，到期还本"]
+    quarterly_ave_capital_plus_interest_Name = ["按季等额本金"]
+    return (one_time_principal_by_day_Name, monthly_first_interest_Name, ave_capital_plus_interest_Name, quarterly_first_interest_Name, monthly_interest_quarter_onefouth_capital_Name, once_Interest_once_principal_by_day_Name, quarterly_ave_capital_plus_interest_Name, yearly_first_interest_Name)
+    
+#统一更改还款方式
+def changePaymentMethod(_payment_method):
+    payment_method = str(_payment_method)
+    if "按月结算收益" in payment_method:
+        return "按月结算收益"
+    if "随心还款" in payment_method:
+        return "到期还本付息"
+    if "自定义还款" in payment_method:
+        return "到期还本付息"
+    if "带头大哥" in payment_method:
+        return "每月付息到期还本"
+    if "剩余金额：" in payment_method:
+        return "每月付息到期还本"
+    if "元" == payment_method:
+        return "每月付息到期还本"
+    if "到期结清" in payment_method:
+        return "到期还本付息"
+    if "等额本息" in payment_method:
+        return "等额本息"
+    if "到期还本息" in payment_method:
+        return "每月付息到期还本"
+    if "到期还本付息" in payment_method:
+        return "到期还本付息"
+    if "复投" in payment_method:
+        return "每月付息到期还本"    
+    if "到期还款" in payment_method:
+        return "每月付息到期还本" 
+    if "每日付息" in payment_method:
+        return "每月付息到期还本"
+    if "每月付息到期还本" in payment_method:
+        return "每月付息到期还本" 
+    if "日息转本金" in payment_method:
+        return "到期还本付息"   
+    if "天标" in payment_method:
+        return "天标"
+    if "融满当天起息" in payment_method:
+        return "天标"
+    if "投资当天起息" in payment_method:
+        return "天标"
+    if "到期后2个工作日内自动还款至扣款银行卡" in payment_method:
+        return "到期还本付息"
+    if "购买截止时间" in payment_method:
+        return "收益返还，本金复投" 
+    if "美盛银邦" in payment_method:
+        return "到期还本付息"  
+    if "按月分期还款" in payment_method:
+        return "每月付息到期还本" 
+    if "每月付息到期还本" in payment_method:
+        return "每月付息到期还本"  
+    if "到期一次性还款" in payment_method:
+        return "到期一次性还款"   
+    if "可提前赎回" in payment_method:
+        return "每月付息到期还本"  
+    if "赎回期内同等计息" in payment_method:
+        return "每月付息到期还本"   
+    if "投资后可随时申请赎回" in payment_method:
+        return "天标"     
+    if "每日计息，到期一次性还本付息" in payment_method:
+        return "天标"      
+    if "代金劵" in payment_method:
+        return "每月付息到期还本" 
+    if "按月付息，到期还本" in payment_method:
+        return "每月付息到期还本" 
+    return payment_method
+
+#统一更改还款时间
+def changeLoanPeriod(_payment_method, _loan_period, _special_list):
+    payment_method = str(_payment_method)
+    if payment_method == "每月还息,按半年还本":
+        return 180
+    if payment_method == "每月还息,按季度还本":
+        return 90
+    if payment_method == "每月付息季度付本":
+        return 90    
+    if payment_method == "额满即还" or payment_method == "秒还":
+        return 0
+    if payment_method in _special_list:
+        return 360  
+    return _loan_period
+ 
+if __name__ == '__main__':
+    print getDeltaMonths(12345, 111234567)
+    print getDeltaDays(12345, 111234567)
+    print getDeltaDays(111234567, 12345)
+    print getDeltaDays(12345, 12345)
+    print getDeltaMonths(111234567, 111234567+ 5 * SECONDSPERWEEK)
+    print getPayback(12345, 111234567, 60, 20, "按天一次性本息")
+    print getPayback(12345, 111234567, 60, 20, "按月等额本息")
+    print getPayback(12345, 111234567, 45, 20, "按月等额本息")
+    print getPayback(12345, 111234567, 1200, 20, "按月付息,到期还本")
+    print getPayback(111234567, 12323, 26, 20, "按月付息,到期还本")
+    print getPayback(0, 1426348800, 180, 0.206, "按天一次性本息")
+    print getPayback(0, 1426348800, 180, 0.206, "按月付息,到期还本")
+    print getPayback(0, 1426348800, 180, 0.206, "按月等额本息")
+    print getPayback(0, 1426348800, 180, 0.206, "按季分期")
+    print getPayback(0, 1426348800, 360, 0.206, "按月还息，季还1/4本金")
+    print getPayback(0, 1426348800, 180, 0.206, "一次付息，到期还本")

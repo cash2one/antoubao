@@ -1,0 +1,88 @@
+#!/use/bin/python
+#coding=utf-8
+
+import time
+from atbtools.header import *
+from atbtools.computeTools import *
+from math import ceil
+import threading
+import time
+import timeit
+import socket
+
+def fun2(a, _dict):
+    _dict["x"] = a^2
+    return _dict["x"]
+
+def fun1(a):
+    exec('x = ' + str(a))
+    return x
+
+def div(_N, _base_number):
+    if not isinstance(_base_number, int) or not isinstance(_N, int):
+        return None
+    if _base_number <= 1 or _N < 1:
+        return None
+    value_list = []
+    while _N >= _base_number:
+        (_N , reminder) = divmod(_N, _base_number)
+        value_list.append(reminder)
+    value_list.append(_N)
+#     digit_number = len(value_list)
+#     N = 0
+#     for i in range(digit_number):
+#         N += value_list[i] * _base_number ** i
+#     print N
+    return value_list[::-1]
+
+if __name__ == "__main__":
+#     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     s.bind(('127.0.0.1', 8125))
+#     s.listen(8)
+#     while 1:
+#         connection, address = s.accept()
+#         buf = connection.recv(10)
+#         connection.send(buf)
+#         
+#     s.close()
+    for N in range(1, 100):
+        base_number = 2
+        value_list_old = div(N, base_number) #求出进制标示方法
+        digit_number_old = len(value_list_old) #求出位数
+        print value_list_old
+        N -= (base_number ** (digit_number_old - 1) - 1) / (base_number - 1)
+        value_list = div(N, base_number)
+        value_list_new = [value + 1 for value in value_list]
+        digit_number_new = len(value_list_new)
+        if digit_number_new + 1 < digit_number_old:
+            value_list_new.insert(0, 1)
+        print digit_number_new + 1 - digit_number_old
+    print value_list_new
+#     t1 = timeit.Timer('fun1(x)', "from __main__ import fun1;x=200")
+#     print t1.timeit(number = 10000) 
+#     print min(t1.repeat(3, 10000))
+#     t2 = timeit.Timer('x = 200; fun1(x)', "from __main__ import fun1")
+#     print t2.timeit(number = 10000) 
+#     print min(t2.repeat(3, 10000))
+#     t1 = timeit.Timer('x = 100; fun1(x, {})', "from __main__ import fun1")
+#     print t1.timeit(number = 10000) 
+#     num = 0
+#     mylock = threading.Lock()
+#     def fun1(p):
+#         global num
+#         time.sleep(1)
+#         mylock.acquire()
+#         print p,num
+#         num += 1
+#         mylock.release()
+#     
+#     ts = []
+#     for i in range(10):
+#         th = threading.Thread(target=fun1, args=[i])
+#         ts.append(th)
+#         th.start()
+#     
+# #     for th in ts:    
+# #         th.join()
+        
+    print "end!"

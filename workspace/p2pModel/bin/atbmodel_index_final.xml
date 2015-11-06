@@ -1,0 +1,47 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<score>
+		<not_returned_yet weight = "0.08645"/>
+		<turnover_period weight = "0.06748"/>
+		<weekly_total_investor weight = "0.0632625"/>
+		<short_term_debt_ratio weight = "0.06175"/>
+		<weekly_total_borrower weight = "0.05635"/>
+		<turnover_registered weight = "0.04455"/>
+		<cap_background weight = "0.0444"/>
+		<top10_ratio_loan weight = "0.04347"/>
+		<top5_ratio_loan weight = "0.04347"/>
+		<vc_cap_usd weight = "0.0396"/>
+		<cash_flow_in weight = "0.03705"/>
+		<weekly_new_investor weight = "0.0271125"/>
+		<provision_of_risk weight = "0.0247"/>
+		<outstanding_loan weight = "0.0247"/>
+		<borrower_transparency weight = "0.0245"/>
+		<overdue_transparency weight = "0.0245"/>
+		<money_growth weight = "0.024"/>
+		<market_share_growth weight = "0.024"/>
+		<weekly_lending weight = "0.022654"/>
+		<financial_transparency weight = "0.0196"/>
+		<PR_transparency1 weight = "0.01764"/>
+		<investor_growth weight = "0.016"/>
+		<borrower_growth weight = "0.016"/>
+		<weekly_ratio_new_old weight = "0.015183"/>
+		<registered_cap weight = "0.01485"/>
+		<weekly_loan_period weight = "0.01235"/>
+		<top10_ratio_investment weight = "0.01205"/>
+		<top5_ratio_investment weight = "0.01205"/>
+		<weekly_ave_bid_close_time weight = "0.01205"/>
+		<customer_service weight = "0.0098"/>
+		<borrower_HHI weight = "0.00966"/>
+		<third_assurance weight = "0.00807272727273"/>
+		<third_entrust weight = "0.00699636363639"/>
+		<weekly_ave_lending_per_borrower weight = "0.00644"/>
+		<weekly_ave_investment weight = "0.0064106"/>
+		<compensation weight = "0.00538181818182"/>
+		<technical_security weight = "0.00376727272728"/>
+		<weekly_ave_investment_old weight = "0.0027474"/>
+		<debt_transfer weight = "0.00269090909091"/>
+		<real_name weight = "0.00269090909091"/>
+		<PR_transparency2 weight = "0.00196"/>
+		<weekly_ave_lending_per_bid weight = "0.00161"/>
+		<investor_HHI weight = "0.0"/>
+		<ave_annualized_return weight = "0.0"/>
+</score>

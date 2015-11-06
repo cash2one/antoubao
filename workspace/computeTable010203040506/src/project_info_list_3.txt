@@ -1,0 +1,7 @@
+project_info_w
+project_info_r
+project_info_e
+project_info_t
+project_info_x
+project_info_z
+project_info_g

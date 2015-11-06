@@ -1,0 +1,728 @@
+#!/usr/bin/python
+#encoding=utf-8
+
+from atbtools.header import * 
+from atbtools.mysqlTools import *
+from atbtools.computeTools import *
+from atbtools.spiderTools import *
+import xlrd
+import xlwt
+import xlutils.copy
+
+#定义文本格式
+def set_style(name, height, pattern_fore_colour, bold=False, horz_center = True):
+    style = xlwt.XFStyle() # 初始化样式
+     
+    font = xlwt.Font() # 为样式创建字体
+    font.name = name # 'Arial'
+    font.bold = bold
+    font.color_index = 4
+    font.height = height
+     
+    alignment = xlwt.Alignment()
+    alignment.vert = xlwt.Alignment.VERT_CENTER
+    if horz_center:
+        alignment.horz = xlwt.Alignment.HORZ_CENTER
+    else:
+        alignment.vert = xlwt.Alignment.HORZ_LEFT
+#     alignment.wrap = xlwt.Alignment.SHRINK_TO_FIT
+     
+    pattern = xlwt.Pattern()
+    pattern.pattern_fore_colour = pattern_fore_colour
+    # borders= xlwt.Borders()
+    # borders.left= 6
+    # borders.right= 6
+    # borders.top= 6
+    # borders.bottom= 6
+     
+    style.font = font
+    style.alignment = alignment
+    style.pattern = pattern
+    # style.borders = borders
+     
+    return style
+
+# #定义文本格式
+# def set_style(name, height, pattern_fore_colour, bold=False):
+#     style = xlwt.XFStyle() # 初始化样式
+#     
+#     font = xlwt.Font() # 为样式创建字体
+#     font.name = name # 'Arial'
+#     font.bold = bold
+#     font.color_index = 4
+#     font.height = height
+#     
+#     alignment = xlwt.Alignment()
+#     alignment.horz = xlwt.Alignment.HORZ_CENTER
+#     alignment.vert = xlwt.Alignment.VERT_CENTER
+#     
+#     pattern = xlwt.Pattern()
+#     pattern.pattern_fore_colour = pattern_fore_colour
+#     # borders= xlwt.Borders()
+#     # borders.left= 6
+#     # borders.right= 6
+#     # borders.top= 6
+#     # borders.bottom= 6
+#     
+#     style.font = font
+#     style.alignment = alignment
+#     style.pattern = pattern
+#     # style.borders = borders
+#     
+#     return style
+#讲xlrd的merge格式改成xlwt的merge格式  
+def changeXlrd2Xlwt(_index_list):
+    return _index_list[0], _index_list[1] - 1, _index_list[2], _index_list[3] - 1   
+
+#收尾字符串写入处理
+def writeProcess(_string, _info_file): 
+    print _string 
+    print 
+    _info_file.write(_string + "\n\n")
+  
+if __name__ == '__main__':
+    srcdb_Y = "total_status"
+    srcdb_VIEW_MOBILE_OLD = "view_mobile"
+    srcdb_VIEW_MOBILE_NEW = "view_mobile"
+    srcdb_V = "V_view"
+    srcdb_E1 = "platform_quantitative_data_E1"
+    srcdb_A = "platform_quantitative_wdzj_weekly_A"
+    srcdb_B = "platform_quantitative_dcq_weekly_B"
+
+    conn_db = getConn(DBHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_db = getCursors(conn_db)
+    conn_ddpt = getConn(DDPT_DATAHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_ddpt = getCursors(conn_ddpt)
+    conn_dev = getConn(DEVHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_dev = getCursors(conn_dev)
+    conn_serve = getConn(SERVERHOST_OUT, USERNAME, PASSWORD, DB, PORT)
+    cur_server = getCursors(conn_serve)
+    initializeCursors(cur_db, cur_ddpt, cur_dev, cur_server)
+    
+    
+    total_dict = {}
+    
+    total_dict["日期"] = {}
+    total_dict["日期"]["order"] = 0
+    total_dict["日期"]["child"] = []
+    
+    total_dict["时间戳"] = {}
+    total_dict["时间戳"]["order"] = 1
+    total_dict["时间戳"]["child"] = []
+    
+    total_dict["从表A抓取的个数"] = {}
+    total_dict["从表A抓取的个数"]["order"] = 2
+    total_dict["从表A抓取的个数"]["child"] = []
+    
+    total_dict["从表B抓取的个数"] = {}
+    total_dict["从表B抓取的个数"]["order"] = 3
+    total_dict["从表B抓取的个数"]["child"] = []
+    
+    total_dict["从表P补充的个数（好/坏）"] = {}
+    total_dict["从表P补充的个数（好/坏）"]["order"] = 4
+    total_dict["从表P补充的个数（好/坏）"]["child"] = []
+    
+    total_dict["参与排名的个数（好/坏）"] = {}
+    total_dict["参与排名的个数（好/坏）"]["order"] = 5
+    total_dict["参与排名的个数（好/坏）"]["child"] = []
+    
+    total_dict["A++站的百分位和个数"] = {}
+    total_dict["A++站的百分位和个数"]["order"] = 6
+    total_dict["A++站的百分位和个数"]["child"] = []
+    total_dict["A+站的百分位和个数"] = {}
+    total_dict["A+站的百分位和个数"]["order"] = 7
+    total_dict["A+站的百分位和个数"]["child"] = []
+    total_dict["A站的百分位和个数"] = {}
+    total_dict["A站的百分位和个数"]["order"] = 8
+    total_dict["A站的百分位和个数"]["child"] = []
+    total_dict["B++站的百分位和个数"] = {}
+    total_dict["B++站的百分位和个数"]["order"] = 9
+    total_dict["B++站的百分位和个数"]["child"] = []
+    total_dict["B+站的百分位和个数"] = {}
+    total_dict["B+站的百分位和个数"]["order"] = 10
+    total_dict["B+站的百分位和个数"]["child"] = []
+    total_dict["B站的百分位和个数"] = {}
+    total_dict["B站的百分位和个数"]["order"] = 11
+    total_dict["B站的百分位和个数"]["child"] = []
+    total_dict["C站的百分位和个数"] = {}
+
+    total_dict["C站的百分位和个数"]["order"] = 12
+    total_dict["C站的百分位和个数"]["child"] = []
+    
+    total_dict["坏站的个数（AB/P）"] = {}
+    total_dict["坏站的个数（AB/P）"]["order"] = 13 #来自于AB，来自于P
+    total_dict["坏站的个数（AB/P）"]["child"] = []
+    
+    total_dict["本周新增的平台（平台名/现评级(现来源)/现名次/状态）"] = {}
+    total_dict["本周新增的平台（平台名/现评级(现来源)/现名次/状态）"]["order"] = 14 #来自于AB，来自于P
+    total_dict["本周新增的平台（平台名/现评级(现来源)/现名次/状态）"]["child"] = {}
+    
+    total_dict["本周缺失的平台（平台名/原评级(原来源)/原名次/状态）"] = {}
+    total_dict["本周缺失的平台（平台名/原评级(原来源)/原名次/状态）"]["order"] = 15 #来自于AB，来自于P
+    total_dict["本周缺失的平台（平台名/原评级(原来源)/原名次/状态）"]["child"] = {}
+    
+    total_dict["评为A及A以上的坏站（平台名/评级/来源）"] = {}
+    total_dict["评为A及A以上的坏站（平台名/评级/来源）"]["order"] = 16 #来自于AB，来自于P
+    total_dict["评为A及A以上的坏站（平台名/评级/来源）"]["child"] = {}
+    
+    total_dict["升上A的平台（平台名/现评级(现来源)/原评级(原来源)/提升名次/状态）"] = {}
+    total_dict["升上A的平台（平台名/现评级(现来源)/原评级(原来源)/提升名次/状态）"]["order"] = 17
+    total_dict["升上A的平台（平台名/现评级(现来源)/原评级(原来源)/提升名次/状态）"]["child"] = {}
+    
+    total_dict["降下A的平台（平台名/现评级(现来源)/原评级(原来源)/下降名次/状态）"] = {}
+    total_dict["降下A的平台（平台名/现评级(现来源)/原评级(原来源)/下降名次/状态）"]["order"] = 18
+    total_dict["降下A的平台（平台名/现评级(现来源)/原评级(原来源)/下降名次/状态）"]["child"] = {}
+    
+    total_dict["评级有变化的平台（平台名/现评级(现来源)/原评级(原来源)/名次变化/状态）"] = {}
+    total_dict["评级有变化的平台（平台名/现评级(现来源)/原评级(原来源)/名次变化/状态）"]["order"] = 19
+    total_dict["评级有变化的平台（平台名/现评级(现来源)/原评级(原来源)/名次变化/状态）"]["child"] = {}
+    
+    total_dict["黑名单（平台名/状态）"] = {}
+    total_dict["黑名单（平台名/状态）"]["order"] = 20
+    total_dict["黑名单（平台名/状态）"]["child"] = {}
+    
+    total_dict["人工降分策略（平台名/评级）"] = {}
+    total_dict["人工降分策略（平台名/评级）"]["order"] = 21
+    total_dict["人工降分策略（平台名/评级）"]["child"] = {}
+    
+    total_dict["坏站被锁定（平台名/评级/状态）"] = {}
+    total_dict["坏站被锁定（平台名/评级/状态）"]["order"] = 22
+    total_dict["坏站被锁定（平台名/评级/状态）"]["child"] = {}
+    
+    
+    #值是列表的指标汇总
+    list_field_list = []
+    value_field_list = []
+    for field in total_dict:
+        if total_dict[field]["child"] == {}:
+            list_field_list.append(field)
+        else:
+            value_field_list.append(field)
+    list_field_number = len(list_field_list)
+    value_field_number = len(value_field_list)
+    field_list = sortDictByKeyValue(total_dict, "order")[0][::-1]
+    field_number = len(field_list)
+    
+    #预处理
+    date_list = getDifferentFieldlist(srcdb_V, cur_ddpt, "date")
+    this_date = int(date_list[-1])
+    last_date = date_list[-2]
+    this_date_str =  time.strftime("%Y%m%d", time.localtime(this_date))
+    last_date_str =  time.strftime("%Y%m%d", time.localtime(last_date))
+    in_file_name = "dataWeekly_" + last_date_str + ".xls"
+    backup_file_name = "dataWeekly_" + last_date_str + "_backup.xls"
+    save_file_name = "dataWeekly_" + this_date_str + ".xls"
+    in_file = xlrd.open_workbook(in_file_name, formatting_info=True)
+    backup_file = xlutils.copy.copy(in_file)    
+    backup_file.save(backup_file_name)
+    in_sheet = in_file.sheet_by_index(0)
+    for i in range(in_sheet.ncols):
+        if in_sheet.cell(0, i).value == "":
+            column_number = i #总列数
+            break
+    else:
+        column_number = in_sheet.ncols
+    print "历史的周报一共有" + str(column_number - 1) + "周."
+    
+    #考察历史的数据
+    if column_number >= 2:
+        print "增量计算，先获得曾经的数据"
+        last_row_total_dict = {}.fromkeys(list_field_list, 1)
+        for index_list in in_sheet.merged_cells:
+            field = in_sheet.cell_value(index_list[0],index_list[2]).replace("\n", "").encode("utf-8")
+            last_row_total_dict[field] = index_list[1] - index_list[0]
+        for i in range(1, column_number):
+            this_row = 0
+            date = in_sheet.cell_value(1,i)
+            #先处理一列的数据
+            for j in range(value_field_number):
+                field = field_list[j]
+                if field == "日期":
+                    try:
+                        date_tuple = xlrd.xldate_as_tuple(in_sheet.cell_value(j,i), 0)
+                        date_list = [str(date_tuple[i]) for i in range(0,3)]
+                        total_dict[field]["child"].append("/".join(date_list))
+                        this_row += 1
+                    except:
+                        total_dict[field]["child"].append(in_sheet.cell_value(j,i))
+                        this_row += 1
+                else:
+                    total_dict[field]["child"].append(in_sheet.cell_value(j,i))
+                    this_row += 1
+            #再处理多列的数据
+            for field in list_field_list:
+                total_dict[field]["child"][date] = []
+            for j in range(value_field_number, field_number):
+                field = field_list[j]
+                num = last_row_total_dict[field]
+                for k in range(this_row, this_row + num):
+                    value = in_sheet.cell_value(k,i)
+                    if value != "" and len(value) != 0:
+                        total_dict[field]["child"][date].append(value)
+                this_row += num
+
+    #考察本周的数据
+    info_file = open("info.txt", "w")
+    for field in list_field_list:
+        total_dict[field]["child"][this_date] = []
+        
+    #0.Title
+    total_dict["日期"]["child"].append(this_date_str)
+    total_dict["时间戳"]["child"].append(this_date)
+    _string = "本周的时间戳为" + str(this_date) + "(" + time.strftime("%Y-%m-%d", time.localtime(this_date)) + ")"
+    writeProcess(_string, info_file) 
+    
+    #获得所有要考察的平台
+    platform_name_dict = {}
+    this_level_dict = {}
+    stringSQL = "SELECT `platform_id`, `platform_name`, `level` FROM " + srcdb_VIEW_MOBILE_NEW + " WHERE `date` = '" + str(this_date) + "'"
+    cur_dev.execute(stringSQL)
+    for platform_id, platform_name, level in cur_dev.fetchall():
+        platform_name_dict[platform_id] = platform_name
+        this_level_dict[platform_id] = level
+        
+    #1.站的个数
+    A_number = getNumberFromFieldByDate(srcdb_A, cur_db, this_date)
+    total_dict["从表A抓取的个数"]["child"].append(A_number)
+    _string = "本周从表A抓取的站的个数为" + str(A_number) + "." 
+    writeProcess(_string, info_file) 
+    
+    B_number = getNumberFromFieldByDate(srcdb_B, cur_db, this_date)
+    total_dict["从表B抓取的个数"]["child"].append(B_number)
+    _string = "本周从表B抓取的站的个数为" + str(B_number) + "." 
+    writeProcess(_string, info_file)
+    
+    stringSQL = "SELECT `status` FROM " + srcdb_VIEW_MOBILE_NEW + " WHERE `source` = 'P'"
+    P_number = cur_dev.execute(stringSQL)
+    P_number_bad = 0
+    for ret in cur_dev.fetchall():
+        status = float(ret[0])
+        if status < 0.89:
+            P_number_bad += 1
+    P_number_good = P_number - P_number_bad
+    total_dict["从表P补充的个数（好/坏）"]["child"].append(str(P_number) + "(好: " + str(P_number_good) + ", 坏: " + str(P_number_bad) + ")")
+    _string = "本周从表P补充的站的个数为" + str(P_number) + "，其中有" + str(P_number_good) + "个好站和" + str(P_number_bad) + "个坏站."
+    writeProcess(_string, info_file) 
+    
+    stringSQL = "SELECT `status` FROM " + srcdb_VIEW_MOBILE_NEW + " WHERE `date` = '" + str(this_date) + "'"
+    all_number = cur_dev.execute(stringSQL)
+    all_number_bad = 0
+    for ret in cur_dev.fetchall():
+        status = float(ret[0])
+        if status < 0.89:
+            all_number_bad += 1
+    all_number_good = all_number - all_number_bad
+    total_dict["参与排名的个数（好/坏）"]["child"].append(str(all_number) + "(好: " + str(all_number_good) + ", 坏: " + str(all_number_bad) + ")")
+    _string = "本周进入最终排名的站的个数为" + str(all_number) + "，其中有" + str(all_number_good) + "个好站和" + str(all_number_bad) + "个坏站."
+    writeProcess(_string, info_file)
+    
+    #2.不同评级的站的个数
+    level_percent_dict = {}.fromkeys(LEVEL_LIST, 0)
+    fp = open("computeRank.py", "r")
+    for line in fp:
+        if "np.percentile(scoreRange" in line:
+            level = extractor(line, ["\"", "\""])[0]
+            level_percent_dict[level] = float(eval(extractor(line, ["percentile(scoreRange,", ")"])[0]))
+    fp.close()
+         
+    level_number_dict = {}.fromkeys(LEVEL_LIST, 0)
+    stringSQL = "SELECT `level` FROM " + srcdb_VIEW_MOBILE_NEW + " WHERE `date` = '" + str(this_date) + "'"
+    cur_dev.execute(stringSQL)
+    for level in cur_dev.fetchall():
+        level_number_dict[level[0]] += 1
+    _string = "本周不同评级的站的个数为(括号内为各评级设置的百分位)：" 
+    print _string 
+    info_file.write(_string + "\n")
+    for level in LEVEL_LIST:
+        total_dict[level + "站的百分位和个数"]["child"].append("(" + str(level_percent_dict[level]) + "): " + str(level_number_dict[level]))
+        _string = level + "(" + str(level_percent_dict[level]) + "): " + str(level_number_dict[level])
+        print _string 
+        info_file.write(_string + "\n") 
+    print 
+    info_file.write("\n")
+    
+    #3.坏站个数
+    stringSQL = "SELECT `platform_id`, `platform_name`, `status`, `level`, `source` FROM " + srcdb_VIEW_MOBILE_NEW + " WHERE `date` = '" + str(this_date) + "' AND `status` < 0.89" 
+    cur_dev.execute(stringSQL)
+    bad_platform_dict = {}
+    bad_number = 0
+    bad_number_AB = 0
+    for platform_id, platform_name, status, level, source in cur_dev.fetchall():
+        bad_number += 1
+        if level in ["A++", "A+", "A"]:
+            bad_platform_dict[platform_id] = {} 
+            bad_platform_dict[platform_id]["platform_name"] = platform_name 
+            bad_platform_dict[platform_id]["level"] = level 
+            bad_platform_dict[platform_id]["status"] = float(status)
+            bad_platform_dict[platform_id]["source"] = source
+        if source == "AB":
+            bad_number_AB += 1 
+    bad_number_P = bad_number - bad_number_AB
+    total_dict["坏站的个数（AB/P）"]["child"].append(str(bad_number) + "(AB: " + str(bad_number_AB) + ", P: " + str(bad_number_P) + ")")    
+    _string = "本周坏站的个数为" + str(bad_number) + "，其中来自AB数据源的有" + str(bad_number_AB) + "个, 来自P数据源的有" + str(bad_number_P) + "个."
+    print _string 
+    info_file.write(_string + "\n")
+    
+    bad_aboveA_number = len(bad_platform_dict)
+    if bad_aboveA_number == 0:
+        _string = "本周并没有坏站被评为A及A以上."
+        total_dict["评为A及A以上的坏站（平台名/评级/来源）"]["child"][this_date].append("无") 
+        print _string 
+        info_file.write(_string + "\n")
+    else:
+        _string = "本周有" + str(bad_aboveA_number) + "个坏站的评级在A及A以上，它们是："
+        print _string 
+        info_file.write(_string + "\n")
+        count = 0
+        bad_platform_id_list_sorted = sortListByDicts(bad_platform_dict.keys(), [1, -1], getDictFromDict(bad_platform_dict, "status"), getDictFromDict(bad_platform_dict, "level"))
+        for platform_id in bad_platform_id_list_sorted:
+            count += 1
+            _string = bad_platform_dict[platform_id]["platform_name"] + ": " + bad_platform_dict[platform_id]["level"] + ", " + bad_platform_dict[platform_id]["status"]  + ", " + bad_platform_dict[platform_id]["source"]
+            total_dict["评为A及A以上的坏站（平台名/评级/来源）"]["child"][this_date].append(str(count) + ". " + _string) 
+            print _string 
+            info_file.write(_string + "\n")
+    print 
+    info_file.write("\n")
+    
+    fp = open("header.py", "r")
+    count = 0
+    pos = 0
+    LEVEL_PERCENTAGE_DICT = {}
+    hehePunish = {}
+    BLACKLIST = []
+    for line in fp:
+        count += 1
+        if "hehePunish" in line:
+            exec(line)
+        if "BLACKLIST" in line:
+            exec(line)
+        if "LEVEL_PERCENTAGE_DICT" in line:
+            exec(line)
+    fp.close()
+    
+    #获得所有的黑名单
+    black_number = len(BLACKLIST)
+    if black_number == 0:
+        _string = "本周黑名单为空."
+        total_dict["黑名单（平台名/状态）"]["child"][this_date].append("无")
+        print _string 
+        info_file.write(_string + "\n")
+    else:
+        _string = "本周黑名单一共有" + str(black_number) + "个平台，他们的status分别为：" 
+        print _string 
+        info_file.write(_string + "\n")
+        count = 0
+        black_dict = {}
+        for platform_id in BLACKLIST:
+            black_dict[platform_id] = {}
+            black_dict[platform_id]["platform_name"] = platform_id
+            black_dict[platform_id]["status"] = None
+            stringSQL = "SELECT `platform_name`, `status` FROM " + srcdb_Y + " WHERE `platform_id` = '" + platform_id + "' ORDER BY `date` DESC LIMIT 1"
+            ret = cur_db.execute(stringSQL)
+            platform_name, status = cur_db.fetchone()
+            if platform_name != None:
+                black_dict[platform_id]["platform_name"] = platform_name
+            black_dict[platform_id]["status"] = float(status)
+                
+        BLACKLIST_sorted = sortListByDicts(BLACKLIST, [-1], getDictFromDict(black_dict, "status"))
+        for platform_id in BLACKLIST_sorted:
+            count += 1
+            _string = black_dict[platform_id]["platform_name"] + ": " + str(black_dict[platform_id]["status"])
+            total_dict["黑名单（平台名/状态）"]["child"][this_date].append(str(count) + ". " + _string)
+            print _string 
+            info_file.write(_string + "\n")
+    print 
+    info_file.write("\n")   
+
+    #获得所有的降级策略
+    del_platform_id_list = []
+    for platform_id in hehePunish:
+        if platform_id not in platform_name_dict:
+            del_platform_id_list.append(platform_id)
+    for platform_id in del_platform_id_list:
+        del hehePunish[platform_id]
+    punish_dict_number = len(hehePunish)
+    if punish_dict_number == 0:
+        _string = "本周没有人工降分策略为空." 
+        total_dict["人工降分策略（平台名/评级）"]["child"][this_date].append("无") 
+        print _string 
+        info_file.write(_string + "\n")
+    else:
+        _string = "本周有" + str(punish_dict_number) + "个人工降分策略，它们的最终评级为：" 
+        print _string
+        info_file.write(_string + "\n")
+        count = 0
+        punish_dict = {}
+        for platform_id in hehePunish:
+            punish_dict[platform_id] = {}
+            punish_dict[platform_id]["platform_name"] = platform_name_dict[platform_id]
+            punish_dict[platform_id]["del_score"] = float(hehePunish[platform_id])
+            punish_dict[platform_id]["level"] = this_level_dict[platform_id]
+                    
+        hehePunish_sorted = sortListByDicts(hehePunish.keys(), [1, -1], getDictFromDict(punish_dict, "del_score"), getDictFromDict(punish_dict, "level"))
+        
+        for platform_id in hehePunish_sorted:
+            count += 1
+            del_score = punish_dict[platform_id]["del_score"]
+            del_score *= -1
+            if del_score < 0 :
+                del_score = str(del_score)
+            else:
+                del_score = "+" + str(del_score)
+            _string = punish_dict[platform_id]["platform_name"] + "(" + del_score + "): "  + punish_dict[platform_id]["level"]
+            total_dict["人工降分策略（平台名/评级）"]["child"][this_date].append(str(count) + ". " + _string)
+            print _string 
+            info_file.write(_string + "\n")
+    print 
+    info_file.write("\n") 
+    
+    #坏站评级锁定
+    #获得所有站的total_status状态
+    status_dict_whole = {}
+    stringSQL = "SELECT A.platform_name, A.status FROM " + srcdb_Y + " AS A,(SELECT `platform_name`, MAX(`date`) AS `date` FROM " + srcdb_Y + " GROUP BY `platform_name`) AS B WHERE A.platform_name = B.platform_name AND A.date = B.date AND A.`status` < '0.89'"
+    cur_db.execute(stringSQL)
+    for platform_name, status in cur_db.fetchall():
+        status_dict_whole[platform_name] = status
+    BADLEVEL = {}
+    stringSQL = "SELECT `platform_name`, `level`, `status` FROM " + srcdb_Y + " WHERE `status` < 0.89 AND `level` IS NOT NULL"
+    ret = cur_db.execute(stringSQL)
+    for platform_name, level, status in cur_db.fetchall():
+        BADLEVEL[platform_name] = {}
+        BADLEVEL[platform_name]["level"] = level
+        BADLEVEL[platform_name]["status"] = float(status)
+    bad_dict_number = len(BADLEVEL)
+    if bad_dict_number == 0:
+        _string = "本周没有坏站的评级被锁定." 
+        total_dict["坏站被锁定（平台名/评级/状态）"]["child"][this_date].append("无") 
+        print _string 
+        info_file.write(_string + "\n")
+    else:
+        _string = "本周有" + str(bad_dict_number) + "个坏站的评级被锁定，分别为："
+        print _string
+        info_file.write(_string + "\n")
+        count = 0
+        BADLEVEL_sorted = sortListByDicts(BADLEVEL.keys(), [-1, -1], getDictFromDict(BADLEVEL, "level"), getDictFromDict(BADLEVEL, "status"))
+
+        for platform_name in BADLEVEL_sorted:
+            count += 1
+            _string = platform_name + ": " + BADLEVEL[platform_name]["level"] + ", " + str(BADLEVEL[platform_name]["status"])
+            total_dict["坏站被锁定（平台名/评级/状态）"]["child"][this_date].append(str(count) + ". " + _string)
+            print _string
+            info_file.write(_string + "\n")
+    print 
+    info_file.write("\n") 
+
+    #本周进出A评级的站
+    this_aboveA = []
+    this_belowA = []
+    last_aboveA = []
+    last_belowA = []
+    this_status_dict = {}
+    last_status_dict = {}
+    this_level_dict = {}
+    last_level_dict = {}
+    this_rank_dict = {}
+    last_rank_dict = {}
+    this_source_dict = {}
+    last_source_dict = {}
+    stringSQL = "SELECT `platform_name`, `level`, `rank_score`, `status`, `source` FROM " + srcdb_VIEW_MOBILE_NEW + " WHERE `date` = '" + str(this_date) + "'"
+    cur_dev.execute(stringSQL)
+    for platform_name, level, rank_score, status, source in cur_dev.fetchall():
+        this_level_dict[platform_name] = level
+        this_source_dict[platform_name] = source
+        if level in ["A", "A+", "A++"]:
+            this_aboveA.append(platform_name)
+        else:
+            this_belowA.append(platform_name)
+        this_rank_dict[platform_name] = rank_score
+        this_status_dict[platform_name] = status
+    stringSQL = "SELECT `platform_name`, `level`, `rank_score`, `source` FROM " + srcdb_VIEW_MOBILE_OLD + " WHERE `date` = '" + str(last_date) + "'"
+    cur_server.execute(stringSQL)
+    for platform_name, level, rank_score, source in cur_server.fetchall():
+        last_level_dict[platform_name] = level
+        last_source_dict[platform_name] = source
+        if level in ["A", "A+", "A++"]:
+            last_aboveA.append(platform_name)
+        else:
+            last_belowA.append(platform_name)
+        last_rank_dict[platform_name] = rank_score
+        last_status_dict[platform_name] = status
+    this_in_A = list(set(this_aboveA) & set(last_belowA))
+    this_out_A = list(set(this_belowA) & set(last_aboveA))
+    this_in_A_number = len(this_in_A)
+    this_out_A_number = len(this_out_A)    
+    if this_in_A_number == 0:
+        _string = "本周没有升上A的平台."
+        total_dict["升上A的平台（平台名/现评级(现来源)/原评级(原来源)/提升名次/状态）"]["child"][this_date].append("无")  
+        writeProcess(_string, info_file)
+    else:
+        count = 0
+        _string = "本周有" + str(this_in_A_number) + "个平台升上A，分别为：" 
+        print _string
+        info_file.write(_string + "\n")
+        var_score_dict = {}
+        for platform_name in this_in_A:
+            var_score_dict[platform_name] = last_rank_dict[platform_name] - this_rank_dict[platform_name]
+        this_in_A_sorted = sortListByDicts(this_in_A, [-1, -1], this_level_dict, var_score_dict)    
+        for platform_name in this_in_A_sorted:
+            count += 1
+            var_score = var_score_dict[platform_name]
+            if var_score > 0:
+                var_score = "+" +str(var_score)
+            else:
+                var_score = str(var_score)
+            _string = platform_name + ": " + this_level_dict[platform_name] + "(" + this_source_dict[platform_name] + "), " + last_level_dict[platform_name] + "(" + last_source_dict[platform_name] + "), " + str(var_score) + ", " + str(this_status_dict[platform_name])
+            total_dict["升上A的平台（平台名/现评级(现来源)/原评级(原来源)/提升名次/状态）"]["child"][this_date].append(str(count) + ". " + _string)
+            writeProcess(_string, info_file)
+    if this_out_A_number == 0:
+        _string = "本周没有降下A的平台." 
+        total_dict["降下A的平台（平台名/现评级(现来源)/原评级(原来源)/下降名次/状态）"]["child"][this_date].append("无")  
+        writeProcess(_string, info_file)
+    else:
+        count = 0
+        _string = "本周有" + str(this_out_A_number) + "个平台降下A，分别为：" 
+        writeProcess(_string, info_file)
+        var_score_dict = {}
+        for platform_name in this_out_A:
+            var_score_dict[platform_name] = last_rank_dict[platform_name] - this_rank_dict[platform_name]
+        this_out_A_sorted = sortListByDicts(this_out_A, [-1, -1], this_level_dict, var_score_dict) 
+        for platform_name in this_out_A_sorted:
+            count += 1
+            var_score = var_score_dict[platform_name]
+            if var_score > 0:
+                var_score = "+" +str(var_score)
+            else:
+                var_score = str(var_score)
+            _string = platform_name + ": " + this_level_dict[platform_name] + "(" + this_source_dict[platform_name] + "), " + last_level_dict[platform_name] + "(" + last_source_dict[platform_name] + "), " + str(var_score) + ", " + str(this_status_dict[platform_name])
+            total_dict["降下A的平台（平台名/现评级(现来源)/原评级(原来源)/下降名次/状态）"]["child"][this_date].append(str(count) + ". " + _string)
+            writeProcess(_string, info_file)
+    
+    #本周新增和缺失的平台
+    this_add_list = list(set(this_level_dict) - set(last_level_dict))
+    this_del_list = list(set(last_level_dict) - set(this_level_dict))
+    this_add_number = len(this_add_list)
+    this_del_number = len(this_del_list)
+    if this_add_number == 0:
+        _string = "本周没有新增的平台."
+        total_dict["本周新增的平台（平台名/现评级(现来源)/现名次/状态）"]["child"][this_date].append("无")  
+        writeProcess(_string, info_file)
+    else:
+        count = 0
+        _string = "本周有" + str(this_add_number) + "个新增的平台，分别为：" 
+        print _string
+        info_file.write(_string + "\n")
+        this_add_list_sorted = sortListByDicts(this_add_list, [-1, -1], this_level_dict, this_rank_dict)    
+        for platform_name in this_add_list_sorted:
+            count += 1
+            _string = platform_name + ": " + this_level_dict[platform_name] + "(" + this_source_dict[platform_name] + "), " + str(this_rank_dict[platform_name]) + ", " + str(this_status_dict[platform_name])
+            total_dict["本周新增的平台（平台名/现评级(现来源)/现名次/状态）"]["child"][this_date].append(str(count) + ". " + _string)
+            writeProcess(_string, info_file)
+    if this_del_number == 0:
+        _string = "本周没有缺失的平台."
+        total_dict["本周缺失的平台（平台名/原评级(原来源)/原名次/状态）"]["child"][this_date].append("无")  
+        writeProcess(_string, info_file)
+    else:
+        count = 0
+        _string = "本周有" + str(this_del_number) + "个缺失的平台，分别为：" 
+        print _string
+        info_file.write(_string + "\n")
+        this_del_list_sorted = sortListByDicts(this_del_list, [-1, -1], last_level_dict, last_rank_dict)    
+        for platform_name in this_del_list_sorted:
+            count += 1
+            _string = platform_name + ": " + last_level_dict[platform_name] + "(" + last_source_dict[platform_name] + "), " + str(last_rank_dict[platform_name]) + ", " + str(last_status_dict[platform_name])
+            total_dict["本周缺失的平台（平台名/原评级(原来源)/原名次/状态）"]["child"][this_date].append(str(count) + ". " + _string)
+            writeProcess(_string, info_file)
+    
+    #本周评级有变化的站
+    this_change_list = []
+    for platform_name in this_level_dict:
+        if platform_name in last_level_dict:
+            if this_level_dict[platform_name] != last_level_dict[platform_name]:
+                this_change_list.append(platform_name)
+    this_change_num = len(this_change_list)
+    if this_change_num == 0:
+        _string = "本周没有评级变化的平台." 
+        total_dict["评级有变化的平台（平台名/现评级(现来源)/原评级(原来源)/名次变化/状态）"]["child"][this_date].append("无")
+        writeProcess(_string, info_file)
+    else:
+        count = 0
+        _string = "本周有" + str(this_change_num) + "个平台评级有变化：" 
+        print _string
+        info_file.write(_string + "\n")
+        var_score_dict = {}
+        for platform_name in this_change_list:
+            var_score_dict[platform_name] = last_rank_dict[platform_name] - this_rank_dict[platform_name]
+        this_change_sorted = sortListByDicts(this_change_list, [-1, -1], this_level_dict, var_score_dict) 
+        for platform_name in this_change_sorted:
+            count += 1
+            var_score = var_score_dict[platform_name]
+            if var_score > 0:
+                var_score = "+" +str(var_score)
+            else:
+                var_score = str(var_score)
+            _string = platform_name + ": " + this_level_dict[platform_name] + "(" + this_source_dict[platform_name] + "), " + last_level_dict[platform_name] + "(" + last_source_dict[platform_name] + "), " + str(var_score) + ", " + str(this_status_dict[platform_name])
+            total_dict["评级有变化的平台（平台名/现评级(现来源)/原评级(原来源)/名次变化/状态）"]["child"][this_date].append(str(count) + ". " + _string)
+            writeProcess(_string, info_file)
+
+    #写入excel数据表
+    out_file = xlwt.Workbook(encoding = 'utf-8')
+    out_sheet = out_file.add_sheet("sheet1", cell_overwrite_ok=True)
+    date_list = []
+    max_row_total_dict = {}        
+    for field in list_field_list:
+        number_list = []
+        for date in total_dict[field]["child"]:
+            if date not in date_list:
+                date_list.append(date)
+            number_list.append(len(total_dict[field]["child"][date]))
+        max_row_total_dict[field] = max(number_list)
+    date_list.sort()
+    date_number = len(date_list)
+    initial_column = 1
+    #先写属性名称
+    this_row = 0
+    for field in field_list:
+        if field not in list_field_list:
+            out_sheet.write(this_row, 0, field, set_style('Arial', 220, 3, True, True))
+#             out_sheet.write(this_row, 0, field, set_style('Arial', 220, 3, True))
+            this_row += 1
+            if field == "坏站的个数（AB/P）":
+                this_row += 1
+        else:
+            out_sheet.write_merge(this_row, this_row + max_row_total_dict[field] , 0, 0, field, set_style('Arial', 220, 3, True, True))
+#             out_sheet.write_merge(this_row, this_row + max_row_total_dict[field] , 0, 0, field, set_style('Arial', 220, 3, True))
+            this_row += max_row_total_dict[field] + 1
+
+    for i in range(date_number):
+        date = date_list[i]
+        this_column = initial_column + i
+        this_row = 0
+        for field in field_list:
+            if field not in list_field_list:
+                value = total_dict[field]["child"][i]
+                try:
+                    value_int = int(value)
+                except:        
+                    out_sheet.write(this_row, this_column, value, set_style('Arial', 220, 1, False, True))
+#                     out_sheet.write(this_row, this_column, value, set_style('Arial', 220, 1, False))
+                else:
+                    if value == value_int:
+                        out_sheet.write(this_row, this_column, value_int, set_style('Arial', 220, 1, False, True))
+#                         out_sheet.write(this_row, this_column, value_int, set_style('Arial', 220, 1, False))
+                    else:
+                        out_sheet.write(this_row, this_column, value, set_style('Arial', 220, 1, False, True))
+#                         out_sheet.write(this_row, this_column, value, set_style('Arial', 220, 1, False))
+                this_row += 1
+                if field == "坏站的个数（AB/P）":
+                    this_row += 1
+            else:
+                value_list = total_dict[field]["child"][date]
+                value_number = len(value_list)
+                for i in range(value_number):
+                    out_sheet.write(this_row + i, this_column, value_list[i], set_style('Arial', 220, 1, False, False))
+#                     out_sheet.write(this_row + i, this_column, value_list[i], set_style('Arial', 220, 1, False))
+                this_row += max_row_total_dict[field] + 1 
+    out_file.save(save_file_name)
+    
+    closeCursors(cur_db, cur_dev, cur_ddpt, cur_server)
+    closeConns(conn_db, conn_dev, conn_ddpt, conn_serve)  

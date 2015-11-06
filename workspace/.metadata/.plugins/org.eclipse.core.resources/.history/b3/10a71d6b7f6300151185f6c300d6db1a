@@ -1,0 +1,48 @@
+#!/use/bin/python
+#coding=utf-8
+
+import random
+import time
+def InsertSort(_list):
+    value_list = [_list[0]]
+    for value_new in _list[1:]:
+        count = 0
+        for value_old in value_list:
+            if value_old >= value_new:
+                break
+            count += 1
+        value_list.insert(count, value_new)
+    return value_list
+
+def ShellSort(_list):
+    value_list = _list[::]
+    list_number = len(_list)
+    d = list_number / 2
+    while d > 0:
+        for i in range(d):
+            index_list = range(i, list_number, d)
+            list_temp = _list[i::d]
+            list_temp = InsertSort(list_temp)
+            for j in range(index_list):
+                value_list[index_list[j]] = list_temp[j]
+        d /= 2
+    return value_list
+    
+if __name__ == "__main__":
+    N = 20
+    value_list = random.sample(range(N), N)
+    print "排序以前："
+    print value_list
+    
+    start = time.time()
+    print "直接插入排序以后："
+    print InsertSort(value_list) 
+    end = time.time()
+    print "花费" + str(end - start) + "秒."
+    start = time.time()
+    
+    print "希尔排序以后："
+    print InsertSort(value_list)
+    print "花费" + str(end - start) + "秒."
+    print "原数列："
+    print value_list

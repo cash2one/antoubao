@@ -1,0 +1,117 @@
+#!/usr/bin/python
+# coding=utf-8
+import time
+import socket
+
+HOST = "127.0.0.1"
+DBHOST_OUT = "db-x1.antoubao.cn"
+DEVHOST_OUT = "dev-x1.antoubao.cn"
+ANAHOST_OUT = "ana-x1.antoubao.cn"
+SERVERHOST_OUT = "server-01.antoubao.cn"
+DDPT_DATAHOST_OUT = "ddpt-data.antoubao.cn"
+DDPT_TESTHOST_OUT = "ddpt-test.antoubao.cn"
+DBHOST = "db-x1"
+DEVHOST = "dev-x1"
+ANAHOST = "ana-x1"
+SERVERHOST = "server-01"
+DDPT_DATAHOST = "ddpt-data"
+DDPT_TESTHOST = "ddpt-test"
+DBHOST_OUT = "db-x1"
+DEVHOST_OUT = "dev-x1"
+ANAHOST_OUT = "ana-x1"
+SERVERHOST_OUT = "server-01"
+DDPT_DATAHOST_OUT = "ddpt-data"
+DDPT_TESTHOST_OUT = "ddpt-test"
+HOST_LIST = ["DBHOST", "DEVHOST", "ANAHOST", "SERVERHOST", "DDPT_DATAHOST", "DDPT_TESTHOST"]
+HOST_NUMBER = len(HOST_LIST)
+for i in range(HOST_NUMBER):
+    HOST_NAME = ""
+    HOST_ADDRESS = ""
+    try:
+        print "HOST_NAME = '" + HOST_LIST[i] + "'"
+        exec("HOST_NAME = '" + HOST_LIST[i] + "'")
+        socket.gethostbyname(HOST_NAME)
+    except:
+        print HOST_NAME + "_OUT = '" + HOST_LIST[i] + ".antoubao.cn'"
+        exec(HOST_NAME + "_OUT = '" + HOST_LIST[i] + ".antoubao.cn'")
+HOST_OUT_LIST = [DBHOST_OUT, DEVHOST_OUT, ANAHOST_OUT, SERVERHOST_OUT, DDPT_DATAHOST_OUT, DDPT_TESTHOST_OUT]
+print HOST_OUT_LIST
+exit(0)
+PORT = 3306
+USERNAME_ROOT = "root"
+PASSWORD_ROOT = "4njMOzOjli"
+USERNAME = "chengxu"
+PASSWORD = "chengxu.gbh"
+USERNAME_XB = "xiebo"
+PASSWORD_XB = "xiebo.wsx"
+DATEXML = "./date.xml"
+DB = "antoubao"
+LEVEL_LIST = ["A++", "A+", "A", "B++", "B+", "B", "C"]
+PAYMENTMETHODDICT = {"无需还款":1, "按天一次性本息":2, "按月付息,到期还本":3, "按月等额本息":4, "按季分期":5, "按月还息，季还1/4本金":6, "一次付息，到期还本":7, "按季等额本金":8, "按年付息到期还本":9}
+FIELDLISTCLEAN = ["id", "project_id", "project_name", "site_id", "borrower", "investor", "payment_method", "loan_period", "annulized_rating", "borrowing_amount", "release_time", "end_time"]
+INITIALDATE = "2015-03-29"
+HOMEPAGEURL = "http://www.jlsj888.cn/" #佳璐数据的主页
+USER_AGENT = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.152 Safari/537.36" #User-Agent
+HOMEPAGEPLATFORMSPECIAL = ['<a href="http://www.jlsj888.cn/platform.php?site_name=', 'target="_blank">', '</a>'] #在主页获取平台名称的特征列表
+HOMEPAGEINDEXSPECIAL = ['<table id="example" class="display"', '<thead><tr><th>', '</th></tr></thead>'] #在主页获取指标名称的特征列表
+HOMEPAGEINDEX_SPLIT = "</th><th>" #主页指标名称的分隔符
+HOMEPAGEINDEXSPECIAL_VALUE = ['<tbody>', 'platform_name', '<td>', '</tr>']
+HOMEPAGEINDEXSPECIAL_VALUE_SPLIT = "</td><td>" #主页指标具体数值的分隔符
+SPIDERLASTWEEKS = 10 #spider的持续周数
+SEARCHPAGEURL = "http://www.jlsj888.cn/data.php?site_name=" #佳璐数据的平台详情页
+TOPBORROWERPAGEURL = "http://www.jlsj888.cn/sjckxz/jkrph.php?site_name=" #佳璐数据的平台top贷款人详情页
+TOPINVESTORPAGEURL = "http://www.jlsj888.cn/sjckxz/tzrph.php?site_name=" #佳璐数据的平台top投资人详情页
+LINEDATE = "1422720000"
+STARTDATE = 1422720000
+INITIALTIMESTRAMP = 1417881600  #2014年12月7日周日的0点
+DURATIONWEEKS = 300  # 300周的时间
+DAYSPERYEAR = 360
+MONTHSPERYEAR = 12
+DAYSPERHALFMONTH = 15
+DAYSPERMONTH = 30
+DAYSPERWEEK = 7
+WEEKSPERYEAR = 52
+SECONDSPERDAY = 86400
+SECONDSPERWEEK = 604800
+MONTHSPERQUARTOR = 3
+QUARTORSPERYEAR = 4
+WEEKSPERMONTH = 4
+WEEKSPERQUARTOR = 12
+DAYSPERQUARTOR = 90
+BUFFERNUMBER = 100 #设置多个缓冲点，可以估计程序运行时间
+LASTLENDINGWEEKS = 4 #过去几周的的总借款量，默认为4周
+FUTUREPAYBACKWEEKS = 4 #未来几周的的待还款量，默认为4周
+FUTUREPAYBACKEVER = 1000 #未来所有的待还款量，默认为1000周
+INITIALYEAR = 2013 #所有平台数据的最早年份
+MAXPLATFORMSCORE = 10000 #平台打分的最大值
+MINPLATFORMSCORE = -10000 #平台打分的最小值
+LIMITEDLEVELFORBIAS = "levela" #贝叶斯计算当中截取等级1的最低平均等级
+RATEGOODBAD = 2 #最后的计分中，好站和坏站的比例
+SHIFTWEEKS_BIAS = 2 #在贝叶斯计算权重的时候，提取坏站数据需要提前的周数
+SHIFTWEEKS_ML = 2 #在获得机器学习数据的时候，提取坏站数据需要提前的周数
+LASTWEEKS_BIAS = 4 #在贝叶斯计算权重的时候，提取坏站数维持的周数
+LASTWEEKS_ML = 8 #在获得机器学习数据的时候，提取坏站数维持的周数
+RANKFLOATING = 20 #在贝叶斯计算权重的时候，允许的排名上下浮动值。
+LISTCUT = 0.1 #在计算closetime的时候，上下截取的百分比
+WRONGNUMBER = 0 #在计算表中，出现分母为零时候的默认值
+WEIGHTAB = 0.5 #A、B外来数据源中的数据所占权重（总数据源=A+B+project_info）
+MONEYUNIT = 10000 #project_info中和钱有关的单位
+FULLBIDPERCENT= 0.95 #投资额达到借款额的百分比，在这个数字之上即为满标
+MAXBIDCLOSEWEEKS = 4 #每个标开放窗口的最长时间（用于compute0106的增量，只取end_time在这个时间之后的）
+BLOCKCONTAINS = 4 #贝叶斯分组计算权重时每组的指标数
+MAXWAITINGTIME = 5 #重写数据库时候的等待时间，防止产生误读
+INDEXNODE = 1434816000 #指数指标的时间节点
+INDEXTOLERANCE = 4 #指数指标的时间节点的向前最大误差
+INDEXPERIOD = 12 #指数指标中waiting的更新周期
+GOODRANK = 50 #指数数据时默认好站的排名
+RANKALL = 300 #周指数数据中共有的平台数量
+DAYBIDMAX = 3 #天标的最大期限（在该期限以下不计入weekly_lending_adjust）
+USER_AGENTS_ALL = ['Windows IE 6', 'Windows IE 7', 'Windows Mozilla', 'Mac Safari', 'Mac FireFox', 'Mac Mozilla', 'Linux Mozilla', 'Linux Firefox', 'Linux Konqueror']
+USER_AGENTS_bad = ['Windows Mozilla', 'Mac Mozilla', 'Linux Mozilla']
+USER_AGENT_LIST = list(set(USER_AGENTS_ALL) - set(USER_AGENTS_bad)) #可用的HEADER
+TIMESTAMPNOW = int(time.time())
+DATENOW = TIMESTAMPNOW - (TIMESTAMPNOW - 1357401600) % SECONDSPERWEEK
+TIMESTAMP_LIST = range(DATENOW, INITIALTIMESTRAMP - 1, -SECONDSPERWEEK)
+TIMESTAMP_LIST = TIMESTAMP_LIST[0:1]
+MINBORROWERNUMBER = 2 #最小借款人数（再小的话会删除）
+MINPLATFORMSNUMBER_BIAS = 5 #贝叶斯计算中如果某个等级含有的平台数小于次数则删除此等级

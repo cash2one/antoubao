@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Strict//EN">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<link href="/static/css/global.css" rel="stylesheet" />
+<title> 我要投资 -  果树财富-全球首家众筹成立的P2P平台-投资人自己的网贷平台-网贷-P2P-网络理财-P2P理财-P2P平台-最安全的P2P网贷平台-P2P平台排行榜-最好的P2P平台-最好的网贷平台-网贷平台排行榜</title>
+<meta name="description" content="果树财富-全球首家众筹成立的P2P平台-投资人自己的网贷平台-网贷-P2P-网络理财-P2P理财-P2P平台-最安全的P2P网贷平台-P2P平台排行榜-最好的P2P平台-最好的网贷平台-网贷平台排行榜"  />
+<link rel="icon" href="/static/images/icon/favicon.ico" type="image/vnd.microsoft.icon">
+<script src="/static/js/jquery.min.js"></script>
+<meta name="baidu-site-verification" content="yqn9U4OkNc" />
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?4288c226e26da81b470b551fee22bb0c";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+  
+</head>
+<body>
+<div class="pg-container">
+<!--头部开始-->
+	<div class="pg-header">
+    	<div class="pg-header-top">
+        	<div class="container_10 pt15">
+            	<div class="grid_5">
+                	<i class="icons i-phone fl mr5"></i>
+                    <span class="fl lh20 f15 bold">全国服务热线：4008-3210-33  交流群：201385713</span>
+                </div>
+                <div class="grid_5" style="position:relative;z-index:999">
+					<div class="fr lh20">      
+                        <a class="af" href="/guideInvest/main.html">新手指引</a>&nbsp; | 
+               
+                        <a class="af" href="/contactus/main.html">联系我们</a>&nbsp; | 
+                                             <!--显示登录注册-->
+                        <a href="/user/reg.html" class="af">注册</a>&nbsp; | 
+                        <a href="/user/login.html" class="af">登录</a>
+                                            </div>
+                </div>
+            </div>
+        </div>
+        <div class="pg-header-main">
+            <div class="container_10">
+                <div class="grid_2_2" ><span class="f36 mt15 fl"><a href="/"><img src="/static/images/icon/logo1.png"></a></span></div>
+                
+                <div class="grid_6" >
+                    <ul class="main-nav" style="margin-right:-25px;">
+                        <li class="main-nav-item"><a href="/" class="main-nav-item-link af ">首页</a></li>
+                        <li class="main-nav-item"><a href="/invest/main.html" class="main-nav-item-link af ">我要投资</a></li>
+                        <li class="main-nav-item nav-list-top">
+                        	<a href="/guideInvest/main.html" class="main-nav-item-link af ">新手指引<i class="down_img"></i></a>
+                            <div class="nav-dropdown nav-dropdown-min" style="left:0px">
+                                <ul>
+                                    <li class="nav-dropdown-angle"><span></span></li>
+                                    <li class="nav-dropdown-item"><a href="/guideInvest/main.html">理财帮助</a></li>
+                                    <li class="nav-dropdown-item"><a href="/guideBorrow/main.html">借款帮助</a></li>
+                                    <li class="nav-dropdown-item"><a href="/security/main.html">安全保障</a></li>
+                                    <li class="nav-dropdown-item"><a href="/help_about/main.html">常见问题</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="main-nav-item relative nav-list-top">
+                        	<a href="/about/main.html" class="main-nav-item-link af ">关于我们<i class="down_img"></i></a>
+                            <div class="nav-dropdown nav-dropdown-min" style="left:0px">
+                                <ul>
+                                    <li class="nav-dropdown-angle"><span></span></li>
+                                    <li class="nav-dropdown-item"><a href="/about/main.html">公司简介</a></li>
+                                    <li class="nav-dropdown-item"><a href="/aboutgroup/main.html">股东概况</a></li>
+                                    <li class="nav-dropdown-item"><a href="/notice/main.html">官方公告</a></li>
+                                    <li class="nav-dropdown-item"><a href="/expenses/main.html">资费说明</a></li>
+                                </ul>
+                            </div>
+                       </li>
+                       <li class="main-nav-item"><a href="/bbs/main.html" class="main-nav-item-link af ">果树论坛</a></li>
+                    </ul>
+                </div>
+               
+            </div>
+        </div>
+    </div>
+<!--头部结束-->  <link href="/static/css/invest.css" rel="stylesheet" />    <!--主体模块开始-->
+<script>alert('您操作有误，请不要乱操作');location.href='/invest/main.html';</script>

@@ -1,0 +1,4 @@
+认证方式：将cookie复制到COOKIE文件
+
+列表翻页为POST请求，需将__VIEWSTATE字段复制到VIEWSTATE文件
+

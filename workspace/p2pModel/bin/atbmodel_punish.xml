@@ -1,0 +1,32 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<punish>		
+
+		<PU001 deduction = "6"/>
+		<PU002 deduction = "0"/>
+		<PU003 deduction = "0"/>
+		<PU004 deduction = "0"/>
+		<PU0051 deduction = "0"/>
+		<PU0052 deduction = "4"/>
+		<PU0061 deduction = "2"/>
+		<PU0062 deduction = "0"/>
+		<PU007 deduction = "0"/>
+		<PU011 deduction = "0"/>
+		<PU0121 deduction = "6"/>
+		<PU0122 deduction = "6"/>
+		<PU021 deduction = "0"/>
+		<PU022 deduction = "0"/>
+		<PU023 deduction = "2"/>
+		<PU031 deduction = "2"/>
+		<PU032 deduction = "4"/>
+		<PU0331 deduction = "0"/>
+		<PU0332 deduction = "6"/>
+		<PU041 deduction = "0"/>
+		<PU042 deduction = "2"/>
+		<PU043 deduction = "8"/>
+		<PU044 deduction = "0"/>
+		<PU045 deduction = "2"/>
+		<PU046 deduction = "2"/>
+		<PU047 deduction = "4"/>
+		<PU051 deduction = "0"/>
+		
+</punish>

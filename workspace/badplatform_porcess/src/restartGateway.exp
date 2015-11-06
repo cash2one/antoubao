@@ -1,0 +1,24 @@
+#!/usr/bin/expect
+
+#设定timeout指为-1，让 expect 永远等待输入
+set timeout -1
+set user service 
+set passwd 18611715163 
+set server server-01.antoubao.cn 
+set port 22
+
+spawn ssh $user@$server -p $port
+expect "password:"
+send "${passwd}\n"
+expect "service@server-01:" 
+send "killall gateway \n"
+while (1) {
+    expect {
+        "0 DEBUG" {break}
+        "service@server-01:" {send "ps aux | grep gateway \n"}
+    }
+    sleep 0.5
+}        
+send "exit\n"
+expect eof
+exit

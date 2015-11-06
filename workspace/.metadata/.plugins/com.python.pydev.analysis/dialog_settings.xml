@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="SearchIndexPage">
+		<item value="3" key="HISTORY_SIZE"/>
+		<section name="HISTORY2">
+			<item value="false" key="isCaseSensitive"/>
+			<item value="1" key="scope"/>
+			<item value="p2pModel" key="scopeData"/>
+			<item value="注册资本" key="textPattern"/>
+			<item value="*" key="filenamePattern"/>
+		</section>
+		<section name="HISTORY0">
+			<item value="false" key="isCaseSensitive"/>
+			<item value="1" key="scope"/>
+			<item value="p2pModel" key="scopeData"/>
+			<item value="0.0001" key="textPattern"/>
+			<item value="*" key="filenamePattern"/>
+		</section>
+		<section name="HISTORY1">
+			<item value="false" key="isCaseSensitive"/>
+			<item value="1" key="scope"/>
+			<item value="atbtools" key="scopeData"/>
+			<item value="compile" key="textPattern"/>
+			<item value="*" key="filenamePattern"/>
+		</section>
+	</section>
+</section>
