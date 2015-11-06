@@ -1,0 +1,4 @@
+/workspace_1/spider
+*.pyc
+/workspace/index/src/picture
+*.exe
